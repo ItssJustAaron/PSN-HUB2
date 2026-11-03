@@ -31,11 +31,63 @@
       flex-direction: column;
       align-items: center;
       padding: 20px;
+      position: relative;
+    }
+
+    /* CRT Overlay - Starts Hidden (OFF) */
+    #crt-overlay {
+      display: none; /* OFF by default */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+      background-size: 100% 3px, 6px 100%;
+    }
+
+    /* Active CRT class */
+    body.crt-active #crt-overlay {
+      display: block;
+    }
+
+    body.crt-active {
+      text-shadow: 0 0 1px rgba(57, 255, 20, 0.5);
     }
 
     header {
       text-align: center;
       margin-bottom: 24px;
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .crt-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: #9ca3af;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .crt-toggle-btn.on {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
     }
 
     h1 {
@@ -143,8 +195,16 @@
   </style>
 </head>
 <body>
+  <!-- CRT Layer (Off by default) -->
+  <div id="crt-overlay"></div>
+
   <div class="container">
     <header>
+      <div class="top-controls">
+        <button id="crt-toggle" class="crt-toggle-btn" onclick="toggleCRT()">
+          CRT: <span id="crt-status">OFF</span>
+        </button>
+      </div>
       <h1>PSNHUB-2</h1>
       <span class="badge" id="fw-badge">Initializing...</span>
     </header>
@@ -159,7 +219,7 @@
         <span class="btn-desc">Mount & manage virtual optical drives / raw images</span>
       </button>
 
-      <!-- ELF 2 -->
+      <!-- ELF Loader -->
       <button class="payload-btn" onclick="loadElfPayload('elfldr-ps5-1.0.0.elf')">
         <div class="btn-header">
           <span class="btn-icon">⚡</span>
@@ -168,7 +228,7 @@
         <span class="btn-desc">Standard ELF loader daemon for inbound sockets</span>
       </button>
 
-      <!-- BIN / Other Payloads -->
+      <!-- kstuff -->
       <button class="payload-btn" onclick="loadElfPayload('kstuff.elf')">
         <div class="btn-header">
           <span class="btn-icon">🛠️</span>
@@ -183,6 +243,27 @@
 
     <div class="footer">PSNHUB-2 Host / Relapse Engine</div>
   </div>
+
+  <script>
+    // CRT toggle functionality (Defaults to OFF)
+    let crtEnabled = false;
+
+    function toggleCRT() {
+      crtEnabled = !crtEnabled;
+      const statusText = document.getElementById("crt-status");
+      const toggleBtn = document.getElementById("crt-toggle");
+
+      if (crtEnabled) {
+        document.body.classList.add("crt-active");
+        statusText.textContent = "ON";
+        toggleBtn.classList.add("on");
+      } else {
+        document.body.classList.remove("crt-active");
+        statusText.textContent = "OFF";
+        toggleBtn.classList.remove("on");
+      }
+    }
+  </script>
 
   <script src="./src/firmware.js"></script>
   <script src="./src/main.js"></script>
