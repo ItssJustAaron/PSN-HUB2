@@ -4,180 +4,367 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>PSNHUB-2 // PS5-Relapse</title>
+  <title>PSNHUB-2 // PS5-Relapse 420 Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=VT323&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #0a0d0a;
-      --card-bg: #141c14;
-      --card-border: #1e381e;
-      --accent-green: #39ff14;
-      --accent-purple: #9d4edd;
-      --text-main: #f0fdf4;
-      --text-muted: #86efac;
+      --c-bg: #0c140c;
+      --c-card: #152416;
+      --c-border: #000000;
+      --c-ganja: #39ff14;
+      --c-dank: #1b8a24;
+      --c-purple: #b5179e;
+      --c-haze: #7209b7;
+      --c-gold: #ffbe0b;
+      --c-paper: #f4f1de;
+      --shadow-comic: 5px 5px 0px #000000;
+      --shadow-comic-sm: 3px 3px 0px #000000;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      user-select: none;
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: 'Courier New', Courier, monospace;
+      background-color: var(--c-bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(114, 9, 183, 0.25) 0%, transparent 60%),
+        radial-gradient(circle at 10% 80%, rgba(57, 255, 20, 0.12) 0%, transparent 50%),
+        linear-gradient(rgba(0,0,0,0.5) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      color: #fff;
+      font-family: 'VT323', monospace;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 16px;
       position: relative;
+      overflow-x: hidden;
     }
 
-    /* CRT Overlay - Starts Hidden (OFF) */
+    /* CRT Overlay Layer - OFF by default */
     #crt-overlay {
-      display: none; /* OFF by default */
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
       pointer-events: none;
-      z-index: 9999;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-                  linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
-      background-size: 100% 3px, 6px 100%;
+      z-index: 99999;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+      background-size: 100% 4px, 6px 100%;
     }
 
-    /* Active CRT class */
     body.crt-active #crt-overlay {
       display: block;
     }
 
     body.crt-active {
-      text-shadow: 0 0 1px rgba(57, 255, 20, 0.5);
+      text-shadow: 0 0 2px rgba(57, 255, 20, 0.7);
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 24px;
-      position: relative;
+    /* Smoke Particle FX */
+    .smoke-container {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      max-width: 900px;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
     }
 
-    .top-controls {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
+    .smoke {
+      position: absolute;
+      bottom: -60px;
+      background: radial-gradient(circle, rgba(140, 255, 140, 0.12) 0%, rgba(200, 255, 200, 0.04) 50%, transparent 70%);
+      border-radius: 50%;
+      animation: rise 14s infinite ease-out;
     }
 
-    .crt-toggle-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: #9ca3af;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-family: inherit;
-      transition: all 0.2s ease;
+    @keyframes rise {
+      0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+      20% { opacity: 0.6; }
+      80% { opacity: 0.3; }
+      100% { transform: translateY(-110vh) scale(2.2) rotate(180deg); opacity: 0; }
     }
 
-    .crt-toggle-btn.on {
-      border-color: var(--accent-green);
-      color: var(--accent-green);
-      box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
-    }
-
-    h1 {
-      font-size: 2.2rem;
-      color: var(--accent-green);
-      text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
-      letter-spacing: 2px;
-      margin-bottom: 6px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border: 1px solid var(--accent-purple);
-      border-radius: 999px;
-      font-size: 0.85rem;
-      color: #e9d5ff;
-      background: rgba(157, 78, 221, 0.15);
-    }
-
-    .container {
+    /* App Wrapper */
+    .app-wrap {
       width: 100%;
-      max-width: 900px;
+      max-width: 960px;
+      z-index: 2;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
+    }
+
+    /* Top Control Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #000;
+      border: 3px solid #000;
+      box-shadow: var(--shadow-comic-sm);
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+
+    .telemetry {
+      display: flex;
+      gap: 14px;
+      font-size: 1.15rem;
+      color: var(--c-gold);
+    }
+
+    .telemetry span b {
+      color: var(--c-ganja);
+    }
+
+    .btn-toggle {
+      background: var(--c-purple);
+      border: 2px solid #000;
+      color: #fff;
+      font-family: 'Bungee', sans-serif;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0px #000;
+      transition: all 0.1s ease;
+    }
+
+    .btn-toggle.active {
+      background: var(--c-ganja);
+      color: #000;
+    }
+
+    .btn-toggle:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0 0 0;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, #1b381e 0%, #101c12 100%);
+      border: 4px solid var(--c-border);
+      box-shadow: var(--shadow-comic);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+    }
+
+    .hero-text h1 {
+      font-family: 'Bungee', cursive;
+      font-size: 2.3rem;
+      line-height: 1.1;
+      color: var(--c-ganja);
+      -webkit-text-stroke: 1.5px #000;
+      text-shadow: 3px 3px 0px #000;
+      margin-bottom: 4px;
+    }
+
+    .hero-text h1 span {
+      color: var(--c-gold);
+    }
+
+    .badges-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .badge-pill {
+      font-family: 'Bungee', sans-serif;
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      border: 2px solid #000;
+      border-radius: 6px;
+      box-shadow: 2px 2px 0px #000;
+      color: #fff;
+    }
+
+    .badge-fw { background: var(--c-haze); }
+    .badge-status { background: var(--c-dank); }
+
+    /* Cartoon Weed Mascot */
+    .mascot-box {
+      flex-shrink: 0;
+      width: 90px;
+      height: 90px;
+      background: #000;
+      border: 3px solid var(--c-ganja);
+      border-radius: 50%;
+      box-shadow: var(--shadow-comic-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: floatMascot 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatMascot {
+      0% { transform: translateY(0px) rotate(-3deg); }
+      100% { transform: translateY(-6px) rotate(4deg); }
+    }
+
+    .mascot-svg {
+      width: 72px;
+      height: 72px;
+    }
+
+    /* Joint Smoke Animation */
+    .joint-smoke {
+      position: absolute;
+      top: 18px;
+      right: 2px;
+      font-size: 1.3rem;
+      animation: puff 1.8s infinite ease-out;
+    }
+
+    @keyframes puff {
+      0% { transform: translate(0, 0) scale(0.6); opacity: 0.8; }
+      100% { transform: translate(14px, -24px) scale(1.6); opacity: 0; }
+    }
+
+    /* Payloads Deck */
+    .deck-section {
+      background: var(--c-card);
+      border: 4px solid var(--c-border);
+      box-shadow: var(--shadow-comic);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      border-bottom: 2px dashed #244426;
+      padding-bottom: 8px;
+    }
+
+    .deck-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: 1.1rem;
+      color: var(--c-ganja);
+      text-shadow: 1px 1px 0px #000;
     }
 
     .payload-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
     }
 
+    /* Payload Comic Cards */
     .payload-btn {
-      background: var(--card-bg);
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 16px;
-      color: var(--text-main);
-      text-align: left;
+      background: #101c12;
+      border: 3px solid #000;
+      border-radius: 10px;
+      box-shadow: var(--shadow-comic-sm);
+      padding: 12px;
       cursor: pointer;
+      text-align: left;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      transition: all 0.2s ease;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      color: #fff;
     }
 
     .payload-btn:hover {
-      border-color: var(--accent-green);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(57, 255, 20, 0.15);
+      background: #182e1b;
+      border-color: var(--c-ganja);
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px #000;
     }
 
     .payload-btn:active {
-      transform: translateY(0);
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #000;
     }
 
-    .btn-header {
+    .btn-top {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .btn-icon {
-      font-size: 1.4rem;
+    .btn-icon-wrap {
+      width: 38px;
+      height: 38px;
+      background: #000;
+      border: 2px solid var(--c-gold);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
     }
 
-    .btn-title {
-      font-weight: bold;
-      font-size: 1.05rem;
-      color: var(--accent-green);
+    .btn-title-box {
+      font-family: 'Bungee', sans-serif;
+      font-size: 0.95rem;
+      color: var(--c-ganja);
+      text-shadow: 1px 1px 0px #000;
+      line-height: 1.1;
     }
 
     .btn-desc {
-      font-size: 0.8rem;
-      color: #9ca3af;
-      line-height: 1.3;
+      font-family: 'VT323', monospace;
+      font-size: 1.05rem;
+      color: #a7f3d0;
+      line-height: 1.1;
+    }
+
+    /* Terminal Console */
+    .terminal-section {
+      background: #000;
+      border: 4px solid var(--c-border);
+      box-shadow: var(--shadow-comic);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .terminal-bar {
+      background: #1b261b;
+      padding: 6px 12px;
+      border-bottom: 2px solid #000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Bungee', sans-serif;
+      font-size: 0.75rem;
+      color: var(--c-gold);
     }
 
     #console {
-      background: #000;
-      border: 2px solid var(--card-border);
-      border-radius: 8px;
-      padding: 14px;
-      height: 220px;
+      height: 180px;
       overflow-y: auto;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      color: var(--text-muted);
+      padding: 12px;
+      font-size: 1.15rem;
+      line-height: 1.25;
+      color: var(--c-ganja);
+      font-family: 'VT323', monospace;
+      background: #040804;
     }
 
     #console div {
@@ -185,86 +372,180 @@
       word-break: break-all;
     }
 
-    .footer {
+    .log-err { color: #ff4d6d !important; }
+    .log-suc { color: #52b788 !important; }
+
+    footer {
       text-align: center;
-      font-size: 0.75rem;
-      color: #6b7280;
-      margin-top: auto;
-      padding-top: 20px;
+      font-family: 'VT323', monospace;
+      font-size: 1.1rem;
+      color: #4b664d;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .hero-banner { flex-direction: column-reverse; text-align: center; }
+      .badges-row { justify-content: center; }
+      .mascot-box { margin: 0 auto; }
+      .top-bar { flex-direction: column; gap: 8px; }
     }
   </style>
 </head>
 <body>
-  <!-- CRT Layer (Off by default) -->
+  <!-- CRT Filter (OFF by default) -->
   <div id="crt-overlay"></div>
 
-  <div class="container">
-    <header>
-      <div class="top-controls">
-        <button id="crt-toggle" class="crt-toggle-btn" onclick="toggleCRT()">
-          CRT: <span id="crt-status">OFF</span>
-        </button>
+  <!-- Background Smoke Elements -->
+  <div class="smoke-container">
+    <div class="smoke" style="left: 10%; width: 140px; height: 140px; animation-delay: 0s;"></div>
+    <div class="smoke" style="left: 40%; width: 180px; height: 180px; animation-delay: 4s;"></div>
+    <div class="smoke" style="left: 75%; width: 120px; height: 120px; animation-delay: 8s;"></div>
+  </div>
+
+  <div class="app-wrap">
+    <!-- Top Telemetry & Controls -->
+    <div class="top-bar">
+      <div class="telemetry">
+        <span>FREQ: <b>420 MHz</b></span>
+        <span>HEAP: <b id="heap-stat">DANK</b></span>
       </div>
-      <h1>PSNHUB-2</h1>
-      <span class="badge" id="fw-badge">Initializing...</span>
-    </header>
-
-    <div class="payload-grid">
-      <!-- ShadowMount+ Payload -->
-      <button class="payload-btn" onclick="loadElfPayload('shadowmount+.elf')">
-        <div class="btn-header">
-          <span class="btn-icon">📁</span>
-          <span class="btn-title">ShadowMount+</span>
-        </div>
-        <span class="btn-desc">Mount & manage virtual optical drives / raw images</span>
-      </button>
-
-      <!-- ELF Loader -->
-      <button class="payload-btn" onclick="loadElfPayload('elfldr-ps5-1.0.0.elf')">
-        <div class="btn-header">
-          <span class="btn-icon">⚡</span>
-          <span class="btn-title">ELF Loader</span>
-        </div>
-        <span class="btn-desc">Standard ELF loader daemon for inbound sockets</span>
-      </button>
-
-      <!-- kstuff -->
-      <button class="payload-btn" onclick="loadElfPayload('kstuff.elf')">
-        <div class="btn-header">
-          <span class="btn-icon">🛠️</span>
-          <span class="btn-title">kstuff</span>
-        </div>
-        <span class="btn-desc">Kernel patches & homebrew execution support</span>
-      </button>
+      <div>
+        <button id="crt-btn" class="btn-toggle" onclick="toggleCRT()">CRT: <span id="crt-label">OFF</span></button>
+      </div>
     </div>
 
-    <!-- Output Terminal -->
-    <div id="console"></div>
+    <!-- Hero Comic Mascot Banner -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h1>PSNHUB-2 <span>// RELAPSE</span></h1>
+        <div class="badges-row">
+          <span class="badge-pill badge-fw" id="fw-badge">PREVIEW MODE</span>
+          <span class="badge-pill badge-status">READY TO ROLL</span>
+        </div>
+      </div>
 
-    <div class="footer">PSNHUB-2 Host / Relapse Engine</div>
+      <!-- Animated Cartoon Mascot -->
+      <div class="mascot-box" title="Stay Lifted">
+        <div class="joint-smoke">💨</div>
+        <svg class="mascot-svg" viewBox="0 0 100 100">
+          <!-- Weed Leaf Body -->
+          <path d="M50 8 C46 22 28 32 30 52 C20 42 12 50 18 64 C8 60 4 72 16 78 C28 84 46 80 48 94 L52 94 C54 80 72 84 84 78 C96 72 92 60 82 64 C88 50 80 42 70 52 C72 32 54 22 50 8 Z" 
+                fill="#39ff14" stroke="#000" stroke-width="3" />
+          <!-- Leaf Veins -->
+          <path d="M50 15 L50 88 M50 45 L32 36 M50 45 L68 36 M50 62 L26 58 M50 62 L74 58" 
+                stroke="#1b8a24" stroke-width="2" stroke-linecap="round" />
+          <!-- Sunglasses -->
+          <polygon points="26,48 48,48 44,58 30,58" fill="#000" stroke="#ffbe0b" stroke-width="1.5" />
+          <polygon points="52,48 74,48 70,58 56,58" fill="#000" stroke="#ffbe0b" stroke-width="1.5" />
+          <line x1="48" y1="51" x2="52" y2="51" stroke="#ffbe0b" stroke-width="2" />
+          <!-- Spliff / Joint -->
+          <rect x="52" y="66" width="22" height="5" rx="2" transform="rotate(-15 52 66)" fill="#f4f1de" stroke="#000" stroke-width="1.5" />
+          <!-- Glowing Cherry -->
+          <circle cx="73" cy="60" r="3.5" fill="#ff3838" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Payload Grid -->
+    <div class="deck-section">
+      <div class="deck-header">
+        <span class="deck-title">🔥 STASH PAYLOADS</span>
+      </div>
+
+      <div class="payload-grid">
+        <!-- ShadowMount+ -->
+        <button class="payload-btn" onclick="playBeep(); loadElfPayload('shadowmount+.elf');">
+          <div class="btn-top">
+            <div class="btn-icon-wrap">📁</div>
+            <div class="btn-title-box">SHADOWMOUNT+</div>
+          </div>
+          <div class="btn-desc">Mount & manage virtual optical drives / raw disk images</div>
+        </button>
+
+        <!-- ELF Loader -->
+        <button class="payload-btn" onclick="playBeep(); loadElfPayload('elfldr-ps5-1.0.0.elf');">
+          <div class="btn-top">
+            <div class="btn-icon-wrap">⚡</div>
+            <div class="btn-title-box">ELF LOADER</div>
+          </div>
+          <div class="btn-desc">Listen on port 9021 for incoming payload binaries</div>
+        </button>
+
+        <!-- kstuff -->
+        <button class="payload-btn" onclick="playBeep(); loadElfPayload('kstuff.elf');">
+          <div class="btn-top">
+            <div class="btn-icon-wrap">🌿</div>
+            <div class="btn-title-box">KSTUFF</div>
+          </div>
+          <div class="btn-desc">fself & fpkg kernel patches for game backups</div>
+        </button>
+
+        <!-- etaHEN -->
+        <button class="payload-btn" onclick="playBeep(); loadElfPayload('etaHEN.elf');">
+          <div class="btn-top">
+            <div class="btn-icon-wrap">💨</div>
+            <div class="btn-title-box">ETAHEN</div>
+          </div>
+          <div class="btn-desc">All-in-one AIO homebrew enabler & FTP daemon</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Retro Terminal Console -->
+    <div class="terminal-section">
+      <div class="terminal-bar">
+        <span>LOGS // TTY0</span>
+        <span>420 BAUD</span>
+      </div>
+      <div id="console"></div>
+    </div>
+
+    <footer>PSNHUB-2 Host / Relapse Engine</footer>
   </div>
 
   <script>
-    // CRT toggle functionality (Defaults to OFF)
-    let crtEnabled = false;
+    // 1. Audio Synthesizer (Chiptune Sound FX)
+    let audioCtx = null;
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(420, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(840, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+      } catch (e) {}
+    }
 
+    // 2. CRT Toggle (OFF by default)
+    let crtState = false;
     function toggleCRT() {
-      crtEnabled = !crtEnabled;
-      const statusText = document.getElementById("crt-status");
-      const toggleBtn = document.getElementById("crt-toggle");
+      playBeep();
+      crtState = !crtState;
+      const overlay = document.getElementById("crt-overlay");
+      const label = document.getElementById("crt-label");
+      const btn = document.getElementById("crt-btn");
 
-      if (crtEnabled) {
+      if (crtState) {
         document.body.classList.add("crt-active");
-        statusText.textContent = "ON";
-        toggleBtn.classList.add("on");
+        label.textContent = "ON";
+        btn.classList.add("active");
       } else {
         document.body.classList.remove("crt-active");
-        statusText.textContent = "OFF";
-        toggleBtn.classList.remove("on");
+        label.textContent = "OFF";
+        btn.classList.remove("active");
       }
     }
   </script>
 
+  <!-- Required Exploit Engine Scripts -->
   <script src="./src/firmware.js"></script>
   <script src="./src/main.js"></script>
   <script src="./src/rop.js"></script>
