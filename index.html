@@ -316,7 +316,7 @@ footer {
     </div>
 
     <div class="btn-group">
-      <button class="btn" id="run-jb" onclick="switchTab('payloads')">JAILBREAK NOW</button>
+      <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
       <button class="btn btn-secondary" onclick="switchTab('payloads')">PAYLOAD SENDER</button>
     </div>
   </div>
@@ -466,7 +466,7 @@ function generateExactMascot() {
   c.fillStyle = '#226b15';
   c.beginPath(); c.moveTo(235, 420); c.quadraticCurveTo(220, 470, 200, 495); c.lineTo(235, 495); c.quadraticCurveTo(265, 470, 265, 420); c.closePath(); c.fill(); c.stroke();
 
-  // Bloodshot Blue Cartoon Eyes
+  // Eyes
   c.fillStyle = '#ffffff';
   c.lineWidth = 6;
   
@@ -493,7 +493,7 @@ function generateExactMascot() {
   c.beginPath(); c.moveTo(170, 145); c.quadraticCurveTo(205, 125, 235, 150); c.stroke();
   c.beginPath(); c.moveTo(330, 145); c.quadraticCurveTo(295, 125, 265, 150); c.stroke();
 
-  // Wide Smirking Mouth
+  // Mouth
   c.fillStyle = '#80001a';
   c.lineWidth = 6;
   c.beginPath();
@@ -502,13 +502,13 @@ function generateExactMascot() {
   c.bezierCurveTo(210, 310, 180, 275, 190, 245);
   c.closePath(); c.fill(); c.stroke();
 
-  // White Teeth & Tongue
+  // Teeth & Tongue
   c.fillStyle = '#ff3366';
   c.beginPath(); c.ellipse(250, 290, 30, 16, 0, 0, Math.PI); c.fill();
   c.fillStyle = '#ffffff';
   c.fillRect(202, 250, 24, 14);
 
-  // Left Waving Hand
+  // Left Arm
   c.fillStyle = '#3eb828';
   c.lineWidth = 22;
   c.beginPath(); c.moveTo(150, 325); c.quadraticCurveTo(100, 345, 70, 315); c.stroke();
@@ -516,11 +516,11 @@ function generateExactMascot() {
   c.lineWidth = 5;
   c.beginPath(); c.arc(65, 310, 18, 0, Math.PI * 2); c.fill(); c.stroke();
 
-  // Right Hand Holding Joint
+  // Right Arm
   c.lineWidth = 22;
   c.beginPath(); c.moveTo(330, 325); c.quadraticCurveTo(370, 335, 390, 285); c.stroke();
 
-  // Joint & Lit Ember Tip
+  // Joint
   c.save();
   c.translate(370, 250);
   c.rotate(-0.3);
@@ -528,12 +528,11 @@ function generateExactMascot() {
   c.lineWidth = 5;
   c.fillRect(-60, -10, 110, 22);
   c.strokeRect(-60, -10, 110, 22);
-  // Cherry Tip
   c.fillStyle = '#ff3300';
   c.beginPath(); c.arc(50, 0, 11, 0, Math.PI * 2); c.fill(); c.stroke();
   c.restore();
 
-  // Glove Hand around Joint
+  // Right Glove
   c.fillStyle = '#ffffff';
   c.lineWidth = 5;
   c.beginPath(); c.arc(375, 270, 14, 0, Math.PI * 2); c.fill(); c.stroke();
