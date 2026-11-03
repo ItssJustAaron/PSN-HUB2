@@ -6,20 +6,20 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>PS5-Relapse // 420 Edition</title>
   
-  <!-- Retro 90s Cartoon & Arcade Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=VT323&family=Fredoka+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Fredoka+One&family=VT323&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --weed-green: #39ff14;
-      --deep-herb: #1b4d24;
-      --bud-lime: #a6e22e;
-      --purp-haze: #7b1fa2;
-      --blaze-orange: #ff7700;
-      --paper-cream: #f4eedb;
-      --cartoon-stroke: #121212;
+      --toxic-green: #39ff14;
+      --bud-lime: #76ff03;
+      --deep-forest: #103417;
+      --kush-purple: #9c27b0;
+      --slime-yellow: #ffea00;
+      --ink-black: #0c0f0a;
+      --cherry-red: #ff3344;
+      --smoke-white: #f1f8e9;
     }
 
     * {
@@ -30,10 +30,14 @@
     body {
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at center, #1e3822 0%, #0d1a0f 70%, #050a06 100%);
-      color: #fff;
-      font-family: 'Fredoka One', cursive, sans-serif;
       min-height: 100vh;
+      font-family: 'Fredoka One', cursive;
+      background-color: #0b1a0e;
+      /* Trippy psychedelic comic background */
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(156, 39, 176, 0.4) 0%, transparent 60%),
+        repeating-conic-gradient(from 0deg, #0f2b14 0deg 15deg, #07150a 15deg 30deg);
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -42,289 +46,395 @@
       position: relative;
     }
 
-    /* CRT Scanline & Grain Overlay */
-    body::before {
-      content: " ";
+    /* Comic Halftone Dot Effect */
+    body::after {
+      content: "";
       position: fixed;
       inset: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-      background-size: 100% 4px;
-      z-index: 100;
+      background-image: radial-gradient(var(--ink-black) 20%, transparent 20%);
+      background-size: 8px 8px;
+      opacity: 0.25;
       pointer-events: none;
+      z-index: 99;
     }
 
-    /* Cartoon Smoke Particles in Background */
-    .smoke-puff {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.08);
+    /* Ambient Comic Smoke Clouds */
+    .smoke-cloud {
+      position: fixed;
+      background: radial-gradient(circle, rgba(230,255,230,0.2) 0%, rgba(100,255,100,0.05) 60%, transparent 80%);
       border-radius: 50%;
-      filter: blur(20px);
-      animation: drift 14s infinite linear;
-      z-index: 0;
+      filter: blur(12px);
+      pointer-events: none;
+      z-index: 1;
+      animation: floatSmoke 10s infinite alternate ease-in-out;
     }
 
-    @keyframes drift {
-      0% { transform: translateY(105vh) scale(0.8) rotate(0deg); opacity: 0; }
-      20% { opacity: 0.6; }
-      80% { opacity: 0.4; }
-      100% { transform: translateY(-20vh) scale(1.6) rotate(360deg); opacity: 0; }
+    @keyframes floatSmoke {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, -60px) scale(1.3); }
     }
 
-    .container {
+    .main-wrapper {
       position: relative;
       z-index: 10;
-      width: 90%;
-      max-width: 820px;
-      margin: 30px auto;
+      width: 95%;
+      max-width: 860px;
+      margin: 25px auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 20px;
     }
 
-    /* Sticker Header */
-    .header-box {
-      background: var(--weed-green);
-      border: 4px solid var(--cartoon-stroke);
-      box-shadow: 8px 8px 0px var(--cartoon-stroke);
-      padding: 18px 30px;
-      border-radius: 24px;
-      transform: rotate(-1.5deg);
-      text-align: center;
+    /* Psychedelic Cartoon Title Banner */
+    .banner-container {
       position: relative;
       width: 100%;
+      text-align: center;
     }
 
-    .header-box h1 {
-      margin: 0;
-      font-family: 'Bungee', cursive;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      color: #fff;
-      text-shadow: 
-        4px 4px 0 var(--cartoon-stroke),
-        -2px -2px 0 var(--cartoon-stroke),
-        2px -2px 0 var(--cartoon-stroke),
-        -2px 2px 0 var(--cartoon-stroke);
-      letter-spacing: 2px;
+    .banner-card {
+      background: var(--slime-yellow);
+      border: 6px solid var(--ink-black);
+      border-radius: 28px;
+      padding: 16px 20px;
+      box-shadow: 12px 12px 0px var(--ink-black);
+      transform: rotate(-1.5deg);
+      position: relative;
     }
 
-    .tagline {
-      font-family: 'Fredoka One', cursive;
-      font-size: 1.1rem;
-      color: var(--purp-haze);
-      background: var(--paper-cream);
+    .title-subtext {
       display: inline-block;
-      padding: 4px 14px;
-      border-radius: 12px;
-      border: 3px solid var(--cartoon-stroke);
-      box-shadow: 3px 3px 0 var(--cartoon-stroke);
-      margin-top: 8px;
-      transform: rotate(2deg);
+      background: var(--kush-purple);
+      color: var(--slime-yellow);
+      font-size: 1.1rem;
+      padding: 4px 18px;
+      border: 4px solid var(--ink-black);
+      border-radius: 50px;
+      box-shadow: 4px 4px 0px var(--ink-black);
+      transform: rotate(3deg);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
     }
 
-    /* Cartoony PS5 Leaf Mascot */
-    .mascot {
-      width: 70px;
-      height: 70px;
+    h1.glitch-title {
+      margin: 0;
+      font-size: clamp(2.3rem, 6vw, 3.8rem);
+      color: var(--toxic-green);
+      font-family: 'Fredoka One', cursive;
+      text-shadow: 
+        5px 5px 0 var(--ink-black),
+        -3px -3px 0 var(--ink-black),
+        3px -3px 0 var(--ink-black),
+        -3px 3px 0 var(--ink-black),
+        0 8px 0 var(--ink-black);
+      letter-spacing: 3px;
+    }
+
+    /* Cartoony High Mascots */
+    .mascot-leaf-left {
       position: absolute;
+      left: -25px;
       top: -30px;
-      right: 15px;
-      transform: rotate(15deg);
-      filter: drop-shadow(4px 4px 0 var(--cartoon-stroke));
-      animation: bobble 3s ease-in-out infinite alternate;
+      width: 110px;
+      height: 110px;
+      transform: rotate(-20deg);
+      filter: drop-shadow(6px 6px 0 var(--ink-black));
+      animation: grooveLeft 2s ease-in-out infinite alternate;
+      z-index: 12;
     }
 
-    @keyframes bobble {
-      0% { transform: translateY(0) rotate(12deg); }
-      100% { transform: translateY(-8px) rotate(18deg); }
+    .mascot-leaf-right {
+      position: absolute;
+      right: -20px;
+      bottom: -35px;
+      width: 95px;
+      height: 95px;
+      transform: rotate(18deg);
+      filter: drop-shadow(6px 6px 0 var(--ink-black));
+      animation: grooveRight 2.4s ease-in-out infinite alternate;
+      z-index: 12;
     }
 
-    /* PS5 Controller Button Bar */
-    .quick-status-bar {
+    @keyframes grooveLeft {
+      0% { transform: rotate(-22deg) scale(0.95); }
+      100% { transform: rotate(-12deg) scale(1.05); }
+    }
+
+    @keyframes grooveRight {
+      0% { transform: rotate(14deg) translateY(0); }
+      100% { transform: rotate(24deg) translateY(-8px); }
+    }
+
+    /* Status Badges styled like Stickers */
+    .sticker-rack {
       display: flex;
-      gap: 12px;
       flex-wrap: wrap;
+      gap: 14px;
       justify-content: center;
       width: 100%;
     }
 
-    .badge {
-      background: #111;
-      border: 3px solid var(--cartoon-stroke);
-      box-shadow: 4px 4px 0 var(--cartoon-stroke);
-      padding: 6px 16px;
-      border-radius: 50px;
-      font-size: 0.95rem;
+    .sticker {
+      background: #fff;
+      color: var(--ink-black);
+      border: 4px solid var(--ink-black);
+      padding: 8px 18px;
+      border-radius: 18px;
+      box-shadow: 6px 6px 0px var(--ink-black);
+      font-size: 1rem;
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .badge-fw {
-      background: var(--blaze-orange);
-      color: #000;
       font-weight: bold;
     }
 
-    .indicator-light {
-      width: 12px;
-      height: 12px;
-      background: var(--weed-green);
+    .sticker-purple {
+      background: var(--kush-purple);
+      color: #fff;
+      transform: rotate(-2deg);
+    }
+
+    .sticker-green {
+      background: var(--toxic-green);
+      transform: rotate(1.5deg);
+    }
+
+    .sticker-orange {
+      background: #ff7043;
+      color: #fff;
+      transform: rotate(-1deg);
+    }
+
+    .blinking-joint {
+      width: 14px;
+      height: 14px;
+      background: var(--cherry-red);
       border-radius: 50%;
-      box-shadow: 0 0 10px var(--weed-green);
-      border: 2px solid var(--cartoon-stroke);
-      animation: pulse 1.5s infinite;
+      border: 2px solid var(--ink-black);
+      box-shadow: 0 0 10px var(--cherry-red);
+      animation: ember 1s infinite alternate;
     }
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.3); opacity: 0.6; }
+    @keyframes ember {
+      0% { transform: scale(0.9); opacity: 0.7; filter: drop-shadow(0 0 2px red); }
+      100% { transform: scale(1.3); opacity: 1; filter: drop-shadow(0 0 8px orange); }
     }
 
-    /* Console Container Styled as a Retro Joint/Arcade Monitor */
-    .monitor-frame {
+    /* Giant Joint/Bong Style Terminal Shell */
+    .joint-terminal-card {
       width: 100%;
-      background: #152217;
-      border: 5px solid var(--cartoon-stroke);
-      border-radius: 20px;
-      box-shadow: 10px 10px 0 var(--cartoon-stroke);
+      background: var(--deep-forest);
+      border: 6px solid var(--ink-black);
+      border-radius: 26px;
+      box-shadow: 12px 14px 0px var(--ink-black);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    .monitor-top {
-      background: var(--purp-haze);
-      border-bottom: 4px solid var(--cartoon-stroke);
-      padding: 8px 16px;
+    .terminal-header {
+      background: var(--toxic-green);
+      border-bottom: 5px solid var(--ink-black);
+      padding: 10px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .window-dots {
+    .joint-tip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Fredoka One', cursive;
+      color: var(--ink-black);
+      font-size: 1.05rem;
+    }
+
+    .ps-buttons {
       display: flex;
       gap: 8px;
+      font-weight: bold;
     }
 
-    .dot {
-      width: 14px;
-      height: 14px;
+    .ps-badge {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--ink-black);
       border-radius: 50%;
-      border: 2px solid var(--cartoon-stroke);
-    }
-    .dot-red { background: #ff5f56; }
-    .dot-yellow { background: #ffbd2e; }
-    .dot-green { background: #27c93f; }
-
-    .window-title {
-      font-family: 'VT323', monospace;
-      font-size: 1.3rem;
-      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      background: #fff;
+      color: var(--ink-black);
     }
 
-    /* Native Exploit Output Target (#console) */
+    /* Target Exploit Console Mount */
     #console {
-      height: 280px;
-      background-color: #050b07;
-      padding: 16px;
+      height: 310px;
+      background: #061109;
+      color: var(--bud-lime);
+      padding: 18px;
       font-family: 'VT323', monospace;
-      font-size: 1.35rem;
-      line-height: 1.4;
-      color: var(--weed-green);
-      text-shadow: 0 0 4px rgba(57, 255, 20, 0.4);
+      font-size: 1.45rem;
+      line-height: 1.35;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
+      text-shadow: 0 0 4px rgba(118, 255, 3, 0.45);
+      border-bottom: 5px solid var(--ink-black);
     }
 
     #console::-webkit-scrollbar {
-      width: 10px;
+      width: 12px;
     }
     #console::-webkit-scrollbar-track {
-      background: #09130b;
+      background: #020703;
     }
     #console::-webkit-scrollbar-thumb {
-      background: var(--deep-herb);
-      border: 2px solid var(--cartoon-stroke);
+      background: var(--kush-purple);
+      border: 3px solid var(--ink-black);
+      border-radius: 8px;
     }
 
-    /* Footer Stickers / Action Elements */
-    .stickers-footer {
+    /* Interactive Bong/Joint Footer */
+    .terminal-controls {
+      background: #14381d;
+      padding: 12px 20px;
       display: flex;
       justify-content: space-between;
-      width: 100%;
-      padding: 0 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .comic-btn {
+      background: var(--slime-yellow);
+      color: var(--ink-black);
+      border: 4px solid var(--ink-black);
+      padding: 8px 18px;
+      border-radius: 16px;
+      box-shadow: 4px 4px 0px var(--ink-black);
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      cursor: pointer;
+      outline: none;
+      transition: transform 0.1s;
+    }
+
+    .comic-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px var(--ink-black);
+    }
+
+    .session-info {
       font-family: 'VT323', monospace;
-      font-size: 1.1rem;
-      color: #7b9e82;
+      font-size: 1.25rem;
+      color: #a4c9a8;
     }
   </style>
 </head>
 <body>
 
-  <!-- Floating Weed Smoke Puffs -->
-  <div class="smoke-puff" style="width: 140px; height: 140px; left: 15%; animation-delay: 0s;"></div>
-  <div class="smoke-puff" style="width: 220px; height: 220px; left: 65%; animation-delay: 5s;"></div>
-  <div class="smoke-puff" style="width: 180px; height: 180px; left: 35%; animation-delay: 9s;"></div>
+  <!-- Floating Cartoon Smoke Layers -->
+  <div class="smoke-cloud" style="width: 250px; height: 250px; top: 10%; left: 5%;"></div>
+  <div class="smoke-cloud" style="width: 320px; height: 320px; bottom: 8%; right: 5%; animation-delay: 2s;"></div>
 
-  <div class="container">
+  <div class="main-wrapper">
     
-    <!-- Cartoon Header -->
-    <header class="header-box">
-      <!-- 7-point Cartoon Weed Leaf SVG -->
-      <svg class="mascot" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 82C50 82 46 68 35 70C24 72 20 62 20 62C20 62 30 55 35 48C40 41 30 35 30 35C30 35 42 38 47 30C50 22 50 10 50 10C50 10 50 22 53 30C58 38 70 35 70 35C70 35 60 41 65 48C70 55 80 62 80 62C80 62 76 72 65 70C54 68 50 82 50 82Z" 
-              fill="#39ff14" stroke="#121212" stroke-width="4" stroke-linejoin="round"/>
-        <path d="M50 82V94" stroke="#121212" stroke-width="5" stroke-linecap="round"/>
-        <!-- Cartoon Baked Eyes -->
-        <ellipse cx="44" cy="48" rx="4" ry="2" fill="#ff4d4d" stroke="#121212" stroke-width="1.5"/>
-        <ellipse cx="56" cy="48" rx="4" ry="2" fill="#ff4d4d" stroke="#121212" stroke-width="1.5"/>
-        <path d="M46 56Q50 60 54 56" stroke="#121212" stroke-width="2" stroke-linecap="round"/>
+    <!-- Title Card -->
+    <div class="banner-container">
+      
+      <!-- High Cartoon Leaf Mascot Left -->
+      <svg class="mascot-leaf-left" viewBox="0 0 120 120">
+        <!-- 7-point Leaf Body -->
+        <path d="M60 95 C45 92 20 85 10 70 C24 68 38 64 42 54 C26 50 14 38 12 28 C26 30 40 38 48 42 C40 28 36 10 60 2 C72 18 70 32 68 42 C78 35 92 28 104 28 C98 40 86 50 72 54 C80 62 94 66 106 70 C88 85 70 92 60 95 Z" 
+              fill="#76ff03" stroke="#0c0f0a" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M60 95 L60 114" stroke="#0c0f0a" stroke-width="6" stroke-linecap="round"/>
+        <!-- Heavy Lidded / Baked Eyes -->
+        <circle cx="48" cy="52" r="9" fill="#fff" stroke="#0c0f0a" stroke-width="2.5"/>
+        <circle cx="68" cy="52" r="9" fill="#fff" stroke="#0c0f0a" stroke-width="2.5"/>
+        <!-- Red Irises -->
+        <ellipse cx="48" cy="54" rx="4" ry="3" fill="#ff3344"/>
+        <ellipse cx="68" cy="54" rx="4" ry="3" fill="#ff3344"/>
+        <!-- Eyelids droop -->
+        <path d="M39 49 Q48 56 57 49" fill="#76ff03" stroke="#0c0f0a" stroke-width="2.5"/>
+        <path d="M59 49 Q68 56 77 49" fill="#76ff03" stroke="#0c0f0a" stroke-width="2.5"/>
+        <!-- Doofy Grin -->
+        <path d="M50 66 Q58 74 68 64" fill="none" stroke="#0c0f0a" stroke-width="3" stroke-linecap="round"/>
+        <!-- Lit Joint hanging from mouth -->
+        <path d="M66 66 L86 64" stroke="#f1f8e9" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="87" cy="64" r="3.5" fill="#ff3344"/>
       </svg>
-      
-      <h1>PS5 - RELAPSE</h1>
-      <div class="tagline">★ 420 HOST // ROLL IT & LOAD IT ★</div>
-    </header>
 
-    <!-- Host Status & Info Row -->
-    <div class="quick-status-bar">
-      <div class="badge">
-        <span class="indicator-light"></span>
-        <span>DAEMON: READY</span>
-      </div>
-      <div class="badge badge-fw">
-        <span>FW: 3.xx - 4.xx</span>
-      </div>
-      <div class="badge">
-        <span>STATUS: EXECUTING</span>
+      <!-- Cartoony PS5 Controller Bud Mascot Right -->
+      <svg class="mascot-leaf-right" viewBox="0 0 100 100">
+        <!-- Purple Nugget Body -->
+        <path d="M30 30 Q15 45 25 70 Q35 95 65 90 Q90 85 85 55 Q80 25 50 20 Z" 
+              fill="#9c27b0" stroke="#0c0f0a" stroke-width="4"/>
+        <!-- Nug Texture Spots -->
+        <circle cx="40" cy="35" r="5" fill="#ba68c8"/>
+        <circle cx="70" cy="50" r="7" fill="#ba68c8"/>
+        <circle cx="45" cy="75" r="6" fill="#ba68c8"/>
+        <!-- Goofy Stoned Face -->
+        <ellipse cx="42" cy="50" rx="7" ry="5" fill="#fff" stroke="#0c0f0a" stroke-width="2.5"/>
+        <ellipse cx="62" cy="50" rx="7" ry="5" fill="#fff" stroke="#0c0f0a" stroke-width="2.5"/>
+        <circle cx="43" cy="51" r="2.5" fill="#ff3344"/>
+        <circle cx="61" cy="51" r="2.5" fill="#ff3344"/>
+        <path d="M36 48 L49 50" stroke="#0c0f0a" stroke-width="2.5"/>
+        <path d="M56 50 L68 47" stroke="#0c0f0a" stroke-width="2.5"/>
+        <!-- Tongue sticking out -->
+        <path d="M48 62 Q52 70 56 62" stroke="#0c0f0a" stroke-width="2.5" fill="none"/>
+        <path d="M50 64 Q52 72 54 64" fill="#ff3344"/>
+      </svg>
+
+      <div class="banner-card">
+        <div class="title-subtext">PS5 AUTO-LOADER // HERBAL EDITION</div>
+        <h1 class="glitch-title">RELAPSE 420</h1>
       </div>
     </div>
 
-    <!-- Arcade Styled Exploit Console -->
-    <div class="monitor-frame">
-      <div class="monitor-top">
-        <div class="window-dots">
-          <div class="dot dot-red"></div>
-          <div class="dot dot-yellow"></div>
-          <div class="dot dot-green"></div>
+    <!-- Comic Stickers / Status Tray -->
+    <div class="sticker-rack">
+      <div class="sticker sticker-green">
+        <div class="blinking-joint"></div>
+        <span>ENGINE: BLUNT-FORCE</span>
+      </div>
+      <div class="sticker sticker-purple">
+        <span>FW: 3.00 - 4.51</span>
+      </div>
+      <div class="sticker sticker-orange">
+        <span>STASH: LOADED</span>
+      </div>
+    </div>
+
+    <!-- Terminal Frame -->
+    <div class="joint-terminal-card">
+      <div class="terminal-header">
+        <div class="joint-tip">
+          <span>🌿 /DEV/KUSH_ROP</span>
         </div>
-        <div class="window-title">[ TTY: /DEV/STASH - PAYLOAD ENGINE ]</div>
-        <div style="width: 50px;"></div>
+        <div class="ps-buttons">
+          <span class="ps-badge" style="color: #29b6f6;">▲</span>
+          <span class="ps-badge" style="color: #ef5350;">●</span>
+          <span class="ps-badge" style="color: #ab47bc;">■</span>
+          <span class="ps-badge" style="color: #26a69a;">✖</span>
+        </div>
       </div>
-      
-      <!-- Primary Exploit DOM Mount -->
-      <div id="console"></div>
-    </div>
 
-    <div class="stickers-footer">
-      <span>[X] EXPLOIT ACTIVE</span>
-      <span>KEEP BROWSER RUNNING • DO NOT REBOOT</span>
+      <!-- Exploit Target Output -->
+      <div id="console"></div>
+
+      <div class="terminal-controls">
+        <div class="session-info">&gt; INHALING PAYLOAD... KEEP SCREEN AWAKE</div>
+        <button class="comic-btn" onclick="document.getElementById('console').innerText = ''">WIPE ASHES</button>
+      </div>
     </div>
 
   </div>
 
-  <!-- Intact Native PS5 Exploit Scripts -->
+  <!-- Intact PS5 Exploit Scripts -->
   <script src="./src/firmware.js"></script>
   <script src="./src/main.js"></script>
   <script src="./src/rop.js"></script>
