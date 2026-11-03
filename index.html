@@ -8,12 +8,12 @@
 <style>
 :root {
   --green-main: #39ff14;
-  --purple-bg: #0f0318;
-  --purple-card: #1f0833;
-  --purple-border: #3b105e;
+  --purple-bg: #0d0216;
+  --purple-card: #1f0733;
+  --purple-border: #4a127a;
   --yellow-accent: #ffe600;
-  --orange-cherry: #ff3300;
   --pink-accent: #ff007f;
+  --orange-cherry: #ff3300;
   --border-thick: 3px solid #000;
   --box-shadow: 4px 4px 0px #000;
   --font-comic: 'Impact', 'Arial Black', sans-serif;
@@ -32,7 +32,7 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: radial-gradient(circle at center, #260840 0%, var(--purple-bg) 100%);
+  background: radial-gradient(circle at center, #23063b 0%, var(--purple-bg) 100%);
   color: #fff;
   font-family: var(--font-body);
   display: flex;
@@ -62,12 +62,12 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 10px 14px;
 }
 
 header {
   text-align: center;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 h1 {
@@ -83,7 +83,7 @@ h1 {
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .tab-btn {
@@ -92,11 +92,10 @@ h1 {
   color: #fff;
   border: var(--border-thick);
   border-radius: 12px;
-  padding: 8px 20px;
+  padding: 6px 16px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   box-shadow: 3px 3px 0px #000;
-  letter-spacing: 1px;
 }
 
 .tab-btn.active {
@@ -112,14 +111,14 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-height: 70vh;
+  max-height: 72vh;
 }
 
 .view-panel.active {
   display: flex;
 }
 
-/* Redesigned Mascot Logo Emblem */
+/* Dynamic Mascot Container */
 .mascot-area {
   position: relative;
   display: flex;
@@ -129,33 +128,46 @@ h1 {
   height: 100%;
 }
 
-.logo-badge {
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, #2d8a1e 0%, #123806 100%);
-  border: 6px solid #000;
-  border-radius: 50%;
-  box-shadow: 0 0 0 6px var(--green-main), 0 10px 25px rgba(0,0,0,0.8);
+.dynamic-mascot-wrapper {
+  position: relative;
+  width: 280px;
+  height: 280px;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  position: relative;
+  animation: mascotBob 3s ease-in-out infinite;
 }
 
-.logo-leaf-svg {
-  width: 140px;
-  height: 140px;
-  filter: drop-shadow(0px 4px 0px #000);
+@keyframes mascotBob {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
 }
 
-.logo-text-ring {
-  font-family: var(--font-comic);
-  font-size: 0.9rem;
-  color: var(--yellow-accent);
-  letter-spacing: 2px;
-  margin-top: -10px;
-  text-shadow: 2px 2px 0px #000;
+.mascot-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.4));
+}
+
+/* Dynamic Glowing Ember Animation */
+.joint-ember {
+  animation: emberPulse 1s ease-in-out infinite alternate;
+  transform-origin: 220px 185px;
+}
+
+@keyframes emberPulse {
+  0% { fill: #ff3300; r: 5px; filter: drop-shadow(0 0 2px #ff3300); }
+  100% { fill: #ffff00; r: 7px; filter: drop-shadow(0 0 8px #ff9900); }
+}
+
+/* Dynamic Smoke Puffs Rising from Joint */
+.smoke-puff-1 { animation: smokeRise 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
+.smoke-puff-2 { animation: smokeRise 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite 1.5s; }
+
+@keyframes smokeRise {
+  0% { transform: translate(220px, 185px) scale(0.4); opacity: 0.8; }
+  50% { opacity: 0.5; }
+  100% { transform: translate(260px, 100px) scale(2.2); opacity: 0; }
 }
 
 .btn-group {
@@ -164,7 +176,7 @@ h1 {
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .btn {
@@ -186,6 +198,12 @@ h1 {
   outline: none;
 }
 
+.btn:hover, .btn:focus {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
+  background: #5aff36;
+}
+
 .btn-secondary {
   background: var(--yellow-accent);
   font-size: clamp(0.95rem, 2.5vw, 1.2rem);
@@ -193,19 +211,34 @@ h1 {
   max-width: 340px;
 }
 
+/* Payload Sender Grid */
 .payload-scroll-area {
   width: 100%;
   max-width: 780px;
-  max-height: 50vh;
+  max-height: 52vh;
   overflow-y: auto;
   padding-right: 6px;
-  margin-top: 8px;
+  margin-top: 6px;
+}
+
+.payload-scroll-area::-webkit-scrollbar {
+  width: 8px;
+}
+.payload-scroll-area::-webkit-scrollbar-track {
+  background: #0d0216;
+  border-radius: 10px;
+  border: 2px solid #000;
+}
+.payload-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--green-main);
+  border-radius: 10px;
+  border: 2px solid #000;
 }
 
 .payload-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -213,42 +246,41 @@ h1 {
   background: var(--purple-card);
   border: 2px solid var(--purple-border);
   border-radius: 14px;
-  padding: 12px;
+  padding: 10px;
   text-align: center;
   cursor: pointer;
   box-shadow: 4px 4px 0px #000;
-  transition: background 0.2s;
+  transition: all 0.15s ease;
 }
 
 .payload-card:hover {
+  transform: translate(-2px, -2px);
   background: #2f0d4d;
   border-color: var(--green-main);
+  box-shadow: 6px 6px 0px var(--green-main);
 }
 
-/* Styled Inline SVG / Text Icons for PS5 Reliability */
-.payload-icon-badge {
+.payload-badge {
   display: inline-block;
   background: var(--green-main);
   color: #000;
   font-family: var(--font-comic);
   font-size: 0.75rem;
   font-weight: bold;
-  padding: 3px 10px;
-  border-radius: 8px;
-  margin-bottom: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
   border: 2px solid #000;
-  box-shadow: 2px 2px 0px #000;
 }
 
 .payload-title {
   font-family: var(--font-comic);
   color: var(--yellow-accent);
   font-size: 0.95rem;
-  letter-spacing: 0.5px;
 }
 
 .payload-port {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #bbb;
   margin-top: 2px;
 }
@@ -260,11 +292,11 @@ h1 {
   border: var(--border-thick);
   border-radius: 10px;
   padding: 8px 12px;
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: monospace;
   color: var(--green-main);
   font-size: 0.8rem;
-  height: 65px;
+  height: 60px;
   overflow-y: auto;
 }
 
@@ -276,7 +308,7 @@ footer {
   border-radius: 10px;
   padding: 6px 10px;
   margin-bottom: 4px;
-  box-shadow: 3px 3px 0px var(--orange-cherry);
+  box-shadow: 3px 3px 0px var(--pink-accent);
   font-size: 0.72rem;
   color: #ddd;
 }
@@ -295,21 +327,42 @@ footer {
     </div>
   </header>
 
-  <!-- Jailbreak View -->
+  <!-- Jailbreak View with Dynamic Cartoon Weed Plant Mascot -->
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
-      <div class="logo-badge">
-        <svg class="logo-leaf-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Stylized High-Quality Leaf Silhouette Logo -->
-          <path d="M50 10 C45 35 25 25 15 45 C30 45 35 60 50 85 C65 60 70 45 85 45 C75 25 55 35 50 10 Z" fill="#39ff14" stroke="#000" stroke-width="3"/>
-          <path d="M50 85 L50 95" stroke="#000" stroke-width="4" stroke-linecap="round"/>
-          <path d="M50 30 L50 75 M50 45 L35 35 M50 55 L30 50 M50 45 L65 35 M50 55 L70 50" stroke="#123806" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- Sunglasses Emblem -->
-          <rect x="28" y="42" width="18" height="12" rx="3" fill="#000"/>
-          <rect x="54" y="42" width="18" height="12" rx="3" fill="#000"/>
-          <line x1="46" y1="46" x2="54" y2="46" stroke="#000" stroke-width="3"/>
+      <div class="dynamic-mascot-wrapper">
+        <svg class="mascot-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Floating Dynamic Smoke Puffs -->
+          <circle class="smoke-puff-1" cx="0" cy="0" r="14" fill="rgba(255,255,255,0.85)" stroke="#000" stroke-width="2"/>
+          <circle class="smoke-puff-2" cx="0" cy="0" r="18" fill="rgba(255,255,255,0.75)" stroke="#000" stroke-width="2"/>
+
+          <!-- Weed Plant Character Body -->
+          <path d="M150 20 C135 70 80 80 50 120 C85 130 95 150 120 200 C110 240 130 260 150 280 C170 260 190 240 180 200 C205 150 215 130 250 120 C220 80 165 70 150 20 Z" fill="#39ff14" stroke="#000" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M150 280 L150 295" stroke="#000" stroke-width="6" stroke-linecap="round"/>
+
+          <!-- Leaf Internal Veins -->
+          <path d="M150 50 L150 260 M150 100 L100 110 M150 100 L200 110 M150 150 L85 160 M150 150 L215 160 M150 200 L110 210 M150 200 L190 210" stroke="#123806" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Cool Sunglasses -->
+          <rect x="95" y="105" width="50" height="30" rx="8" fill="#000" stroke="#000" stroke-width="3"/>
+          <rect x="155" y="105" width="50" height="30" rx="8" fill="#000" stroke="#000" stroke-width="3"/>
+          <line x1="145" y1="115" x2="155" y2="115" stroke="#000" stroke-width="5"/>
+          <!-- Sunglass Glare Highlights -->
+          <line x1="102" y1="112" x2="120" y2="112" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          <line x1="162" y1="112" x2="180" y2="112" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Smiling Mouth -->
+          <path d="M125 160 Q150 190 175 160 Z" fill="#000"/>
+          <path d="M132 165 Q150 180 168 165 Z" fill="#ff0055"/>
+
+          <!-- Smoking Joint Held in Hand -->
+          <path d="M175 185 L230 185" stroke="#f0efe6" stroke-width="6" stroke-linecap="round" stroke="#000" stroke-linejoin="round"/>
+          <path d="M175 185 L230 185" stroke="#f0efe6" stroke-width="4" stroke-linecap="round"/>
+          <!-- Animated Glowing Ember Tip -->
+          <circle class="joint-ember" cx="230" cy="185" r="6"/>
+          <!-- Cartoon Glove Hand -->
+          <circle cx="175" cy="185" r="10" fill="#fff" stroke="#000" stroke-width="3"/>
         </svg>
-        <div class="logo-text-ring">HIGH FIRMWARE</div>
       </div>
     </div>
 
@@ -324,92 +377,92 @@ footer {
     <div class="payload-scroll-area">
       <div class="payload-grid">
         <div class="payload-card" onclick="sendPayload('etaHEN 1.8b', 9080)">
-          <div class="payload-icon-badge">HEN</div>
+          <div class="payload-badge">HEN</div>
           <div class="payload-title">etaHEN 1.8b</div>
           <div class="payload-port">Port: 9080</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
-          <div class="payload-icon-badge">FPKG</div>
+          <div class="payload-badge">FPKG</div>
           <div class="payload-title">Kstuff</div>
           <div class="payload-port">Port: 9020</div>
         </div>
         <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
-          <div class="payload-icon-badge">DBG</div>
+          <div class="payload-badge">DBG</div>
           <div class="payload-title">PS5Debug</div>
           <div class="payload-port">Port: 9021</div>
         </div>
         <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
-          <div class="payload-icon-badge">RTE</div>
+          <div class="payload-badge">RTE</div>
           <div class="payload-title">WebRTE</div>
           <div class="payload-port">Port: 9056</div>
         </div>
         <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
-          <div class="payload-icon-badge">FTP</div>
+          <div class="payload-badge">FTP</div>
           <div class="payload-title">FTP Server</div>
           <div class="payload-port">Port: 1337</div>
         </div>
         <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
-          <div class="payload-icon-badge">DUMP</div>
+          <div class="payload-badge">DUMP</div>
           <div class="payload-title">App Dumper</div>
           <div class="payload-port">Port: 9023</div>
         </div>
         <div class="payload-card" onclick="sendPayload('ELF Loader', 9027)">
-          <div class="payload-icon-badge">ELF</div>
+          <div class="payload-badge">ELF</div>
           <div class="payload-title">ELF Loader</div>
           <div class="payload-port">Port: 9027</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Kernel Dumper', 9025)">
-          <div class="payload-icon-badge">KERN</div>
+          <div class="payload-badge">KERN</div>
           <div class="payload-title">Kernel Dumper</div>
           <div class="payload-port">Port: 9025</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Fan Control', 9028)">
-          <div class="payload-icon-badge">SYS</div>
+          <div class="payload-badge">SYS</div>
           <div class="payload-title">Fan Control</div>
           <div class="payload-port">Port: 9028</div>
         </div>
         <div class="payload-card" onclick="sendPayload('DB Backup', 9029)">
-          <div class="payload-icon-badge">BACKUP</div>
+          <div class="payload-badge">BACKUP</div>
           <div class="payload-title">DB Backup</div>
           <div class="payload-port">Port: 9029</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Cache Clear', 9030)">
-          <div class="payload-icon-badge">CACHE</div>
+          <div class="payload-badge">CACHE</div>
           <div class="payload-title">Cache Clear</div>
           <div class="payload-port">Port: 9030</div>
         </div>
         <div class="payload-card" onclick="sendPayload('PS5 Payload Server', 9090)">
-          <div class="payload-icon-badge">SERV</div>
+          <div class="payload-badge">SERV</div>
           <div class="payload-title">Payload Server</div>
           <div class="payload-port">Port: 9090</div>
         </div>
         <div class="payload-card" onclick="sendPayload('LBL Exploit', 9031)">
-          <div class="payload-icon-badge">EXP</div>
+          <div class="payload-badge">EXP</div>
           <div class="payload-title">LBL Exploit</div>
           <div class="payload-port">Port: 9031</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Itemzflow', 9032)">
-          <div class="payload-icon-badge">MGR</div>
+          <div class="payload-badge">MGR</div>
           <div class="payload-title">Itemzflow</div>
           <div class="payload-port">Port: 9032</div>
         </div>
         <div class="payload-card" onclick="sendPayload('GDB Server', 2159)">
-          <div class="payload-icon-badge">GDB</div>
+          <div class="payload-badge">GDB</div>
           <div class="payload-title">GDB Server</div>
           <div class="payload-port">Port: 2159</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Linux Loader 2GB', 9033)">
-          <div class="payload-icon-badge">LNX</div>
+          <div class="payload-badge">LNX</div>
           <div class="payload-title">Linux (2GB)</div>
           <div class="payload-port">Port: 9033</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Linux Loader 4GB', 9034)">
-          <div class="payload-icon-badge">LNX</div>
+          <div class="payload-badge">LNX</div>
           <div class="payload-title">Linux (4GB)</div>
           <div class="payload-port">Port: 9034</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Browser Unlocker', 9035)">
-          <div class="payload-icon-badge">WEB</div>
+          <div class="payload-badge">WEB</div>
           <div class="payload-title">Web Unlocker</div>
           <div class="payload-port">Port: 9035</div>
         </div>
