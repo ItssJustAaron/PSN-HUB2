@@ -234,14 +234,37 @@ h1 {
   max-width: 340px;
 }
 
-/* Payload Grid */
+/* Scrollable Payload Grid */
+.payload-scroll-area {
+  width: 100%;
+  max-width: 750px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-top: 8px;
+}
+
+.payload-scroll-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.payload-scroll-area::-webkit-scrollbar-track {
+  background: #0d0216;
+  border-radius: 10px;
+  border: 2px solid #000;
+}
+
+.payload-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--green-main);
+  border-radius: 10px;
+  border: 2px solid #000;
+}
+
 .payload-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 100%;
-  max-width: 700px;
-  margin-top: 10px;
 }
 
 .payload-card {
@@ -262,33 +285,33 @@ h1 {
 }
 
 .payload-icon {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   margin-bottom: 2px;
 }
 
 .payload-title {
   font-family: var(--font-comic);
   color: var(--yellow-accent);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .payload-port {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #aaa;
 }
 
 .terminal-box {
   width: 100%;
-  max-width: 700px;
+  max-width: 750px;
   background: #000;
   border: var(--border-thick);
   border-radius: 10px;
-  padding: 10px;
-  margin-top: 10px;
+  padding: 8px 12px;
+  margin-top: 8px;
   font-family: monospace;
   color: var(--green-main);
-  font-size: 0.85rem;
-  height: 80px;
+  font-size: 0.8rem;
+  height: 65px;
   overflow-y: auto;
   box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.3);
 }
@@ -316,7 +339,7 @@ footer {
     <h1>PSN-HUB</h1>
     <div class="nav-tabs">
       <button class="tab-btn active" id="tab-jb" onclick="switchTab('jb')">JAILBREAK</button>
-      <button class="tab-btn" id="tab-payloads" onclick="switchTab('payloads')">PAYLOADS</button>
+      <button class="tab-btn" id="tab-payloads" onclick="switchTab('payloads')">PAYLOADS (18)</button>
     </div>
   </header>
 
@@ -324,19 +347,13 @@ footer {
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
       <div class="character-card" id="mascot-card">
-        <!-- Exact Matching 7-Blade Leaf Character SVG -->
         <svg class="weed-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
           <g id="leaf-mascot">
-            <!-- Lower Left Fan Leaf -->
             <path d="M 160 380 Q 80 340 20 280 Q 90 260 180 310 Z" fill="#2d8a1e" stroke="#000" stroke-width="7"/>
             <path d="M 160 380 Q 80 340 20 280 Q 90 260 180 310 Z" fill="#47cc33" stroke="#000" stroke-width="5"/>
-            <!-- Lower Right Fan Leaf -->
             <path d="M 340 380 Q 420 340 480 280 Q 410 260 320 310 Z" fill="#2d8a1e" stroke="#000" stroke-width="7"/>
             <path d="M 340 380 Q 420 340 480 280 Q 410 260 320 310 Z" fill="#47cc33" stroke="#000" stroke-width="5"/>
-            
-            <!-- Mid Left Fan Leaf -->
             <path d="M 120 270 Q 30 190 10 130 Q 90 140 170 210 Z" fill="#39a828" stroke="#000" stroke-width="7"/>
-            <!-- Mid Right Fan Leaf -->
             <path d="M 380 270 Q 470 190 490 130 Q 410 140 330 210 Z" fill="#39a828" stroke="#000" stroke-width="7"/>
 
             <!-- Main Central Serrated Leaf Body -->
@@ -345,15 +362,11 @@ footer {
                      C 220 430 280 430 325 350 L 350 340 L 310 280 L 335 270 L 290 215 L 315 205 L 270 155 L 290 145 L 262 105 L 280 95 L 255 65 L 270 55 Z" 
                   fill="#52e03a" stroke="#000" stroke-width="8"/>
 
-            <!-- Bottom Main Stem -->
             <path d="M 235 420 Q 220 470 200 495 L 235 495 Q 265 470 265 420 Z" fill="#226b15" stroke="#000" stroke-width="7"/>
-
-            <!-- Internal Leaf Veins -->
             <path d="M 250 70 L 250 410 M 250 140 L 205 110 M 250 140 L 295 110 M 250 210 L 185 170 M 250 210 L 315 170 M 250 290 L 175 255 M 250 290 L 325 255" stroke="#237a13" stroke-width="5" stroke-linecap="round"/>
 
-            <!-- Bloodshot Blue Cartoon Eyes -->
+            <!-- Eyes -->
             <g id="eyes">
-              <!-- Left Eye -->
               <ellipse cx="205" cy="180" rx="36" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
               <ellipse cx="205" cy="180" rx="36" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
               <path d="M 175 180 Q 185 180 190 183 M 235 180 Q 225 180 220 177" stroke="#ff0055" stroke-width="3"/>
@@ -362,7 +375,6 @@ footer {
               <circle cx="216" cy="179" r="3" fill="#fff"/>
               <path d="M 170 172 Q 205 194 241 172 Q 205 155 170 172 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
 
-              <!-- Right Eye -->
               <ellipse cx="295" cy="180" rx="36" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
               <ellipse cx="295" cy="180" rx="36" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
               <path d="M 265 180 Q 275 180 280 183 M 325 180 Q 315 180 310 177" stroke="#ff0055" stroke-width="3"/>
@@ -371,32 +383,28 @@ footer {
               <circle cx="292" cy="179" r="3" fill="#fff"/>
               <path d="M 260 172 Q 295 194 330 172 Q 295 155 260 172 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
 
-              <!-- Eyebrows -->
               <path d="M 165 145 Q 205 125 240 150" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
               <path d="M 260 150 Q 295 125 335 145" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
             </g>
 
-            <!-- Wide Smirking Mouth -->
+            <!-- Mouth -->
             <g id="mouth">
               <path d="M 190 245 Q 250 305 310 240 C 320 275 280 310 250 310 C 210 310 180 275 190 245 Z" fill="#80001a" stroke="#000" stroke-width="7"/>
               <path d="M 220 290 Q 250 265 280 290 Q 250 320 220 290 Z" fill="#ff3366" stroke="#000" stroke-width="4"/>
               <path d="M 205 252 L 225 257 L 220 267 L 202 260 Z" fill="#fff" stroke="#000" stroke-width="3"/>
             </g>
 
-            <!-- Hands & Joint Gesture -->
+            <!-- Hands & Joint -->
             <g id="hands">
-              <!-- Left Waving Hand -->
               <path d="M 150 325 Q 100 345 70 315" fill="none" stroke="#000" stroke-width="26" stroke-linecap="round"/>
               <path d="M 150 325 Q 100 345 70 315" fill="none" stroke="#3eb828" stroke-width="18" stroke-linecap="round"/>
               <circle cx="65" cy="310" r="20" fill="#fff" stroke="#000" stroke-width="5"/>
               <circle cx="50" cy="295" r="9" fill="#fff" stroke="#000" stroke-width="4"/>
               <circle cx="45" cy="315" r="9" fill="#fff" stroke="#000" stroke-width="4"/>
 
-              <!-- Right Hand Holding Joint -->
               <path d="M 330 325 Q 370 335 390 285" fill="none" stroke="#000" stroke-width="26" stroke-linecap="round"/>
               <path d="M 330 325 Q 370 335 390 285" fill="none" stroke="#3eb828" stroke-width="18" stroke-linecap="round"/>
 
-              <!-- JOINT -->
               <g id="fat-joint" transform="rotate(-15 380 255)">
                 <path d="M 280 255 L 410 240 L 420 265 L 280 270 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
                 <path d="M 320 252 L 318 269 M 360 247 L 358 267 M 395 243 L 393 264" stroke="#ccc" stroke-width="3"/>
@@ -421,38 +429,100 @@ footer {
     </div>
   </div>
 
-  <!-- Payload Sender View -->
+  <!-- Extended Payload Sender View (18 Payloads) -->
   <div class="view-panel" id="panel-payloads">
-    <div class="payload-grid">
-      <div class="payload-card" onclick="sendPayload('etaHEN', 9080)">
-        <div class="payload-icon">⚡</div>
-        <div class="payload-title">etaHEN</div>
-        <div class="payload-port">Port: 9080</div>
-      </div>
-      <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
-        <div class="payload-icon">🐛</div>
-        <div class="payload-title">PS5Debug</div>
-        <div class="payload-port">Port: 9021</div>
-      </div>
-      <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
-        <div class="payload-icon">🎮</div>
-        <div class="payload-title">WebRTE</div>
-        <div class="payload-port">Port: 9056</div>
-      </div>
-      <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
-        <div class="payload-icon">📁</div>
-        <div class="payload-title">FTP Server</div>
-        <div class="payload-port">Port: 1337</div>
-      </div>
-      <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
-        <div class="payload-icon">🔓</div>
-        <div class="payload-title">Kstuff</div>
-        <div class="payload-port">Port: 9020</div>
-      </div>
-      <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
-        <div class="payload-icon">💾</div>
-        <div class="payload-title">App Dumper</div>
-        <div class="payload-port">Port: 9023</div>
+    <div class="payload-scroll-area">
+      <div class="payload-grid">
+        <div class="payload-card" onclick="sendPayload('etaHEN 1.8b', 9080)">
+          <div class="payload-icon">⚡</div>
+          <div class="payload-title">etaHEN 1.8b</div>
+          <div class="payload-port">Port: 9080</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
+          <div class="payload-icon">🔓</div>
+          <div class="payload-title">Kstuff</div>
+          <div class="payload-port">Port: 9020</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
+          <div class="payload-icon">🐛</div>
+          <div class="payload-title">PS5Debug</div>
+          <div class="payload-port">Port: 9021</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
+          <div class="payload-icon">🎮</div>
+          <div class="payload-title">WebRTE</div>
+          <div class="payload-port">Port: 9056</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
+          <div class="payload-icon">📁</div>
+          <div class="payload-title">FTP Server</div>
+          <div class="payload-port">Port: 1337</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
+          <div class="payload-icon">💾</div>
+          <div class="payload-title">App Dumper</div>
+          <div class="payload-port">Port: 9023</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('ELF Loader', 9027)">
+          <div class="payload-icon">🚀</div>
+          <div class="payload-title">ELF Loader</div>
+          <div class="payload-port">Port: 9027</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Kernel Dumper', 9025)">
+          <div class="payload-icon">🔍</div>
+          <div class="payload-title">Kernel Dumper</div>
+          <div class="payload-port">Port: 9025</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Fan Control', 9028)">
+          <div class="payload-icon">❄️</div>
+          <div class="payload-title">Fan Control</div>
+          <div class="payload-port">Port: 9028</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('DB Backup', 9029)">
+          <div class="payload-icon">🗄️</div>
+          <div class="payload-title">DB Backup</div>
+          <div class="payload-port">Port: 9029</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Cache Clear', 9030)">
+          <div class="payload-icon">🧹</div>
+          <div class="payload-title">Cache Clear</div>
+          <div class="payload-port">Port: 9030</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('PS5 Payload Server', 9090)">
+          <div class="payload-icon">📡</div>
+          <div class="payload-title">Payload Server</div>
+          <div class="payload-port">Port: 9090</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('LBL Exploit', 9031)">
+          <div class="payload-icon">🔥</div>
+          <div class="payload-title">LBL Exploit</div>
+          <div class="payload-port">Port: 9031</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Itemzflow', 9032)">
+          <div class="payload-icon">📦</div>
+          <div class="payload-title">Itemzflow</div>
+          <div class="payload-port">Port: 9032</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('GDB Server', 2159)">
+          <div class="payload-icon">⚙️</div>
+          <div class="payload-title">GDB Server</div>
+          <div class="payload-port">Port: 2159</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Linux Loader 2GB', 9033)">
+          <div class="payload-icon">🐧</div>
+          <div class="payload-title">Linux (2GB)</div>
+          <div class="payload-port">Port: 9033</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Linux Loader 4GB', 9034)">
+          <div class="payload-icon">🐧</div>
+          <div class="payload-title">Linux (4GB)</div>
+          <div class="payload-port">Port: 9034</div>
+        </div>
+        <div class="payload-card" onclick="sendPayload('Browser Unlocker', 9035)">
+          <div class="payload-icon">🌐</div>
+          <div class="payload-title">Web Unlocker</div>
+          <div class="payload-port">Port: 9035</div>
+        </div>
       </div>
     </div>
 
