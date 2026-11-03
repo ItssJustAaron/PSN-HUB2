@@ -7,13 +7,13 @@
 <title>PSN-HUB</title>
 <style>
 :root {
-  --green-main: #4dff28;
-  --green-dark: #1e5c0e;
+  --green-main: #39ff14;
+  --green-dark: #123806;
   --purple-bg: #140520;
   --purple-card: #280a3e;
-  --yellow-accent: #ffeb3b;
-  --orange-accent: #ff5722;
-  --pink-accent: #e91e63;
+  --yellow-accent: #ffe600;
+  --orange-cherry: #ff3300;
+  --pink-accent: #ff007f;
   --border-thick: 4px solid #000;
   --box-shadow: 5px 5px 0px #000;
   --font-comic: 'Impact', 'Comic Sans MS', 'Arial Black', sans-serif;
@@ -75,7 +75,7 @@ h1 {
   font-size: clamp(2.2rem, 5.5vw, 3.6rem);
   margin: 0;
   color: var(--green-main);
-  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent), 0 0 20px rgba(77, 255, 40, 0.6);
+  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent), 0 0 20px rgba(57, 255, 20, 0.6);
   letter-spacing: 2px;
 }
 
@@ -131,30 +131,31 @@ h1 {
 .character-card {
   position: relative;
   height: 100%;
-  max-height: 360px;
+  max-height: 380px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
 }
 
-.bud-svg {
+.weed-svg {
   height: 100%;
-  max-height: 340px;
+  max-height: 360px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(77, 255, 40, 0.4));
+  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.4));
   transition: transform 0.2s ease;
 }
 
-.character-card:hover .bud-svg {
+.character-card:hover .weed-svg {
   transform: scale(1.03) rotate(1deg);
 }
 
+/* Burning Joint Cherry Ember */
 .ember-glow {
   position: absolute;
-  top: 40.5%;
-  left: 20.5%;
+  top: 50.5%;
+  right: 17.5%;
   width: 16px;
   height: 16px;
   background: radial-gradient(circle, #ffffff 10%, #ffcc00 30%, #ff3300 70%, transparent 100%);
@@ -171,8 +172,8 @@ h1 {
 
 .smoke-emitter {
   position: absolute;
-  top: 40%;
-  left: 19%;
+  top: 50%;
+  right: 16%;
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -188,7 +189,7 @@ h1 {
 
 @keyframes floatRing {
   0% { transform: translate(0, 0) scale(0.3); opacity: 0.9; }
-  100% { transform: translate(-80px, -120px) scale(2.5); opacity: 0; }
+  100% { transform: translate(70px, -130px) scale(2.6); opacity: 0; }
 }
 
 .btn-group {
@@ -233,7 +234,7 @@ h1 {
   max-width: 340px;
 }
 
-/* Payload Sender Grid */
+/* Payload Grid */
 .payload-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -261,14 +262,14 @@ h1 {
 }
 
 .payload-icon {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   margin-bottom: 2px;
 }
 
 .payload-title {
   font-family: var(--font-comic);
   color: var(--yellow-accent);
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .payload-port {
@@ -289,7 +290,7 @@ h1 {
   font-size: 0.85rem;
   height: 80px;
   overflow-y: auto;
-  box-shadow: inset 0 0 10px rgba(77, 255, 40, 0.3);
+  box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.3);
 }
 
 footer {
@@ -300,7 +301,7 @@ footer {
   border-radius: 10px;
   padding: 6px 10px;
   margin-bottom: 4px;
-  box-shadow: 3px 3px 0px var(--orange-accent);
+  box-shadow: 3px 3px 0px var(--orange-cherry);
   font-size: 0.72rem;
   color: #ddd;
 }
@@ -323,53 +324,88 @@ footer {
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
       <div class="character-card" id="mascot-card">
-        <svg class="bud-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="budGrad" cx="50%" cy="40%" r="50%">
-              <stop offset="0%" stop-color="#73e639"/>
-              <stop offset="60%" stop-color="#41a813"/>
-              <stop offset="100%" stop-color="#1e5c0e"/>
-            </radialGradient>
-            <radialGradient id="purpleGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#9c27b0"/>
-              <stop offset="100%" stop-color="#4a148c"/>
-            </radialGradient>
-            <radialGradient id="lensGrad" cx="30%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#ff7043"/>
-              <stop offset="50%" stop-color="#e91e63"/>
-              <stop offset="100%" stop-color="#4a148c"/>
-            </radialGradient>
-          </defs>
+        <!-- Exact Matching 7-Blade Leaf Character SVG -->
+        <svg class="weed-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+          <g id="leaf-mascot">
+            <!-- Lower Left Fan Leaf -->
+            <path d="M 160 380 Q 80 340 20 280 Q 90 260 180 310 Z" fill="#2d8a1e" stroke="#000" stroke-width="7"/>
+            <path d="M 160 380 Q 80 340 20 280 Q 90 260 180 310 Z" fill="#47cc33" stroke="#000" stroke-width="5"/>
+            <!-- Lower Right Fan Leaf -->
+            <path d="M 340 380 Q 420 340 480 280 Q 410 260 320 310 Z" fill="#2d8a1e" stroke="#000" stroke-width="7"/>
+            <path d="M 340 380 Q 420 340 480 280 Q 410 260 320 310 Z" fill="#47cc33" stroke="#000" stroke-width="5"/>
+            
+            <!-- Mid Left Fan Leaf -->
+            <path d="M 120 270 Q 30 190 10 130 Q 90 140 170 210 Z" fill="#39a828" stroke="#000" stroke-width="7"/>
+            <!-- Mid Right Fan Leaf -->
+            <path d="M 380 270 Q 470 190 490 130 Q 410 140 330 210 Z" fill="#39a828" stroke="#000" stroke-width="7"/>
 
-          <g id="hash-plant-character">
-            <!-- Background Leaves -->
-            <path d="M 120 420 Q 20 380 10 320 Q 80 300 160 360 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
-            <path d="M 480 420 Q 580 380 590 320 Q 520 300 440 360 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
+            <!-- Main Central Serrated Leaf Body -->
+            <path d="M 250 20 
+                     L 230 55 L 245 65 L 220 95 L 238 105 L 210 145 L 230 155 L 185 205 L 210 215 L 165 270 L 190 280 L 150 340 L 175 350 
+                     C 220 430 280 430 325 350 L 350 340 L 310 280 L 335 270 L 290 215 L 315 205 L 270 155 L 290 145 L 262 105 L 280 95 L 255 65 L 270 55 Z" 
+                  fill="#52e03a" stroke="#000" stroke-width="8"/>
 
-            <!-- Flowering Bud -->
-            <path d="M 300 60 C 360 70, 420 110, 440 170 C 480 210, 490 280, 470 340 C 460 400, 410 460, 350 490 C 290 510, 210 500, 160 450 C 120 400, 110 320, 130 250 C 140 180, 200 90, 300 60 Z" fill="url(#budGrad)" stroke="#000" stroke-width="10"/>
+            <!-- Bottom Main Stem -->
+            <path d="M 235 420 Q 220 470 200 495 L 235 495 Q 265 470 265 420 Z" fill="#226b15" stroke="#000" stroke-width="7"/>
 
-            <!-- Calyxes & Pistils -->
-            <path d="M 220 100 Q 260 80 280 120 Q 240 150 220 100 Z" fill="url(#purpleGrad)" stroke="#000" stroke-width="6"/>
-            <path d="M 380 130 Q 420 120 430 160 Q 380 180 380 130 Z" fill="url(#purpleGrad)" stroke="#000" stroke-width="6"/>
-            <path d="M 280 70 Q 260 30 230 40 M 320 80 Q 350 40 380 50" stroke="#ff5722" stroke-width="8" stroke-linecap="round" fill="none"/>
+            <!-- Internal Leaf Veins -->
+            <path d="M 250 70 L 250 410 M 250 140 L 205 110 M 250 140 L 295 110 M 250 210 L 185 170 M 250 210 L 315 170 M 250 290 L 175 255 M 250 290 L 325 255" stroke="#237a13" stroke-width="5" stroke-linecap="round"/>
 
-            <!-- Sunglasses -->
-            <circle cx="230" cy="240" r="50" fill="url(#lensGrad)" stroke="#000" stroke-width="9"/>
-            <circle cx="370" cy="240" r="50" fill="url(#lensGrad)" stroke="#000" stroke-width="9"/>
-            <path d="M 280 230 Q 300 220 320 230" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round"/>
+            <!-- Bloodshot Blue Cartoon Eyes -->
+            <g id="eyes">
+              <!-- Left Eye -->
+              <ellipse cx="205" cy="180" rx="36" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
+              <ellipse cx="205" cy="180" rx="36" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
+              <path d="M 175 180 Q 185 180 190 183 M 235 180 Q 225 180 220 177" stroke="#ff0055" stroke-width="3"/>
+              <circle cx="212" cy="183" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
+              <circle cx="212" cy="183" r="7" fill="#000"/>
+              <circle cx="216" cy="179" r="3" fill="#fff"/>
+              <path d="M 170 172 Q 205 194 241 172 Q 205 155 170 172 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
 
-            <!-- Mouth -->
-            <path d="M 230 320 Q 300 380 370 320 Z" fill="#000"/>
-            <path d="M 240 325 Q 300 350 360 325 L 355 338 Q 300 360 245 338 Z" fill="#fff"/>
-            <path d="M 260 350 Q 300 330 340 350 Q 300 385 260 350 Z" fill="#ff3366"/>
+              <!-- Right Eye -->
+              <ellipse cx="295" cy="180" rx="36" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
+              <ellipse cx="295" cy="180" rx="36" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
+              <path d="M 265 180 Q 275 180 280 183 M 325 180 Q 315 180 310 177" stroke="#ff0055" stroke-width="3"/>
+              <circle cx="288" cy="183" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
+              <circle cx="288" cy="183" r="7" fill="#000"/>
+              <circle cx="292" cy="179" r="3" fill="#fff"/>
+              <path d="M 260 172 Q 295 194 330 172 Q 295 155 260 172 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
 
-            <!-- Arm & Joint -->
-            <path d="M 170 340 Q 120 320 140 260" fill="none" stroke="#000" stroke-width="28" stroke-linecap="round"/>
-            <path d="M 170 340 Q 120 320 140 260" fill="none" stroke="#41a813" stroke-width="20" stroke-linecap="round"/>
-            <g id="joint" transform="rotate(25 120 230)">
-              <path d="M 40 230 L 170 215 L 180 240 L 40 245 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
-              <path d="M 40 230 Q 22 237 40 245 Z" fill="#333" stroke="#000" stroke-width="4"/>
+              <!-- Eyebrows -->
+              <path d="M 165 145 Q 205 125 240 150" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 260 150 Q 295 125 335 145" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+            </g>
+
+            <!-- Wide Smirking Mouth -->
+            <g id="mouth">
+              <path d="M 190 245 Q 250 305 310 240 C 320 275 280 310 250 310 C 210 310 180 275 190 245 Z" fill="#80001a" stroke="#000" stroke-width="7"/>
+              <path d="M 220 290 Q 250 265 280 290 Q 250 320 220 290 Z" fill="#ff3366" stroke="#000" stroke-width="4"/>
+              <path d="M 205 252 L 225 257 L 220 267 L 202 260 Z" fill="#fff" stroke="#000" stroke-width="3"/>
+            </g>
+
+            <!-- Hands & Joint Gesture -->
+            <g id="hands">
+              <!-- Left Waving Hand -->
+              <path d="M 150 325 Q 100 345 70 315" fill="none" stroke="#000" stroke-width="26" stroke-linecap="round"/>
+              <path d="M 150 325 Q 100 345 70 315" fill="none" stroke="#3eb828" stroke-width="18" stroke-linecap="round"/>
+              <circle cx="65" cy="310" r="20" fill="#fff" stroke="#000" stroke-width="5"/>
+              <circle cx="50" cy="295" r="9" fill="#fff" stroke="#000" stroke-width="4"/>
+              <circle cx="45" cy="315" r="9" fill="#fff" stroke="#000" stroke-width="4"/>
+
+              <!-- Right Hand Holding Joint -->
+              <path d="M 330 325 Q 370 335 390 285" fill="none" stroke="#000" stroke-width="26" stroke-linecap="round"/>
+              <path d="M 330 325 Q 370 335 390 285" fill="none" stroke="#3eb828" stroke-width="18" stroke-linecap="round"/>
+
+              <!-- JOINT -->
+              <g id="fat-joint" transform="rotate(-15 380 255)">
+                <path d="M 280 255 L 410 240 L 420 265 L 280 270 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
+                <path d="M 320 252 L 318 269 M 360 247 L 358 267 M 395 243 L 393 264" stroke="#ccc" stroke-width="3"/>
+                <path d="M 410 240 Q 428 252 420 265 Z" fill="#333" stroke="#000" stroke-width="4"/>
+              </g>
+
+              <circle cx="375" cy="270" r="13" fill="#fff" stroke="#000" stroke-width="5"/>
+              <circle cx="390" cy="280" r="13" fill="#fff" stroke="#000" stroke-width="5"/>
+              <circle cx="365" cy="285" r="13" fill="#fff" stroke="#000" stroke-width="5"/>
             </g>
           </g>
         </svg>
@@ -427,7 +463,7 @@ footer {
   </div>
 
   <footer>
-    CREDS & GREETZ: Karo, Zecoxao, ChendoChap, flat_z, TheFlow &amp; all relapsers!
+    CREDS &amp; GREETZ: Karo, Zecoxao, ChendoChap, flat_z, TheFlow &amp; all relapsers!
   </footer>
 </div>
 
@@ -452,12 +488,29 @@ function sendPayload(name, port) {
   log.innerHTML += '<br>> Injecting ' + name + ' on port ' + port + '...';
   log.scrollTop = log.scrollHeight;
   setTimeout(function() {
-    log.innerHTML += '<br><span style="color:#ffeb3b">> Payload ' + name + ' Sent Successfully!</span>';
+    log.innerHTML += '<br><span style="color:#ffe600">> Payload ' + name + ' Sent Successfully!</span>';
     log.scrollTop = log.scrollHeight;
   }, 1000);
 }
 
-// Background Particles
+// Dynamic Smoke Rings
+function createSmokeRing() {
+  var emitter = document.getElementById('smoke-emitter');
+  if (!emitter) return;
+  var rect = emitter.getBoundingClientRect();
+  var ring = document.createElement('div');
+  ring.className = 'smoke-ring';
+  var size = Math.random() * 18 + 20;
+  ring.style.width = size + 'px';
+  ring.style.height = size + 'px';
+  ring.style.left = (rect.left + window.scrollX) + 'px';
+  ring.style.top = (rect.top + window.scrollY) + 'px';
+  document.body.appendChild(ring);
+  setTimeout(function() { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 3500);
+}
+setInterval(createSmokeRing, 900);
+
+// Background Canvas Animation
 var canvas = document.getElementById('bg-canvas');
 var ctx = canvas.getContext('2d');
 function resizeCanvas() {
@@ -468,7 +521,7 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 var particles = [];
-for (var i = 0; i < 20; i++) {
+for (var i = 0; i < 22; i++) {
   particles.push({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
@@ -479,7 +532,7 @@ for (var i = 0; i < 20; i++) {
 
 function drawBackground() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#4dff28';
+  ctx.fillStyle = '#39ff14';
   for (var i = 0; i < particles.length; i++) {
     var p = particles[i];
     p.y += p.speedY;
