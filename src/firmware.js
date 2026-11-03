@@ -9,15 +9,21 @@ const supportedFirmware = [
   "8.60", "8.40", "8.20", "8.00",
   "7.61", "7.60", "7.40", "7.20", "7.01", "7.00",
 ];
+
 const firmwareUserAgent = navigator.userAgent;
 const firmwareMatch = /PlayStation 5\/(\d+\.\d+)/.exec(firmwareUserAgent);
-const firmwareVersion = firmwareMatch ? firmwareMatch[1] : "";
+const isPS5 = firmwareUserAgent.includes("PlayStation 5");
 
+// Use detected PS5 firmware, or supply a mock preview tag on standard browsers
+const firmwareVersion = firmwareMatch ? firmwareMatch[1] : (isPS5 ? "" : "10.00 (Preview)");
+
+window.isPS5 = isPS5;
 window.fw_str = firmwareVersion;
 window.firmware = {
   rejection() {
-    if (!firmwareUserAgent.includes("PlayStation 5")) {
-      return "PlayStation 5 Required";
+    // Bypass device lock on PC / Mobile browsers for UI viewing
+    if (!isPS5) {
+      return null;
     }
 
     if (!firmwareVersion) {
