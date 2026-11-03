@@ -27,6 +27,46 @@ function writeEvent(name, detail, type) {
 window.writeLog = writeLog;
 window.jb = { mark: writeEvent };
 
+// ELF Payload loader function
+async function loadElfPayload(fileName) {
+  // Safe Mode for non-PS5 browsers
+  if (!window.isPS5) {
+    writeLog(`[PREVIEW] Mock dispatching payload: ${fileName}`, "info");
+    setTimeout(() => {
+      writeLog(`[PREVIEW] ${fileName} dispatched successfully (Simulation Mode).`, "success");
+    }, 700);
+    return;
+  }
+
+  try {
+    writeLog(`Fetching payload: ${fileName}...`, "info");
+
+    // encodeURIComponent protects filenames containing '+' or special characters
+    const cleanPath = `./payloads/${encodeURIComponent(fileName)}`;
+    const response = await fetch(cleanPath);
+
+    if (!response.ok) {
+      throw new Error(`File ${fileName} not found on server (HTTP ${response.status})`);
+    }
+
+    const payloadBuffer = await response.arrayBuffer();
+    writeLog(`Loaded ${fileName} (${payloadBuffer.byteLength} bytes). Dispatching to port 9021...`, "info");
+
+    // Standard port 9021 injection
+    if (typeof window.sendPayloadToPort === "function") {
+      await window.sendPayloadToPort(payloadBuffer, 9021);
+      writeLog(`${fileName} loaded and running!`, "success");
+    } else {
+      writeLog(`Port 9021 handler not detected. Ensure kernel exploit has finished.`, "error");
+    }
+  } catch (err) {
+    writeLog(`Failed to load ${fileName}: ${err.message}`, "error");
+  }
+}
+
+// Expose loader to HTML buttons
+window.loadElfPayload = loadElfPayload;
+
 async function getPrimitive() {
   writeLog("Starting WebKit exploit");
   const primitive = installWindowP(await establishPrimitive(writeEvent));
@@ -52,17 +92,13 @@ function getWebKitBase() {
 }
 
 async function run() {
-  // 1. Detect if the browser is running on a PlayStation 5
-  const isPS5 = /PlayStation 5/i.test(navigator.userAgent);
-
-  if (!isPS5) {
+  // Stop early on non-PS5 browsers so the UI remains fully visible and active
+  if (!window.isPS5) {
     writeLog("Non-PS5 environment detected (PC / Mobile).", "info");
-    writeLog("Preview Mode active: Hardware-specific memory primitives disabled.", "success");
-    writeLog(`User Agent: ${navigator.userAgent}`, "log");
-    return; // Safely stop execution so the UI remains fully interactive
+    writeLog("Preview Mode active: Exploit primitives dormant.", "success");
+    return;
   }
 
-  // 2. Hardware environment execution (Only runs on an actual PS5)
   const rejection = window.firmware && typeof window.firmware.rejection === "function"
     ? window.firmware.rejection()
     : null;
