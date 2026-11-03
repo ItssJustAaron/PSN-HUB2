@@ -2,651 +2,650 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>PSN-HUB // RETRO EXPERIMENTAL ZONE</title>
-
-<!-- Google Fonts: Bungee & Permanent Marker for funky comic retro vibes -->
+<title>PSN-HUB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Permanent+Marker&family=VT323&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Permanent+Marker&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-dark: #120326;
-    --neon-green: #39ff14;
-    --weed-green: #2ecc71;
-    --dark-green: #1a5e20;
-    --bright-yellow: #ffee00;
-    --hot-pink: #ff007f;
-    --purple-main: #7b2cbf;
-    --purple-light: #9d4edd;
-    --comic-border: 4px solid #000;
-    --comic-shadow: 6px 6px 0px #000;
-    --comic-shadow-lg: 10px 10px 0px #000;
-  }
+:root {
+  --green-main: #39ff14;
+  --green-dark: #123806;
+  --purple-bg: #1a0826;
+  --yellow-accent: #ffe600;
+  --pink-accent: #ff007f;
+  --orange-cherry: #ff3300;
+  --border-thick: 4px solid #000;
+  --box-shadow: 6px 6px 0px #000;
+}
 
-  * {
-    box-sizing: border-box;
-    user-select: none;
-    -webkit-user-select: none;
-  }
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-dark);
-    color: #fff;
-    font-family: 'Bungee', cursive, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    overflow-x: hidden;
-    position: relative;
-    /* Groovy psychedelic background gradient with grid pattern */
-    background-image: 
-      radial-gradient(circle at 50% 30%, #3a0ca3 0%, var(--bg-dark) 70%),
-      repeating-linear-gradient(0deg, rgba(57, 255, 20, 0.03) 0px, rgba(57, 255, 20, 0.03) 1px, transparent 1px, transparent 20px),
-      repeating-linear-gradient(90deg, rgba(57, 255, 20, 0.03) 0px, rgba(57, 255, 20, 0.03) 1px, transparent 1px, transparent 20px);
-  }
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #2e004f 0%, var(--purple-bg) 100%);
+  color: #fff;
+  font-family: 'Fredoka', cursive, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
 
-  /* Animated Canvas overlay for drifting smoke & leaves */
-  #fx-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-  }
+/* Background Particle Canvas */
+#bg-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
 
-  /* Top Control Strip */
-  .top-controls {
-    position: relative;
-    z-index: 10;
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px 20px;
-    gap: 10px;
-  }
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 800px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+}
 
-  .icon-btn {
-    background: var(--bright-yellow);
-    border: var(--comic-border);
-    border-radius: 12px;
-    padding: 6px 12px;
-    font-family: 'Bungee', cursive;
-    font-size: 0.8rem;
-    color: #000;
-    cursor: pointer;
-    box-shadow: 3px 3px 0px #000;
-    transition: all 0.1s ease;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
+/* Header */
+header {
+  text-align: center;
+  margin-top: 5px;
+}
 
-  .icon-btn:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px #000;
-    background: var(--neon-green);
-  }
+h1 {
+  font-family: 'Bungee', cursive;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  margin: 0;
+  color: var(--green-main);
+  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent), 0 0 15px rgba(57, 255, 20, 0.6);
+  letter-spacing: 2px;
+}
 
-  .icon-btn:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0px #000;
-  }
+.subtitle {
+  font-family: 'Permanent Marker', cursive;
+  color: var(--yellow-accent);
+  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+  margin-top: -5px;
+  text-shadow: 2px 2px 0px #000;
+}
 
-  /* Header Branding */
-  header {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    margin-top: 10px;
-    padding: 0 15px;
-  }
+.fw-badge {
+  background: #000;
+  border: 2px solid var(--green-main);
+  padding: 3px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  box-shadow: 3px 3px 0px var(--pink-accent);
+}
 
-  .logo-container {
-    display: inline-block;
-    position: relative;
-  }
+.fw-val {
+  color: var(--yellow-accent);
+  font-weight: bold;
+}
 
-  h1.brand-title {
-    font-family: 'Bungee', cursive;
-    font-size: clamp(2.8rem, 8vw, 5.5rem);
-    margin: 0;
-    color: var(--neon-green);
-    text-shadow: 
-      4px 4px 0px #000,
-      -3px -3px 0px #000,
-      3px -3px 0px #000,
-      -3px 3px 0px #000,
-      6px 6px 0px var(--hot-pink),
-      10px 10px 0px #000;
-    letter-spacing: 2px;
-    transform: rotate(-2deg);
-    animation: wiggle 3s ease-in-out infinite alternate;
-  }
+/* Character Container */
+.mascot-area {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  max-height: 48vh;
+  width: 100%;
+  margin: 5px 0;
+}
 
-  @keyframes wiggle {
-    0% { transform: rotate(-2deg) scale(1); }
-    50% { transform: rotate(1deg) scale(1.02); }
-    100% { transform: rotate(-3deg) scale(0.99); }
-  }
+.character-card {
+  position: relative;
+  height: 100%;
+  max-height: 380px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
 
-  .subtitle-badge {
-    display: inline-block;
-    background: var(--hot-pink);
-    color: var(--bright-yellow);
-    border: var(--comic-border);
-    padding: 4px 15px;
-    font-family: 'Permanent Marker', cursive;
-    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
-    border-radius: 20px;
-    box-shadow: var(--comic-shadow);
-    transform: rotate(3deg) translateY(-10px);
-    margin-bottom: 10px;
-  }
+.weed-img {
+  height: 100%;
+  max-height: 360px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.3));
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-  .firmware-box {
-    background: var(--bright-yellow);
-    color: #000;
-    border: var(--comic-border);
-    padding: 8px 18px;
-    border-radius: 12px;
-    box-shadow: var(--comic-shadow);
-    display: inline-block;
-    font-size: clamp(0.85rem, 2vw, 1.1rem);
-    margin-top: 10px;
-  }
+.character-card:hover .weed-img {
+  transform: scale(1.03) rotate(1deg);
+}
 
-  .firmware-box span {
-    color: var(--hot-pink);
-    font-size: 1.2em;
-    text-shadow: 1px 1px 0px #000;
-  }
+.character-card:active .weed-img {
+  transform: scale(0.96) rotate(-2deg);
+}
 
-  /* Main Container View */
-  #main-content {
-    position: relative;
-    z-index: 10;
-    width: 100%;
-    max-width: 650px;
-    padding: 20px;
-    margin: 20px auto;
-  }
+/* Dynamic Burning Joint Cherry Ember */
+.ember-glow {
+  position: absolute;
+  top: 51.5%;
+  right: 18.5%;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle, #ffffff 10%, #ffcc00 30%, #ff3300 70%, transparent 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 12px #ff3300, 0 0 25px #ff9900, 0 0 35px #ff0000;
+  animation: emberBurn 1.2s infinite alternate ease-in-out;
+  pointer-events: none;
+}
 
-  #pre-jb-view {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
+@keyframes emberBurn {
+  0% { transform: scale(0.85); opacity: 0.8; filter: brightness(1); }
+  50% { transform: scale(1.2); opacity: 1; filter: brightness(1.4); }
+  100% { transform: scale(0.95); opacity: 0.9; filter: brightness(1.1); }
+}
 
-  /* Funky Neubrutalist Cartoon Buttons */
-  .btn-funky {
-    position: relative;
-    width: 100%;
-    max-width: 480px;
-    padding: 20px 25px;
-    font-family: 'Bungee', cursive;
-    font-size: clamp(1.4rem, 4vw, 2.2rem);
-    text-align: center;
-    text-decoration: none;
-    color: #000;
-    background: var(--neon-green);
-    border: var(--comic-border);
-    border-radius: 20px;
-    box-shadow: var(--comic-shadow-lg);
-    cursor: pointer;
-    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease, background-color 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    overflow: hidden;
-  }
+/* Smoke Emitter Anchor */
+.smoke-emitter {
+  position: absolute;
+  top: 50%;
+  right: 17%;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
 
-  .btn-funky::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent);
-    transform: rotate(45deg);
-    transition: 0.5s;
-  }
+/* Floating Smoke Clouds */
+.smoke-puff {
+  position: absolute;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(200, 220, 200, 0.4) 50%, transparent 80%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: floatSmoke 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
 
-  .btn-funky:hover::before {
-    left: 100%;
+@keyframes floatSmoke {
+  0% {
+    transform: translate(0, 0) scale(0.4);
+    opacity: 0.9;
   }
-
-  .btn-funky:hover, .btn-funky:focus {
-    transform: translate(-4px, -4px) scale(1.02);
-    box-shadow: 14px 14px 0px #000;
-    outline: none;
+  50% {
+    opacity: 0.6;
   }
-
-  .btn-funky:active {
-    transform: translate(4px, 4px) scale(0.98);
-    box-shadow: 4px 4px 0px #000;
-  }
-
-  .btn-main {
-    background: var(--neon-green);
-    color: #000;
-  }
-
-  .btn-main:hover {
-    background: #00ff66;
-  }
-
-  .btn-secondary-funky {
-    background: var(--hot-pink);
-    color: var(--bright-yellow);
-    font-size: clamp(1.1rem, 3vw, 1.5rem);
-    padding: 15px 20px;
-  }
-
-  .btn-secondary-funky:hover {
-    background: #ff1a8c;
-  }
-
-  /* Mascot SVG Companion */
-  .mascot-container {
-    position: relative;
-    width: 110px;
-    height: 110px;
-    margin: -10px auto 10px;
-    cursor: pointer;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-
-  .mascot-container:hover {
-    transform: scale(1.15) rotate(5deg);
-  }
-
-  .speech-bubble {
-    position: absolute;
-    top: -35px;
-    right: -70px;
-    background: #fff;
-    color: #000;
-    border: 3px solid #000;
-    border-radius: 15px;
-    padding: 5px 10px;
-    font-family: 'Permanent Marker', cursive;
-    font-size: 0.85rem;
-    box-shadow: 3px 3px 0px #000;
-    white-space: nowrap;
+  100% {
+    transform: translate(70px, -130px) scale(2.8);
     opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.2s ease;
-    pointer-events: none;
-    z-index: 20;
   }
+}
 
-  .mascot-container:hover .speech-bubble {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Cartoon Speech Bubble */
+.speech-bubble {
+  position: absolute;
+  top: 0%;
+  left: 5%;
+  background: #fff;
+  color: #000;
+  font-family: 'Permanent Marker', cursive;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: var(--border-thick);
+  box-shadow: var(--box-shadow);
+  font-size: 1rem;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0.5) rotate(-5deg);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
 
-  /* Credits & Greetz Section */
-  footer#credits {
-    position: relative;
-    z-index: 10;
-    width: 100%;
-    max-width: 950px;
-    margin: 20px auto 15px;
-    padding: 15px;
-    text-align: center;
-  }
+.speech-bubble.active {
+  opacity: 1;
+  transform: scale(1) rotate(-3deg);
+}
 
-  .credits-card {
-    background: rgba(32, 12, 60, 0.85);
-    border: var(--comic-border);
-    border-radius: 18px;
-    padding: 15px 20px;
-    box-shadow: var(--comic-shadow);
-    backdrop-filter: blur(5px);
-  }
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  right: 25px;
+  border-width: 12px 10px 0;
+  border-style: solid;
+  border-color: #fff transparent;
+  display: block;
+  width: 0;
+}
 
-  #credits span.cred-title {
-    display: inline-block;
-    color: var(--bright-yellow);
-    font-size: 1.1rem;
-    font-weight: 900;
-    letter-spacing: .22em;
-    margin-bottom: 8px;
-    text-shadow: 2px 2px 0px #000;
-    background: var(--purple-main);
-    border: 2px solid #000;
-    padding: 2px 14px;
-    border-radius: 10px;
-  }
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -17px;
+  right: 23px;
+  border-width: 14px 12px 0;
+  border-style: solid;
+  border-color: #000 transparent;
+  display: block;
+  width: 0;
+}
 
-  #credits h3 {
-    margin: 8px auto 0;
-    max-width: 55rem;
-    font-family: 'VT323', monospace;
-    font-size: 1.15rem;
-    font-weight: 400;
-    color: #60efb8;
-    line-height: 1.4;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 0px #000;
-  }
+/* Buttons Area */
+.btn-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 5px;
+}
 
-  #basedon {
-    margin: 10px 0 0;
-    font-family: 'Permanent Marker', cursive;
-    font-size: 0.85rem;
-    color: var(--hot-pink);
-    letter-spacing: .05em;
-  }
+.btn {
+  font-family: 'Bungee', cursive;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 85%;
+  max-width: 420px;
+  padding: 12px 20px;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  color: #000;
+  background: var(--green-main);
+  border: var(--border-thick);
+  border-radius: 16px;
+  box-shadow: var(--box-shadow);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+  outline: none;
+}
 
-  /* Utility CSS SVG Icons */
-  .leaf-icon {
-    width: 32px;
-    height: 32px;
-    fill: currentColor;
-    filter: drop-shadow(2px 2px 0px #000);
-  }
+.btn:hover, .btn:focus {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0px #000;
+  background: #4dff28;
+}
 
-  /* Accessibility / Responsiveness adjustments */
-  @media (max-height: 670px) {
-    header { margin-top: 0; }
-    #main-content { margin: 5px auto; }
-    .mascot-container { width: 80px; height: 80px; }
-  }
+.btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+.btn-secondary {
+  background: var(--yellow-accent);
+  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+  padding: 8px 16px;
+}
+
+.btn-secondary:hover, .btn-secondary:focus {
+  background: #fff04d;
+}
+
+/* Credits Footer */
+footer {
+  width: 100%;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.75);
+  border: var(--border-thick);
+  border-radius: 12px;
+  padding: 6px 10px;
+  margin-bottom: 5px;
+  box-shadow: 4px 4px 0px #000;
+}
+
+footer .credits-title {
+  color: var(--pink-accent);
+  font-family: 'Bungee', cursive;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+footer .names {
+  color: #ddd;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  margin: 2px 0;
+  max-height: 2.6em;
+  overflow: hidden;
+  text-shadow: 1px 1px 0px #000;
+}
+
+footer .based-on {
+  color: var(--yellow-accent);
+  font-size: 0.62rem;
+  font-style: italic;
+  margin: 0;
+}
 </style>
 </head>
 <body>
 
-  <!-- Floating particles canvas overlay -->
-  <canvas id="fx-canvas"></canvas>
+<canvas id="bg-canvas"></canvas>
 
-  <!-- Top bar sound & theme options -->
-  <div class="top-controls">
-    <button class="icon-btn" id="sound-toggle" aria-label="Toggle Sound Effects">
-      <span id="sound-icon">🔊</span> SOUND: ON
-    </button>
-    <button class="icon-btn" id="chill-toggle" aria-label="Toggle Smoke FX">
-      🌿 FX: HIGH
-    </button>
-  </div>
-
-  <!-- Main Header & Branding -->
+<div class="content-wrapper">
+  <!-- Header -->
   <header>
-    <div class="logo-container">
-      <h1 class="brand-title">PSN-HUB</h1>
-    </div>
-    <div>
-      <span class="subtitle-badge">⚡ RETRO EXPERIMENTAL ZONE ⚡</span>
-    </div>
-    <div class="firmware-box">
-      TARGET FIRMWARE: (7.00 - 13.60) | CURRENT: <span id="current-fw">DETECTING...</span>
-    </div>
+    <h1>PSN-HUB</h1>
+    <div class="subtitle">HIGH FIRMWARE PORTAL</div>
+    <div class="fw-badge">Current FW: <span class="fw-val" id="current-fw">Detecting...</span></div>
   </header>
 
-  <!-- Interactive Mascot -->
-  <div class="mascot-container" id="mascot" title="Click Herb-E for good luck!">
-    <div class="speech-bubble" id="speech">Stay Groovy & Safe! 🍁</div>
-    <!-- Hand-drawn style SVG Weed Leaf Mascot with Shades -->
-    <svg viewBox="0 0 100 100" width="100%" height="100%">
-      <!-- Cartoon Leaf Shape -->
-      <path d="M 50 10 C 52 25, 65 30, 65 30 C 65 30, 78 20, 85 35 C 88 42, 75 52, 75 52 C 75 52, 92 55, 90 70 C 88 80, 70 78, 70 78 C 70 78, 75 90, 60 92 C 52 93, 50 82, 50 82 C 50 82, 48 93, 40 92 C 25 90, 30 78, 30 78 C 30 78, 12 80, 10 70 C 8 55, 25 52, 25 52 C 25 52, 12 42, 15 35 C 22 20, 35 30, 35 30 C 35 30, 48 25, 50 10 Z" 
-            fill="#39ff14" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
-      <!-- Stem -->
-      <path d="M 50 82 L 50 98" stroke="#000" stroke-width="6" stroke-linecap="round"/>
-      <path d="M 50 82 L 50 98" stroke="#1a5e20" stroke-width="2" stroke-linecap="round"/>
-      <!-- Internal Leaf Veins -->
-      <path d="M 50 25 L 50 78 M 50 50 L 70 40 M 50 50 L 30 40 M 50 65 L 75 62 M 50 65 L 25 62" 
-            stroke="#1a5e20" stroke-width="3" stroke-linecap="round"/>
-      <!-- Cool Retro Thug Sunglasses -->
-      <polygon points="22,42 48,42 45,56 26,56" fill="#000" />
-      <polygon points="52,42 78,42 74,56 55,56" fill="#000" />
-      <line x1="48" y1="45" x2="52" y2="45" stroke="#000" stroke-width="3" />
-      <!-- Sunglasses Glare -->
-      <line x1="26" y1="45" x2="36" y2="53" stroke="#fff" stroke-width="2" />
-      <line x1="56" y1="45" x2="66" y2="53" stroke="#fff" stroke-width="2" />
-      <!-- Smirk Mouth -->
-      <path d="M 40 68 Q 50 78 60 66" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
-    </svg>
+  <!-- Main Mascot Area -->
+  <div class="mascot-area">
+    <div class="speech-bubble" id="speech-bubble">Pass the payload!</div>
+    
+    <div class="character-card" id="mascot-card">
+      <img src="https://images.unsplash.com/photo-1536483228102-1815f9d146bf?q=80&w=600&auto=format&fit=crop" style="display:none;" alt="pre-loader">
+      <svg class="weed-img" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <!-- SVG recreation of high-res cartoony smoking weed leaf -->
+        <g id="weed-character">
+          <!-- Back Leaves -->
+          <path d="M 120 380 Q 50 310 10 250 Q 70 240 140 280 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
+          <path d="M 380 380 Q 450 310 490 250 Q 430 240 360 280 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
+          <path d="M 100 270 Q 20 180 5 120 Q 80 130 160 210 Z" fill="#39a828" stroke="#000" stroke-width="8"/>
+          <path d="M 400 270 Q 480 180 495 120 Q 420 130 340 210 Z" fill="#39a828" stroke="#000" stroke-width="8"/>
+          
+          <!-- Top Leaf Blade -->
+          <path d="M 250 20 Q 200 100 180 200 L 320 200 Q 300 100 250 20 Z" fill="#47cc33" stroke="#000" stroke-width="8"/>
+          
+          <!-- Main Body Leaf -->
+          <path d="M 250 30 C 130 120 100 220 150 420 C 220 460 280 460 350 420 C 400 220 370 120 250 30 Z" fill="#52e03a" stroke="#000" stroke-width="9"/>
+          
+          <!-- Stem Base -->
+          <path d="M 235 430 Q 220 480 200 495 L 235 495 Q 265 470 265 430 Z" fill="#226b15" stroke="#000" stroke-width="7"/>
+
+          <!-- Serrated Edges Overlay -->
+          <path d="M 250 30 L 230 60 L 245 70 L 220 100 L 238 110 L 210 150 L 230 160 L 190 210 L 215 220 L 170 280 L 195 290 L 155 350 L 180 360 C 230 440 270 440 320 360 L 345 350 L 305 290 L 330 280 L 285 220 L 310 210 L 270 160 L 290 150 L 262 110 L 280 100 L 255 70 L 270 60 Z" fill="#4ade35" stroke="#000" stroke-width="8"/>
+
+          <!-- Veins -->
+          <path d="M 250 80 L 250 400 M 250 150 L 200 120 M 250 150 L 300 120 M 250 220 L 180 180 M 250 220 L 320 180 M 250 300 L 170 270 M 250 300 L 330 270" stroke="#237a13" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Bloodshot Heavy Eyes -->
+          <g id="eyes">
+            <!-- Left Eye -->
+            <ellipse cx="205" cy="185" rx="35" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
+            <ellipse cx="205" cy="185" rx="35" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
+            <!-- Bloodshot veins -->
+            <path d="M 175 185 Q 185 185 190 188 M 235 185 Q 225 185 220 182 M 205 160 L 205 170" stroke="#ff0055" stroke-width="3"/>
+            <circle cx="212" cy="188" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
+            <circle cx="212" cy="188" r="7" fill="#000"/>
+            <circle cx="216" cy="184" r="3" fill="#fff"/>
+            <!-- Droopy Eyelid -->
+            <path d="M 170 178 Q 205 200 240 178 Q 205 160 170 178 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
+
+            <!-- Right Eye -->
+            <ellipse cx="295" cy="185" rx="35" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
+            <ellipse cx="295" cy="185" rx="35" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
+            <!-- Bloodshot veins -->
+            <path d="M 265 185 Q 275 185 280 188 M 325 185 Q 315 185 310 182 M 295 160 L 295 170" stroke="#ff0055" stroke-width="3"/>
+            <circle cx="288" cy="188" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
+            <circle cx="288" cy="188" r="7" fill="#000"/>
+            <circle cx="292" cy="184" r="3" fill="#fff"/>
+            <!-- Droopy Eyelid -->
+            <path d="M 260 178 Q 295 200 330 178 Q 295 160 260 178 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
+
+            <!-- Eyebrows -->
+            <path d="M 165 150 Q 205 130 240 155" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+            <path d="M 260 155 Q 295 130 335 150" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+          </g>
+
+          <!-- Smirking Mouth -->
+          <g id="mouth">
+            <path d="M 190 250 Q 250 310 310 245 C 320 280 280 315 250 315 C 210 315 180 280 190 250 Z" fill="#80001a" stroke="#000" stroke-width="7"/>
+            <!-- Tongue -->
+            <path d="M 220 295 Q 250 270 280 295 Q 250 325 220 295 Z" fill="#ff3366" stroke="#000" stroke-width="4"/>
+            <!-- Tooth -->
+            <path d="M 205 257 L 225 262 L 220 272 L 202 265 Z" fill="#fff" stroke="#000" stroke-width="3"/>
+          </g>
+
+          <!-- Gloved Cartoon Hand Holding Joint -->
+          <g id="hand-and-joint">
+            <!-- Left Arm Gesture -->
+            <path d="M 150 330 Q 100 350 70 320" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
+            <path d="M 150 330 Q 100 350 70 320" fill="none" stroke="#000" stroke-width="28" stroke-linecap="round" style="z-index:-1"/>
+            <path d="M 150 330 Q 100 350 70 320" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
+            <!-- Left Glove -->
+            <circle cx="65" cy="315" r="22" fill="#fff" stroke="#000" stroke-width="6"/>
+            <circle cx="50" cy="300" r="10" fill="#fff" stroke="#000" stroke-width="5"/>
+            <circle cx="45" cy="320" r="10" fill="#fff" stroke="#000" stroke-width="5"/>
+
+            <!-- Right Arm & Hand Holding Joint -->
+            <path d="M 330 330 Q 370 340 390 290" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
+            <path d="M 330 330 Q 370 340 390 290" fill="none" stroke="#000" stroke-width="28" stroke-linecap="round"/>
+            <path d="M 330 330 Q 370 340 390 290" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
+
+            <!-- FAT JOINT -->
+            <g id="fat-joint" transform="rotate(-15 380 260)">
+              <!-- Joint Body -->
+              <path d="M 280 260 L 410 245 L 420 270 L 280 275 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
+              <!-- Joint Wrinkles/Twist -->
+              <path d="M 320 257 L 318 274 M 360 252 L 358 272 M 395 248 L 393 269" stroke="#ccc" stroke-width="3"/>
+              <!-- Burning Cherry Tip -->
+              <path d="M 410 245 Q 428 257 420 270 Z" fill="#333" stroke="#000" stroke-width="4"/>
+            </g>
+
+            <!-- Glove Fingers wrapped around joint -->
+            <circle cx="375" cy="275" r="14" fill="#fff" stroke="#000" stroke-width="5"/>
+            <circle cx="390" cy="285" r="14" fill="#fff" stroke="#000" stroke-width="5"/>
+            <circle cx="365" cy="290" r="14" fill="#fff" stroke="#000" stroke-width="5"/>
+          </g>
+        </g>
+      </svg>
+
+      <!-- Dynamic Glowing Burning Ember -->
+      <div class="ember-glow"></div>
+      
+      <!-- Smoke Emitter Anchor -->
+      <div class="smoke-emitter" id="smoke-emitter"></div>
+    </div>
   </div>
 
-  <!-- Primary Action View -->
-  <main id="main-content">
-    <div id="pre-jb-view" class="selected">
-      <a tabindex="0" class="btn-funky btn-main" id="run-jb" href="relapse.html">
-        <svg class="leaf-icon" viewBox="0 0 24 24">
-          <path d="M12,2C12,2 11,7 8,9 C5,11 2,10 2,10 C2,10 5,14 6,17 C7,20 4,22 4,22 C4,22 9,21 12,18 C15,21 20,22 20,22 C20,22 17,20 18,17 C19,14 22,10 22,10 C22,10 19,11 16,9 C13,7 12,2 12,2 Z"/>
-        </svg>
-        <span>JAILBREAK</span>
-      </a>
+  <!-- Action Buttons -->
+  <div class="btn-group">
+    <a tabindex="0" class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
+    <a tabindex="0" class="btn btn-secondary" id="run-sender" href="relapse.html?senderok=1">PAYLOAD SENDER</a>
+  </div>
 
-      <a tabindex="0" class="btn-funky btn-secondary-funky" id="run-sender" href="relapse.html?senderok=1">
-        <span>🚀 PAYLOADS (SENDER)</span>
-      </a>
+  <!-- Credits Footer -->
+  <footer>
+    <div class="credits-title">CREDS &amp; GREETZ</div>
+    <div class="names">
+      Karo, zecoxao, ChendoChap, abc/psfree, idlesauce, flat_z, TheFlow, c0w-ar, earthonion, SIStro, egycnq, abkarino, gezine, Dr.Yenyen, StonedModder, VoidWhisper, EchoStretch, BestPig, AlAzif, drakmor, hzhreal, hammer-83, ntfargo, shahrilnet, Znullptr, LM, ItsJokerZz, Soniciso1, cblock, BeLegal, Lord Caio Barros
     </div>
-  </main>
-
-  <!-- Credits & Greets Footer -->
-  <footer id="credits">
-    <div class="credits-card">
-      <span class="cred-title">CREDS &amp; GREETZ</span>
-      <h3>
-        Karo, zecoxao, ChendoChap, abc/psfree, idlesauce, flat_z, TheFlow,
-        c0w-ar, earthonion, SIStro, egycnq, abkarino, gezine, Dr.Yenyen,
-        StonedModder, VoidWhisper, EchoStretch, BestPig, AlAzif, drakmor,
-        hzhreal, hammer-83, ntfargo, shahrilnet, Znullptr,
-        LM, ItsJokerZz, Soniciso1, cblock, BeLegal, Lord Caio Barros
-      </h3>
-      <p id="basedon">PEACE & LOVE • BASED ON RELAPSE BY J0RDY &amp; SONICISO1</p>
-    </div>
+    <div class="based-on">based on Relapse by j0rdy &amp; soniciso1</div>
   </footer>
+</div>
 
-  <!-- Web Logic & Interactive Audio / Animation FX -->
-  <script>
-    // System Firmware Detection Script (Preserved verbatim)
-    try {
-      var firmwareMatch = /PlayStation 5\/(\d+\.\d+)/.exec(navigator.userAgent);
-      var firmware = firmwareMatch ? firmwareMatch[1] : "";
-      document.getElementById("current-fw").textContent = firmware || "NOT DETECTED";
-    } catch (e) {
-      document.getElementById("current-fw").textContent = "DETECTION ERROR";
+<script>
+// Firmware Detection Script
+try {
+  var firmwareMatch = /PlayStation 5\/(\d+\.\d+)/.exec(navigator.userAgent);
+  var firmware = firmwareMatch ? firmwareMatch[1] : "";
+  document.getElementById("current-fw").textContent = firmware || "10.01 (Mocked)";
+} catch (e) {
+  document.getElementById("current-fw").textContent = "Not detected";
+}
+
+try { document.getElementById("run-jb").focus(); } catch (e) { }
+
+// Audio Synthesizer (Web Audio API)
+var audioCtx = null;
+function playRetroSound(type) {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-
-    try { 
-      document.getElementById("run-jb").focus(); 
-    } catch (e) { }
-
-    // Sound FX Synth via Web Audio API (Zero External Assets)
-    let soundEnabled = true;
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new AudioContext();
-      }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
     }
+    
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-    function playFunkyBeep(freq, type = 'sine', duration = 0.1) {
-      if (!soundEnabled) return;
-      try {
-        initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        
-        // Envelope
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch(e){}
+    if (type === 'puff') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.4);
+    } else if (type === 'hover') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
     }
+  } catch(e) {}
+}
 
-    function playClickSound() {
-      if (!soundEnabled) return;
-      try {
-        initAudio();
-        // Funky spring slide up
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
-
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.15);
-      } catch(e){}
+// Dynamic Smoke Generator
+function createSmokePuff() {
+  var emitter = document.getElementById('smoke-emitter');
+  if (!emitter) return;
+  
+  var rect = emitter.getBoundingClientRect();
+  var puff = document.createElement('div');
+  puff.className = 'smoke-puff';
+  
+  var size = Math.random() * 25 + 20;
+  puff.style.width = size + 'px';
+  puff.style.height = size + 'px';
+  
+  puff.style.left = (rect.left + window.scrollX + (Math.random() * 10 - 5)) + 'px';
+  puff.style.top = (rect.top + window.scrollY + (Math.random() * 10 - 5)) + 'px';
+  
+  document.body.appendChild(puff);
+  
+  setTimeout(function() {
+    if (puff.parentNode) {
+      puff.parentNode.removeChild(puff);
     }
+  }, 3000);
+}
 
-    // Toggle Audio UI
-    const soundToggleBtn = document.getElementById("sound-toggle");
-    soundToggleBtn.addEventListener("click", () => {
-      soundEnabled = !soundEnabled;
-      soundToggleBtn.innerHTML = soundEnabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
-      if (soundEnabled) playFunkyBeep(523.25, 'triangle', 0.15);
-    });
+// Continuous background smoking
+setInterval(createSmokePuff, 800);
 
-    // Attach audio and squish events to buttons
-    const buttons = document.querySelectorAll(".btn-funky, .icon-btn");
-    buttons.forEach(btn => {
-      btn.addEventListener("mouseenter", () => playFunkyBeep(320, 'sine', 0.08));
-      btn.addEventListener("click", () => playClickSound());
-    });
+// Interactive Character Click / Tap
+var phrases = [
+  "PS5 Jailbreak Ready!",
+  "Stay Chilled...",
+  "High Firmware Vibes!",
+  "Injecting Payloads...",
+  "Kernel Exploit Puffed!",
+  "Groovy 13.60 Support!"
+];
 
-    // Mascot Easter Egg Speech Switcher
-    const quotes = [
-      "Stay Groovy & Safe! 🍁",
-      "Puff, Puff, Jailbreak! 💨",
-      "Kernel Exploit Loaded! ⚡",
-      "Far Out, Dude! ✌️",
-      "7.00 - 13.60 Unlocked! 🎮",
-      "Pass the Payloads! 🚀"
-    ];
-    const mascot = document.getElementById("mascot");
-    const speech = document.getElementById("speech");
+var mascotCard = document.getElementById('mascot-card');
+var speechBubble = document.getElementById('speech-bubble');
+var speechTimeout;
 
-    mascot.addEventListener("click", () => {
-      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-      speech.textContent = randomQuote;
-      playFunkyBeep(880, 'sawtooth', 0.12);
-      
-      // Wobble animation
-      mascot.style.transform = "scale(1.3) rotate(15deg)";
-      setTimeout(() => {
-        mascot.style.transform = "";
-      }, 200);
-    });
+mascotCard.addEventListener('click', function() {
+  playRetroSound('puff');
+  
+  // Blast multiple smoke puffs
+  for (var i = 0; i < 6; i++) {
+    setTimeout(createSmokePuff, i * 80);
+  }
+  
+  // Display random quote
+  var randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+  speechBubble.textContent = randomPhrase;
+  speechBubble.classList.add('active');
+  
+  clearTimeout(speechTimeout);
+  speechTimeout = setTimeout(function() {
+    speechBubble.classList.remove('active');
+  }, 2200);
+});
 
-    // Canvas FX: Floating Leaves & Smoke Particles
-    const canvas = document.getElementById("fx-canvas");
-    const ctx = canvas.getContext("2d");
-    let fxIntensity = 1; // 1 = High, 0 = Off
+// Sound FX on Hover/Focus
+var btns = document.querySelectorAll('.btn');
+btns.forEach(function(btn) {
+  btn.addEventListener('mouseenter', function() { playRetroSound('hover'); });
+  btn.addEventListener('focus', function() { playRetroSound('hover'); });
+});
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+// Canvas Background Floating Leaf & Particle Animation
+var canvas = document.getElementById('bg-canvas');
+var ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+var particles = [];
+for (var i = 0; i < 25; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 12 + 6,
+    speedX: Math.random() * 1 - 0.5,
+    speedY: Math.random() * -1 - 0.5,
+    rotation: Math.random() * Math.PI * 2,
+    rotSpeed: Math.random() * 0.04 - 0.02,
+    opacity: Math.random() * 0.5 + 0.2
+  });
+}
+
+function drawBackground() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+    p.x += p.speedX;
+    p.y += p.speedY;
+    p.rotation += p.rotSpeed;
+    
+    if (p.y < -20) {
+      p.y = canvas.height + 20;
+      p.x = Math.random() * canvas.width;
     }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
+    
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.globalAlpha = p.opacity;
+    
+    // Draw simple floating star/leaf particle
+    ctx.fillStyle = '#39ff14';
+    ctx.beginPath();
+    ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+  }
+  
+  requestAnimationFrame(drawBackground);
+}
+drawBackground();
+</script>
 
-    // Particle Object
-    class Particle {
-      constructor() {
-        this.reset();
-      }
-
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = canvas.height + Math.random() * 100;
-        this.size = Math.random() * 16 + 8;
-        this.speedY = -(Math.random() * 1.5 + 0.5);
-        this.speedX = Math.sin(Math.random() * Math.PI) * 1;
-        this.rotation = Math.random() * 360;
-        this.rotSpeed = (Math.random() - 0.5) * 2;
-        this.opacity = Math.random() * 0.5 + 0.2;
-        this.type = Math.random() > 0.4 ? 'leaf' : 'smoke';
-      }
-
-      update() {
-        this.y += this.speedY;
-        this.x += Math.sin(this.y * 0.01) + this.speedX;
-        this.rotation += this.rotSpeed;
-
-        if (this.y < -50 || this.x < -50 || this.x > canvas.width + 50) {
-          this.reset();
-        }
-      }
-
-      draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate((this.rotation * Math.PI) / 180);
-        ctx.globalAlpha = this.opacity;
-
-        if (this.type === 'leaf') {
-          // Draw mini cartoon leaf
-          ctx.fillStyle = '#39ff14';
-          ctx.strokeStyle = '#000';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-        } else {
-          // Draw soft trippy smoke puff
-          ctx.fillStyle = 'rgba(157, 78, 221, 0.4)';
-          ctx.beginPath();
-          ctx.arc(0, 0, this.size * 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        ctx.restore();
-      }
-    }
-
-    const particles = Array.from({ length: 35 }, () => new Particle());
-
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (fxIntensity > 0) {
-        particles.forEach(p => {
-          p.update();
-          p.draw();
-        });
-      }
-
-      requestAnimationFrame(animate);
-    }
-    animate();
-
-    // Toggle FX Button
-    const chillToggleBtn = document.getElementById("chill-toggle");
-    chillToggleBtn.addEventListener("click", () => {
-      fxIntensity = fxIntensity === 1 ? 0 : 1;
-      chillToggleBtn.innerHTML = fxIntensity === 1 ? '🌿 FX: HIGH' : '🍃 FX: OFF';
-    });
-  </script>
 </body>
 </html>
