@@ -4,629 +4,190 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>PSNHUB-2 // PS5-Relapse [Chill Edition]</title>
-  
-  <!-- Tailwind CSS & Fonts -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ganja: {
-              400: '#5bfb46',
-              500: '#39db24',
-              600: '#22ad11',
-              900: '#072404'
-            },
-            haze: {
-              300: '#ec4899',
-              500: '#a855f7',
-              700: '#6b21a8',
-              900: '#20073b'
-            },
-            retroAmber: '#ffaa00',
-            screenBg: '#090312'
-          },
-          fontFamily: {
-            bungee: ['"Bungee"', 'cursive'],
-            tech: ['"Chakra Petch"', 'sans-serif'],
-            terminal: ['"VT323"', 'monospace']
-          },
-          boxShadow: {
-            'comic': '4px 4px 0px #000',
-            'comic-lg': '7px 7px 0px #000',
-            'comic-green': '5px 5px 0px #39db24',
-            'glow-ganja': '0 0 25px rgba(57, 219, 36, 0.45)',
-            'glow-purple': '0 0 25px rgba(168, 85, 247, 0.4)'
-          }
-        }
-      }
-    }
-  </script>
-
+  <title>PSNHUB-2 // PS5-Relapse</title>
   <style>
-    /* Custom Comic & CRT styles */
+    :root {
+      --bg-dark: #0a0d0a;
+      --card-bg: #141c14;
+      --card-border: #1e381e;
+      --accent-green: #39ff14;
+      --accent-purple: #9d4edd;
+      --text-main: #f0fdf4;
+      --text-muted: #86efac;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background-color: #0c0418;
-      background-image: 
-        radial-gradient(circle at 15% 20%, rgba(57, 219, 36, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.2) 0%, transparent 45%),
-        linear-gradient(180deg, #090312 0%, #150626 50%, #06020c 100%);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Courier New', Courier, monospace;
       min-height: 100vh;
-      overflow-x: hidden;
-      font-family: 'Chakra Petch', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
     }
 
-    /* Cartoon Halftone / Dotted Overlay */
-    .halftone-bg {
-      background-image: radial-gradient(#39db24 1.2px, transparent 1.2px);
-      background-size: 20px 20px;
-      opacity: 0.07;
+    header {
+      text-align: center;
+      margin-bottom: 24px;
     }
 
-    /* CRT Scanline Shader Effect */
-    .crt-overlay::before {
-      content: " ";
-      display: block;
-      position: fixed;
-      top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
-      z-index: 50;
-      background-size: 100% 4px, 6px 100%;
-      pointer-events: none;
+    h1 {
+      font-size: 2.2rem;
+      color: var(--accent-green);
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
     }
 
-    .crt-flicker {
-      animation: flicker 0.15s infinite;
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border: 1px solid var(--accent-purple);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: #e9d5ff;
+      background: rgba(157, 78, 221, 0.15);
     }
 
-    @keyframes flicker {
-      0% { opacity: 0.985; }
-      50% { opacity: 1; }
-      100% { opacity: 0.992; }
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    /* Cartoon Smoke Particles */
-    .smoke-puff {
-      position: absolute;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(167, 243, 208, 0.25) 10%, rgba(168, 85, 247, 0.15) 70%, transparent 90%);
-      filter: blur(14px);
-      pointer-events: none;
-      animation: floatUp 12s infinite linear;
+    .payload-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
     }
 
-    @keyframes floatUp {
-      0% { transform: translateY(110vh) scale(0.6) rotate(0deg); opacity: 0; }
-      30% { opacity: 0.7; }
-      80% { opacity: 0.5; }
-      100% { transform: translateY(-20vh) scale(2.2) rotate(360deg); opacity: 0; }
+    .payload-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
     }
 
-    /* Wobble cartoon sticker */
-    @keyframes slowWobble {
-      0%, 100% { transform: rotate(-3deg) scale(1); }
-      50% { transform: rotate(4deg) scale(1.05); }
-    }
-    .wobble-sticker {
-      animation: slowWobble 4s ease-in-out infinite;
+    .payload-btn:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(57, 255, 20, 0.15);
     }
 
-    /* Custom Scrollbars for Retro Terminal */
-    #console::-webkit-scrollbar {
-      width: 8px;
+    .payload-btn:active {
+      transform: translateY(0);
     }
-    #console::-webkit-scrollbar-track {
-      background: #090312;
-      border-left: 2px solid #39db24;
+
+    .btn-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    #console::-webkit-scrollbar-thumb {
-      background: #39db24;
-      border-radius: 0px;
+
+    .btn-icon {
+      font-size: 1.4rem;
+    }
+
+    .btn-title {
+      font-weight: bold;
+      font-size: 1.05rem;
+      color: var(--accent-green);
+    }
+
+    .btn-desc {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      line-height: 1.3;
+    }
+
+    #console {
+      background: #000;
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      height: 220px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }
+
+    #console div {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: auto;
+      padding-top: 20px;
     }
   </style>
 </head>
-<body class="text-white crt-overlay crt-flicker relative selection:bg-ganja-400 selection:text-black">
-
-  <!-- Ambient Halftone Layer -->
-  <div class="fixed inset-0 halftone-bg pointer-events-none z-0"></div>
-
-  <!-- Ambient Floating Cartoon Smoke Container -->
-  <div id="smoke-container" class="fixed inset-0 overflow-hidden pointer-events-none z-0"></div>
-
-  <div class="relative z-10 max-w-7xl mx-auto px-4 py-4 md:py-6 flex flex-col min-h-screen justify-between">
-
-    <!-- Top Retro Banner & Status HUD -->
-    <header class="w-full bg-[#16072b]/90 border-4 border-black rounded-2xl p-4 md:p-5 shadow-comic-lg mb-6 backdrop-blur-md">
-      <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
-        
-        <!-- Logo & Mascot Identity -->
-        <div class="flex items-center gap-4">
-          <div class="relative wobble-sticker cursor-pointer" onclick="sfxBluntClick()" title="Puff the Herb Mascot">
-            <!-- Cartoon Animated Weed Leaf SVG Mascot -->
-            <svg class="w-16 h-16 md:w-20 md:h-20 drop-shadow-[0_4px_0_#000]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M50 8C50 8 36 32 30 44C24 35 15 28 8 28C8 28 14 44 24 55C14 55 4 58 4 64C4 70 20 72 32 68C22 78 12 90 12 90C12 90 28 84 40 73L47 96H53L60 73C72 84 88 90 88 90C88 90 78 78 68 68C80 72 96 70 96 64C96 58 86 55 76 55C86 44 92 28 92 28C85 28 76 35 70 44C64 32 50 8 50 8Z" fill="#39db24" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
-              <!-- Cartoon Stoner Sunglasses -->
-              <path d="M26 48 H46 V58 C46 62 42 65 36 65 H30 C25 65 26 60 26 58 Z" fill="#120224" stroke="#000" stroke-width="2"/>
-              <path d="M54 48 H74 V58 C74 62 70 65 64 65 H58 C53 65 54 60 54 58 Z" fill="#120224" stroke="#000" stroke-width="2"/>
-              <line x1="46" y1="52" x2="54" y2="52" stroke="#000" stroke-width="3"/>
-              <!-- Joint / Spliff -->
-              <path d="M47 68 L32 73" stroke="#fef08a" stroke-width="4.5" stroke-linecap="round"/>
-              <circle cx="30" cy="73.5" r="2.5" fill="#ef4444" />
-            </svg>
-            <div class="absolute -bottom-1 -right-2 bg-retroAmber text-black text-[10px] font-black px-1.5 py-0.5 border-2 border-black rounded rotate-12">
-              4:20 OS
-            </div>
-          </div>
-
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-3xl md:text-5xl font-bungee tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-ganja-400 via-yellow-300 to-haze-300 drop-shadow-[3px_3px_0px_#000]">
-                PSNHUB-2
-              </h1>
-              <span class="bg-haze-700 text-ganja-400 border-2 border-black text-xs font-bold px-2 py-0.5 rounded-full uppercase shadow-comic">
-                v1.08 Ganja
-              </span>
-            </div>
-            <p class="text-xs md:text-sm font-semibold text-purple-200 flex items-center gap-2 mt-0.5">
-              <span>PS5-RELAPSE EXPLOIT HUB</span>
-              <span class="text-ganja-400">•</span>
-              <span class="text-yellow-400 font-mono">CHILL &amp; BAKE ROP ENGINE</span>
-            </p>
-          </div>
-        </div>
-
-        <!-- HUD Telemetry Badges & Quick Toggles -->
-        <div class="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
-          
-          <!-- Firmware Detection Simulator -->
-          <div class="bg-black/60 border-2 border-ganja-500 rounded-xl px-3 py-1.5 shadow-comic flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full bg-ganja-400 animate-ping"></span>
-            <div>
-              <div class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Target FW</div>
-              <div id="fw-label" class="text-xs md:text-sm font-mono font-bold text-ganja-400">FW 3.00-4.51 Ready</div>
-            </div>
-          </div>
-
-          <!-- Stash Gauge / WebKit Memory Meter -->
-          <div class="bg-black/60 border-2 border-purple-500 rounded-xl px-3 py-1.5 shadow-comic">
-            <div class="text-[10px] text-gray-400 uppercase tracking-wider font-bold flex justify-between">
-              <span>Stash Heap</span>
-              <span id="heap-pct" class="text-ganja-400">42.0%</span>
-            </div>
-            <div class="w-24 bg-gray-900 h-2 rounded-full border border-black overflow-hidden mt-1">
-              <div id="heap-bar" class="bg-gradient-to-r from-ganja-500 to-yellow-400 h-full w-[42%] transition-all duration-500"></div>
-            </div>
-          </div>
-
-          <!-- Retro Sound Synthesizer Toggle -->
-          <button id="toggle-sfx" onclick="toggleAudio()" class="px-3 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bungee text-xs border-2 border-black rounded-xl shadow-comic active:translate-x-1 active:translate-y-1 transition-transform flex items-center gap-1.5">
-            <span id="sfx-icon">🔊</span>
-            <span id="sfx-text">SFX: ON</span>
-          </button>
-
-          <!-- CRT Scanline Switch -->
-          <button onclick="toggleCRT()" class="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bungee text-xs border-2 border-black rounded-xl shadow-comic active:translate-x-1 active:translate-y-1 transition-transform">
-            📺 CRT TOGGLE
-          </button>
-        </div>
-      </div>
+<body>
+  <div class="container">
+    <header>
+      <h1>PSNHUB-2</h1>
+      <span class="badge" id="fw-badge">Initializing...</span>
     </header>
 
-    <!-- Main Workspace: Payloads & Retro Terminal -->
-    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-auto">
-      
-      <!-- Payload Launch Deck (Left / 7 cols) -->
-      <section class="lg:col-span-7 space-y-4">
-        
-        <!-- Filter Bar -->
-        <div class="flex items-center justify-between bg-black/60 border-2 border-black p-2 rounded-xl shadow-comic">
-          <span class="text-xs font-bold text-ganja-400 uppercase tracking-widest pl-2">🌿 Select Strain (Payload):</span>
-          <div class="flex gap-2">
-            <button onclick="filterCategory('all')" class="cat-pill active px-3 py-1 text-xs font-bold border-2 border-black rounded-lg bg-ganja-400 text-black shadow-comic">ALL</button>
-            <button onclick="filterCategory('kernel')" class="cat-pill px-3 py-1 text-xs font-bold border-2 border-black rounded-lg bg-[#24133b] hover:bg-purple-800 text-white shadow-comic">KERNEL</button>
-            <button onclick="filterCategory('tools')" class="cat-pill px-3 py-1 text-xs font-bold border-2 border-black rounded-lg bg-[#24133b] hover:bg-purple-800 text-white shadow-comic">TOOLS</button>
-            <button onclick="filterCategory('dumper')" class="cat-pill px-3 py-1 text-xs font-bold border-2 border-black rounded-lg bg-[#24133b] hover:bg-purple-800 text-white shadow-comic">DUMPER</button>
-          </div>
+    <div class="payload-grid">
+      <!-- ShadowMount+ Payload -->
+      <button class="payload-btn" onclick="loadElfPayload('shadowmount+.elf')">
+        <div class="btn-header">
+          <span class="btn-icon">📁</span>
+          <span class="btn-title">ShadowMount+</span>
         </div>
+        <span class="btn-desc">Mount & manage virtual optical drives / raw images</span>
+      </button>
 
-        <!-- Cards Grid -->
-        <div id="payload-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          
-          <!-- Card: Kstuff Homebrew -->
-          <div data-cat="kernel" class="payload-card group relative bg-gradient-to-b from-[#1c0b36] to-[#120424] border-4 border-black hover:border-ganja-400 rounded-2xl p-4 shadow-comic-lg transition-all duration-200 hover:-translate-y-1">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-3xl">🥦</span>
-              <span class="bg-ganja-500/20 text-ganja-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-ganja-500">v1.4 - STABLE</span>
-            </div>
-            <h3 class="font-bungee text-lg text-white group-hover:text-ganja-400 transition-colors">K-Stuff Enabler</h3>
-            <p class="text-xs text-purple-200 mb-4 h-9">FPre-baked fselfs, kernel patches and Homebrew enabling layer.</p>
-            <button onclick="triggerPayload('K-Stuff 1.4', './src/payloads/kstuff.bin')" class="w-full py-2.5 bg-ganja-500 hover:bg-ganja-400 active:bg-ganja-600 text-black font-bungee text-sm border-2 border-black rounded-xl shadow-comic active:translate-x-0.5 active:translate-y-0.5 transition-all">
-              FIRE BLUNT ⚡
-            </button>
-          </div>
-
-          <!-- Card: FTP Server (File Baker) -->
-          <div data-cat="tools" class="payload-card group relative bg-gradient-to-b from-[#1c0b36] to-[#120424] border-4 border-black hover:border-yellow-400 rounded-2xl p-4 shadow-comic-lg transition-all duration-200 hover:-translate-y-1">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-3xl">🍕</span>
-              <span class="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-yellow-500">PORT 1337</span>
-            </div>
-            <h3 class="font-bungee text-lg text-white group-hover:text-yellow-400 transition-colors">FTP File Baker</h3>
-            <p class="text-xs text-purple-200 mb-4 h-9">High-speed FTP pipe to browse /data, /system and inject patches.</p>
-            <button onclick="triggerPayload('FTP Server', './src/payloads/ftpsrv.bin')" class="w-full py-2.5 bg-yellow-400 hover:bg-yellow-300 active:bg-yellow-500 text-black font-bungee text-sm border-2 border-black rounded-xl shadow-comic active:translate-x-0.5 active:translate-y-0.5 transition-all">
-              CONNECT PIPE 🔌
-            </button>
-          </div>
-
-          <!-- Card: Mary Jane Debug Engine -->
-          <div data-cat="kernel" class="payload-card group relative bg-gradient-to-b from-[#1c0b36] to-[#120424] border-4 border-black hover:border-pink-500 rounded-2xl p-4 shadow-comic-lg transition-all duration-200 hover:-translate-y-1">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-3xl">🍄</span>
-              <span class="bg-pink-500/20 text-pink-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-pink-500">IDU / DEV</span>
-            </div>
-            <h3 class="font-bungee text-lg text-white group-hover:text-pink-400 transition-colors">Debug Settings</h3>
-            <p class="text-xs text-purple-200 mb-4 h-9">Unlock internal TestKit/DevKit preferences in system settings.</p>
-            <button onclick="triggerPayload('Debug Settings Unlocker', './src/payloads/debug.bin')" class="w-full py-2.5 bg-pink-500 hover:bg-pink-400 active:bg-pink-600 text-black font-bungee text-sm border-2 border-black rounded-xl shadow-comic active:translate-x-0.5 active:translate-y-0.5 transition-all">
-              SPARK DEBUG ✨
-            </button>
-          </div>
-
-          <!-- Card: Game / App Dumper -->
-          <div data-cat="dumper" class="payload-card group relative bg-gradient-to-b from-[#1c0b36] to-[#120424] border-4 border-black hover:border-cyan-400 rounded-2xl p-4 shadow-comic-lg transition-all duration-200 hover:-translate-y-1">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-3xl">📼</span>
-              <span class="bg-cyan-500/20 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500">USB 3.0</span>
-            </div>
-            <h3 class="font-bungee text-lg text-white group-hover:text-cyan-400 transition-colors">Stash Dumper</h3>
-            <p class="text-xs text-purple-200 mb-4 h-9">Dump optical discs &amp; digital packages directly onto external storage.</p>
-            <button onclick="triggerPayload('App Dumper', './src/payloads/dumper.bin')" class="w-full py-2.5 bg-cyan-400 hover:bg-cyan-300 active:bg-cyan-500 text-black font-bungee text-sm border-2 border-black rounded-xl shadow-comic active:translate-x-0.5 active:translate-y-0.5 transition-all">
-              ROLL BACKUP 💾
-            </button>
-          </div>
-
-          <!-- Card: WebSrv Browser Cache -->
-          <div data-cat="tools" class="payload-card group relative bg-gradient-to-b from-[#1c0b36] to-[#120424] border-4 border-black hover:border-ganja-400 rounded-2xl p-4 shadow-comic-lg transition-all duration-200 hover:-translate-y-1">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-3xl">🍃</span>
-              <span class="bg-ganja-500/20 text-ganja-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-ganja-500">OFFLINE</span>
-            </div>
-            <h3 class="font-bungee text-lg text-white group-hover:text-ganja-400 transition-colors">Offline Stash Cache</h3>
-            <p class="text-xs text-purple-200 mb-4 h-9">Cache this host in Application Cache so you can bake without Wi-Fi.</p>
-            <button onclick="triggerPayload('AppCache Installer', null, cacheApp)" class="w-full py-2.5 bg-emerald-400 hover:bg-emerald-300 active:bg-emerald-500 text-black font-bungee text-sm border-2 border-black rounded-xl shadow-comic active:translate-x-0.5 active:translate-y-0.5 transition-all">
-              SAVE TO STASH 📦
-            </button>
-          </div>
-
-          <!-- Card: ELF Loader (Port 9020) -->
-          <div data-cat="tools" class="payload-card group relative bg-gradient-to-b from-[#1c0b36] to-[#120424] border-4 border-black hover:border-amber-400 rounded-2xl p-4 shadow-comic-lg transition-all duration-200 hover:-translate-y-1">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-3xl">📻</span>
-              <span class="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500">PORT 9020</span>
-            </div>
-            <h3 class="font-bungee text-lg text-white group-hover:text-amber-400 transition-colors">ELF Drop Pipe</h3>
-            <p class="text-xs text-purple-200 mb-4 h-9">Listens for custom payloads sent over network socket.</p>
-            <button onclick="triggerPayload('ELF Loader Listener', './src/payloads/elfldr.bin')" class="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-black font-bungee text-sm border-2 border-black rounded-xl shadow-comic active:translate-x-0.5 active:translate-y-0.5 transition-all">
-              LISTEN FOR ELFS 🎧
-            </button>
-          </div>
-
+      <!-- ELF 2 -->
+      <button class="payload-btn" onclick="loadElfPayload('elfldr-ps5-1.0.0.elf')">
+        <div class="btn-header">
+          <span class="btn-icon">⚡</span>
+          <span class="btn-title">ELF Loader</span>
         </div>
-      </section>
+        <span class="btn-desc">Standard ELF loader daemon for inbound sockets</span>
+      </button>
 
-      <!-- Retro Cartoon Shell / Exploitation Terminal (Right / 5 cols) -->
-      <section class="lg:col-span-5 flex flex-col">
-        <div class="bg-[#05010a] border-4 border-black rounded-2xl shadow-comic-lg flex flex-col h-full overflow-hidden">
-          
-          <!-- Terminal Title Bar -->
-          <div class="bg-gradient-to-r from-purple-900 to-indigo-900 border-b-4 border-black p-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-black inline-block"></span>
-              <span class="w-3.5 h-3.5 rounded-full bg-yellow-400 border-2 border-black inline-block"></span>
-              <span class="w-3.5 h-3.5 rounded-full bg-ganja-400 border-2 border-black inline-block"></span>
-              <span class="ml-2 font-bungee text-xs text-white tracking-wider">PS5-RELAPSE SHELL</span>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="clearConsoleLog()" class="text-[10px] font-mono font-bold bg-black/50 text-gray-300 hover:text-white px-2 py-0.5 rounded border border-gray-700">
-                CLEAR
-              </button>
-              <button onclick="simulateFullJailbreak()" class="text-[10px] font-mono font-bold bg-ganja-500 text-black px-2 py-0.5 rounded border border-black hover:bg-ganja-400">
-                TEST JB
-              </button>
-            </div>
-          </div>
-
-          <!-- Output Log (#console element preserved for existing PS5 exploit scripts) -->
-          <div class="p-4 flex-1 flex flex-col justify-between bg-[#07020d]">
-            <!-- CRITICAL PRESERVED HOOK -->
-            <div id="console" class="font-terminal text-lg md:text-xl text-ganja-400 h-80 lg:h-[460px] overflow-y-auto space-y-1.5 leading-tight tracking-wider pr-2">
-              <div class="text-purple-400 font-bold">[*] PSNHUB-2 RELAPSE SUITE LOADED</div>
-              <div class="text-yellow-400">[*] WebKit ROP stage armed. System idling chill...</div>
-              <div class="text-gray-400">--------------------------------------------------</div>
-              <div class="text-ganja-400">[+] Ready for high-grade payload injection.</div>
-            </div>
-
-            <!-- Terminal Status Footer -->
-            <div class="mt-3 pt-3 border-t-2 border-purple-900/60 flex items-center justify-between text-xs font-mono text-purple-300">
-              <span class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-ganja-400 animate-pulse"></span>
-                <span>STATE: <span id="sploit-status" class="text-ganja-400 font-bold">READY</span></span>
-              </span>
-              <span id="session-clock" class="text-gray-400">00:00:00</span>
-            </div>
-          </div>
+      <!-- BIN / Other Payloads -->
+      <button class="payload-btn" onclick="loadElfPayload('kstuff.elf')">
+        <div class="btn-header">
+          <span class="btn-icon">🛠️</span>
+          <span class="btn-title">kstuff</span>
         </div>
-      </section>
+        <span class="btn-desc">Kernel patches & homebrew execution support</span>
+      </button>
+    </div>
 
-    </main>
+    <!-- Output Terminal -->
+    <div id="console"></div>
 
-    <!-- Footer with Chill Disclaimer & Sound Signature -->
-    <footer class="mt-8 border-t-2 border-purple-900/50 pt-4 pb-2 flex flex-col md:flex-row items-center justify-between text-xs text-purple-300/70 gap-3">
-      <div class="flex items-center gap-2">
-        <span class="text-lg">🌿</span>
-        <span>Crafted for homebrew research &amp; backups. Smoke responsibly.</span>
-      </div>
-      <div class="font-mono text-[11px] text-gray-500">
-        PSNHUB-2 RELAPSE • BUILT FOR FW 3.00 - 4.51
-      </div>
-    </footer>
-
+    <div class="footer">PSNHUB-2 Host / Relapse Engine</div>
   </div>
 
-  <!-- REQUIRED PS5 EXPLOIT REPOSITORY SCRIPTS (Preserved intact) -->
   <script src="./src/firmware.js"></script>
   <script src="./src/main.js"></script>
   <script src="./src/rop.js"></script>
   <script src="./src/utils/syscalls.js"></script>
   <script type="module" src="./src/site.js"></script>
-
-  <!-- Interactive Retro & UI Engine -->
-  <script>
-    // Audio Synthesizer using Web Audio API (No external sound files required)
-    let audioCtx = null;
-    let sfxEnabled = true;
-
-    function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      return audioCtx;
-    }
-
-    function playTone(freq, type = 'sine', duration = 0.15, vol = 0.1) {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') {
-          ctx.resume();
-        }
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        gain.gain.setValueAtTime(vol, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
-      } catch (e) {
-        // Audio policy ignore
-      }
-    }
-
-    function sfxBluntClick() {
-      playTone(420, 'triangle', 0.2, 0.15);
-      setTimeout(() => playTone(630, 'square', 0.15, 0.1), 80);
-      printToConsole("[~] Puff... Mascots high on life. Keep it chill!", "text-pink-400");
-    }
-
-    function sfxLaunch() {
-      playTone(180, 'sawtooth', 0.3, 0.15);
-      setTimeout(() => playTone(360, 'sine', 0.2, 0.1), 100);
-      setTimeout(() => playTone(720, 'square', 0.25, 0.08), 200);
-    }
-
-    function sfxSuccess() {
-      playTone(523.25, 'sine', 0.15, 0.1);
-      setTimeout(() => playTone(659.25, 'sine', 0.15, 0.1), 120);
-      setTimeout(() => playTone(783.99, 'sine', 0.2, 0.1), 240);
-      setTimeout(() => playTone(1046.50, 'sine', 0.35, 0.12), 360);
-    }
-
-    function toggleAudio() {
-      sfxEnabled = !sfxEnabled;
-      const sfxIcon = document.getElementById('sfx-icon');
-      const sfxText = document.getElementById('sfx-text');
-      if (sfxEnabled) {
-        sfxIcon.innerText = "🔊";
-        sfxText.innerText = "SFX: ON";
-        sfxBluntClick();
-      } else {
-        sfxIcon.innerText = "🔇";
-        sfxText.innerText = "SFX: OFF";
-      }
-    }
-
-    // Scanline CRT Toggle
-    let crtActive = true;
-    function toggleCRT() {
-      crtActive = !crtActive;
-      document.body.classList.toggle('crt-overlay', crtActive);
-      document.body.classList.toggle('crt-flicker', crtActive);
-      playTone(crtActive ? 800 : 300, 'square', 0.1);
-      printToConsole(`[!] CRT Shader: ${crtActive ? 'ENABLED' : 'DISABLED'}`, 'text-yellow-400');
-    }
-
-    // Terminal Logging helper that integrates with existing or standard host #console
-    function printToConsole(message, colorClass = "text-ganja-400") {
-      const consoleEl = document.getElementById('console');
-      if (!consoleEl) return;
-      const line = document.createElement('div');
-      line.className = `${colorClass} transition-opacity duration-300`;
-      
-      const time = new Date().toTimeString().split(' ')[0];
-      line.textContent = `[${time}] ${message}`;
-      consoleEl.appendChild(line);
-      consoleEl.scrollTop = consoleEl.scrollHeight;
-    }
-
-    function clearConsoleLog() {
-      const consoleEl = document.getElementById('console');
-      if (consoleEl) {
-        consoleEl.innerHTML = '';
-        printToConsole("Console cleared. Roll fresh.", "text-purple-400");
-      }
-    }
-
-    // Payload Dispatcher Hook
-    window.triggerPayload = function(name, path, customCallback) {
-      sfxLaunch();
-      const statusEl = document.getElementById('sploit-status');
-      if (statusEl) statusEl.innerText = "BAKING...";
-
-      printToConsole(`🔥 Loading payload: ${name}...`, 'text-yellow-300');
-      
-      // Check if host environment's native payload runner is defined
-      if (typeof window.runPayload === 'function' && path) {
-        try {
-          window.runPayload(path);
-          printToConsole(`[+] Native dispatch initiated for ${path}`, 'text-ganja-400');
-        } catch (err) {
-          printToConsole(`[-] Hook failed: ${err.message}`, 'text-red-400');
-        }
-      } else if (customCallback) {
-        customCallback();
-      } else {
-        // Simulated responsive sequence for UI feedback
-        setTimeout(() => {
-          printToConsole(`[~] Spraying heap & ROP chains for ${name}...`, 'text-purple-300');
-        }, 500);
-
-        setTimeout(() => {
-          printToConsole(`[+] ${name} executed successfully! Memory patched.`, 'text-ganja-400');
-          sfxSuccess();
-          if (statusEl) statusEl.innerText = "CHILLED";
-        }, 1400);
-      }
-    };
-
-    function cacheApp() {
-      printToConsole("[*] Initiating Application Cache manifest...", "text-yellow-300");
-      if (window.applicationCache) {
-        try {
-          window.applicationCache.update();
-        } catch (e) {
-          printToConsole("[~] Cache ready or offline storage enabled.", "text-ganja-400");
-        }
-      } else {
-        printToConsole("[+] Local storage stash primed & ready offline.", "text-ganja-400");
-      }
-    }
-
-    function simulateFullJailbreak() {
-      sfxLaunch();
-      printToConsole("==========================================", "text-yellow-400");
-      printToConsole("[*] TRIGGERING WEBKIT EXPLOIT RELAPSE...", "text-yellow-400");
-      
-      const steps = [
-        { t: 300, msg: "[*] Corrupting JSArray buffer length...", color: "text-purple-300" },
-        { t: 700, msg: "[*] Leaking target pipe address & kernel slide...", color: "text-purple-300" },
-        { t: 1100, msg: "[*] Rolling kernel stash credentials...", color: "text-cyan-300" },
-        { t: 1600, msg: "[+] Escaped WebKit sandbox! Ucred root achieved (UID: 0)", color: "text-ganja-400" },
-        { t: 2000, msg: "[+] JAILBREAK HIGH AS A KITE! Have fun!", color: "text-ganja-400" }
-      ];
-
-      steps.forEach(step => {
-        setTimeout(() => {
-          printToConsole(step.msg, step.color);
-          playTone(200 + step.t / 2, 'sine', 0.1, 0.08);
-        }, step.t);
-      });
-
-      setTimeout(() => sfxSuccess(), 2200);
-    }
-
-    // Category Filter
-    function filterCategory(cat) {
-      playTone(450, 'sine', 0.08);
-      document.querySelectorAll('.cat-pill').forEach(btn => {
-        btn.classList.remove('bg-ganja-400', 'text-black');
-        btn.classList.add('bg-[#24133b]', 'text-white');
-      });
-      event.target.classList.remove('bg-[#24133b]', 'text-white');
-      event.target.classList.add('bg-ganja-400', 'text-black');
-
-      const cards = document.querySelectorAll('.payload-card');
-      cards.forEach(card => {
-        if (cat === 'all' || card.getAttribute('data-cat') === cat) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-    }
-
-    // Dynamic Cartoon Smoke Particle Generator
-    function initSmoke() {
-      const container = document.getElementById('smoke-container');
-      if (!container) return;
-      const count = 9;
-      for (let i = 0; i < count; i++) {
-        const puff = document.createElement('div');
-        puff.className = 'smoke-puff';
-        const size = Math.random() * 90 + 50;
-        puff.style.width = `${size}px`;
-        puff.style.height = `${size}px`;
-        puff.style.left = `${Math.random() * 95}%`;
-        puff.style.animationDuration = `${Math.random() * 8 + 9}s`;
-        puff.style.animationDelay = `${Math.random() * 7}s`;
-        container.appendChild(puff);
-      }
-    }
-
-    // Real-time Session Clock & Memory Fluctuation
-    function startHUD() {
-      const clockEl = document.getElementById('session-clock');
-      const heapBar = document.getElementById('heap-bar');
-      const heapPct = document.getElementById('heap-pct');
-      
-      setInterval(() => {
-        const now = new Date();
-        if (clockEl) {
-          clockEl.innerText = now.toTimeString().split(' ')[0];
-        }
-        
-        // Friendly fluctuating stash gauge
-        if (heapBar && heapPct && Math.random() > 0.6) {
-          const val = (40 + Math.random() * 4.2).toFixed(1);
-          heapBar.style.width = `${val}%`;
-          heapPct.innerText = `${val}%`;
-        }
-      }, 1000);
-
-      // Auto-detect firmware via user agent if available
-      try {
-        const ua = navigator.userAgent;
-        const match = ua.match(/PlayStation 5\/([0-9\.]+)/);
-        const fwLabel = document.getElementById('fw-label');
-        if (match && match[1] && fwLabel) {
-          fwLabel.innerText = `PS5 FW ${match[1]}`;
-        }
-      } catch (e) {}
-    }
-
-    // Boot
-    window.addEventListener('load', () => {
-      initSmoke();
-      startHUD();
-      printToConsole("[*] System hooked. All syscalls baked & chill.", "text-ganja-400");
-    });
-  </script>
 </body>
 </html>
