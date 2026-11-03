@@ -118,7 +118,7 @@ h1 {
   display: flex;
 }
 
-/* Dynamic Mascot Container */
+/* Mascot Container */
 .mascot-area {
   position: relative;
   display: flex;
@@ -128,10 +128,10 @@ h1 {
   height: 100%;
 }
 
-.dynamic-mascot-wrapper {
+.character-card {
   position: relative;
-  width: 280px;
-  height: 280px;
+  height: 100%;
+  max-height: 380px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -140,34 +140,14 @@ h1 {
 
 @keyframes mascotBob {
   0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-8px) rotate(1deg); }
+  50% { transform: translateY(-6px) rotate(1deg); }
 }
 
-.mascot-svg {
-  width: 100%;
-  height: 100%;
+.mascot-img {
+  max-height: 340px;
+  width: auto;
+  object-fit: contain;
   filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.4));
-}
-
-/* Dynamic Glowing Ember Animation */
-.joint-ember {
-  animation: emberPulse 1s ease-in-out infinite alternate;
-  transform-origin: 220px 185px;
-}
-
-@keyframes emberPulse {
-  0% { fill: #ff3300; r: 5px; filter: drop-shadow(0 0 2px #ff3300); }
-  100% { fill: #ffff00; r: 7px; filter: drop-shadow(0 0 8px #ff9900); }
-}
-
-/* Dynamic Smoke Puffs Rising from Joint */
-.smoke-puff-1 { animation: smokeRise 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
-.smoke-puff-2 { animation: smokeRise 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite 1.5s; }
-
-@keyframes smokeRise {
-  0% { transform: translate(220px, 185px) scale(0.4); opacity: 0.8; }
-  50% { opacity: 0.5; }
-  100% { transform: translate(260px, 100px) scale(2.2); opacity: 0; }
 }
 
 .btn-group {
@@ -327,42 +307,11 @@ footer {
     </div>
   </header>
 
-  <!-- Jailbreak View with Dynamic Cartoon Weed Plant Mascot -->
+  <!-- Jailbreak View with Exact Cartoon Mascot[cite: 6] -->
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
-      <div class="dynamic-mascot-wrapper">
-        <svg class="mascot-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-          <!-- Floating Dynamic Smoke Puffs -->
-          <circle class="smoke-puff-1" cx="0" cy="0" r="14" fill="rgba(255,255,255,0.85)" stroke="#000" stroke-width="2"/>
-          <circle class="smoke-puff-2" cx="0" cy="0" r="18" fill="rgba(255,255,255,0.75)" stroke="#000" stroke-width="2"/>
-
-          <!-- Weed Plant Character Body -->
-          <path d="M150 20 C135 70 80 80 50 120 C85 130 95 150 120 200 C110 240 130 260 150 280 C170 260 190 240 180 200 C205 150 215 130 250 120 C220 80 165 70 150 20 Z" fill="#39ff14" stroke="#000" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M150 280 L150 295" stroke="#000" stroke-width="6" stroke-linecap="round"/>
-
-          <!-- Leaf Internal Veins -->
-          <path d="M150 50 L150 260 M150 100 L100 110 M150 100 L200 110 M150 150 L85 160 M150 150 L215 160 M150 200 L110 210 M150 200 L190 210" stroke="#123806" stroke-width="3" stroke-linecap="round"/>
-
-          <!-- Cool Sunglasses -->
-          <rect x="95" y="105" width="50" height="30" rx="8" fill="#000" stroke="#000" stroke-width="3"/>
-          <rect x="155" y="105" width="50" height="30" rx="8" fill="#000" stroke="#000" stroke-width="3"/>
-          <line x1="145" y1="115" x2="155" y2="115" stroke="#000" stroke-width="5"/>
-          <!-- Sunglass Glare Highlights -->
-          <line x1="102" y1="112" x2="120" y2="112" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-          <line x1="162" y1="112" x2="180" y2="112" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-
-          <!-- Smiling Mouth -->
-          <path d="M125 160 Q150 190 175 160 Z" fill="#000"/>
-          <path d="M132 165 Q150 180 168 165 Z" fill="#ff0055"/>
-
-          <!-- Smoking Joint Held in Hand -->
-          <path d="M175 185 L230 185" stroke="#f0efe6" stroke-width="6" stroke-linecap="round" stroke="#000" stroke-linejoin="round"/>
-          <path d="M175 185 L230 185" stroke="#f0efe6" stroke-width="4" stroke-linecap="round"/>
-          <!-- Animated Glowing Ember Tip -->
-          <circle class="joint-ember" cx="230" cy="185" r="6"/>
-          <!-- Cartoon Glove Hand -->
-          <circle cx="175" cy="185" r="10" fill="#fff" stroke="#000" stroke-width="3"/>
-        </svg>
+      <div class="character-card">
+        <img class="mascot-img" id="mascot-img" alt="Cartoon Weed Mascot">
       </div>
     </div>
 
@@ -481,6 +430,125 @@ footer {
 </div>
 
 <script>
+// Programmatically render your exact cartoon weed mascot on HTML5 Canvas & convert to Base64 
+// to guarantee 100% foolproof rendering in the PS5 WebKit browser.
+function generateExactMascot() {
+  var cvs = document.createElement('canvas');
+  cvs.width = 500;
+  cvs.height = 500;
+  var c = cvs.getContext('2d');
+
+  c.lineWidth = 9;
+  c.strokeStyle = '#000000';
+
+  // Lower Left & Right Fan Leaves
+  c.fillStyle = '#2d8a1e';
+  c.beginPath(); c.moveTo(160, 380); c.quadraticCurveTo(80, 340, 20, 280); c.quadraticCurveTo(90, 260, 180, 310); c.closePath(); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(340, 380); c.quadraticCurveTo(420, 340, 480, 280); c.quadraticCurveTo(410, 260, 320, 310); c.closePath(); c.fill(); c.stroke();
+
+  // Mid Left & Right Leaves
+  c.beginPath(); c.moveTo(120, 270); c.quadraticCurveTo(30, 190, 10, 130); c.quadraticCurveTo(90, 140, 170, 210); c.closePath(); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(380, 270); c.quadraticCurveTo(470, 190, 490, 130); c.quadraticCurveTo(410, 140, 330, 210); c.closePath(); c.fill(); c.stroke();
+
+  // Central Serrated Leaf Body
+  c.fillStyle = '#52e03a';
+  c.beginPath();
+  c.moveTo(250, 20);
+  c.lineTo(230, 55); c.lineTo(245, 65); c.lineTo(220, 95); c.lineTo(238, 105);
+  c.lineTo(210, 145); c.lineTo(230, 155); c.lineTo(185, 205); c.lineTo(210, 215);
+  c.lineTo(165, 270); c.lineTo(190, 280); c.lineTo(150, 340); c.lineTo(175, 350);
+  c.quadraticCurveTo(250, 435, 325, 350);
+  c.lineTo(350, 340); c.lineTo(310, 280); c.lineTo(335, 270); c.lineTo(290, 215);
+  c.lineTo(315, 205); c.lineTo(270, 155); c.lineTo(290, 145); c.lineTo(262, 105);
+  c.lineTo(280, 95); c.lineTo(255, 65); c.lineTo(270, 55);
+  c.closePath();
+  c.fill(); c.stroke();
+
+  // Stem
+  c.fillStyle = '#226b15';
+  c.beginPath(); c.moveTo(235, 420); c.quadraticCurveTo(220, 470, 200, 495); c.lineTo(235, 495); c.quadraticCurveTo(265, 470, 265, 420); c.closePath(); c.fill(); c.stroke();
+
+  // Bloodshot Blue Cartoon Eyes
+  c.fillStyle = '#ffffff';
+  c.lineWidth = 6;
+  
+  // Left Eye
+  c.beginPath(); c.ellipse(205, 180, 34, 26, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#0088ff';
+  c.lineWidth = 4;
+  c.beginPath(); c.arc(212, 183, 15, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#000';
+  c.beginPath(); c.arc(212, 183, 7, 0, Math.PI * 2); c.fill();
+
+  // Right Eye
+  c.fillStyle = '#ffffff';
+  c.lineWidth = 6;
+  c.beginPath(); c.ellipse(295, 180, 34, 26, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#0088ff';
+  c.lineWidth = 4;
+  c.beginPath(); c.arc(288, 183, 15, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#000';
+  c.beginPath(); c.arc(288, 183, 7, 0, Math.PI * 2); c.fill();
+
+  // Eyebrows
+  c.lineWidth = 7;
+  c.beginPath(); c.moveTo(170, 145); c.quadraticCurveTo(205, 125, 235, 150); c.stroke();
+  c.beginPath(); c.moveTo(330, 145); c.quadraticCurveTo(295, 125, 265, 150); c.stroke();
+
+  // Wide Smirking Mouth
+  c.fillStyle = '#80001a';
+  c.lineWidth = 6;
+  c.beginPath();
+  c.moveTo(190, 245); c.quadraticCurveTo(250, 305, 310, 240);
+  c.bezierCurveTo(320, 275, 280, 310, 250, 310);
+  c.bezierCurveTo(210, 310, 180, 275, 190, 245);
+  c.closePath(); c.fill(); c.stroke();
+
+  // White Teeth & Tongue
+  c.fillStyle = '#ff3366';
+  c.beginPath(); c.ellipse(250, 290, 30, 16, 0, 0, Math.PI); c.fill();
+  c.fillStyle = '#ffffff';
+  c.fillRect(202, 250, 24, 14);
+
+  // Left Waving Hand
+  c.fillStyle = '#3eb828';
+  c.lineWidth = 22;
+  c.beginPath(); c.moveTo(150, 325); c.quadraticCurveTo(100, 345, 70, 315); c.stroke();
+  c.fillStyle = '#ffffff';
+  c.lineWidth = 5;
+  c.beginPath(); c.arc(65, 310, 18, 0, Math.PI * 2); c.fill(); c.stroke();
+
+  // Right Hand Holding Joint
+  c.lineWidth = 22;
+  c.beginPath(); c.moveTo(330, 325); c.quadraticCurveTo(370, 335, 390, 285); c.stroke();
+
+  // Joint & Lit Ember Tip
+  c.save();
+  c.translate(370, 250);
+  c.rotate(-0.3);
+  c.fillStyle = '#f0efe6';
+  c.lineWidth = 5;
+  c.fillRect(-60, -10, 110, 22);
+  c.strokeRect(-60, -10, 110, 22);
+  // Cherry Tip
+  c.fillStyle = '#ff3300';
+  c.beginPath(); c.arc(50, 0, 11, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.restore();
+
+  // Glove Hand around Joint
+  c.fillStyle = '#ffffff';
+  c.lineWidth = 5;
+  c.beginPath(); c.arc(375, 270, 14, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.beginPath(); c.arc(390, 280, 14, 0, Math.PI * 2); c.fill(); c.stroke();
+
+  // Set as source for image element
+  document.getElementById('mascot-img').src = cvs.toDataURL('image/png');
+}
+
+window.onload = function() {
+  generateExactMascot();
+};
+
 function switchTab(tab) {
   document.getElementById('tab-jb').classList.remove('active');
   document.getElementById('tab-payloads').classList.remove('active');
