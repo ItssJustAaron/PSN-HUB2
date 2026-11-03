@@ -31,7 +31,7 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: #140520;
+  background: radial-gradient(circle at center, #2e004f 0%, var(--purple-bg) 100%);
   color: #fff;
   font-family: var(--font-body);
   display: flex;
@@ -136,9 +136,30 @@ h1 {
   cursor: pointer;
 }
 
-#mascot-canvas {
-  max-height: 360px;
+/* Base64 Embedded High-Res Mascot */
+.mascot-img {
+  max-height: 340px;
   width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0px 8px 0px #000);
+}
+
+.ember-glow {
+  position: absolute;
+  top: 50.5%;
+  right: 17.5%;
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, #ffffff 10%, #ffcc00 30%, #ff3300 70%, transparent 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 12px #ff3300, 0 0 25px #ff9900;
+  animation: emberBurn 1.2s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes emberBurn {
+  0% { transform: scale(0.85); opacity: 0.8; }
+  100% { transform: scale(1.25); opacity: 1; }
 }
 
 .btn-group {
@@ -207,8 +228,8 @@ h1 {
   background: var(--green-main);
   color: #000;
   font-family: var(--font-comic);
-  font-size: 0.75rem;
-  padding: 2px 6px;
+  font-size: 0.8rem;
+  padding: 2px 8px;
   border-radius: 6px;
   margin-bottom: 4px;
   border: 2px solid #000;
@@ -271,7 +292,9 @@ footer {
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
       <div class="character-card" id="mascot-card">
-        <canvas id="mascot-canvas" width="400" height="400"></canvas>
+        <!-- Self-contained Data URI Image guarantees rendering in PS5 WebKit -->
+        <img class="mascot-img" id="mascot-img" alt="Leaf Mascot">
+        <div class="ember-glow"></div>
       </div>
     </div>
 
@@ -390,20 +413,18 @@ footer {
 </div>
 
 <script>
-// Hardware Canvas Renderer for PS5 Compatibility
-function renderPS5Mascot() {
-  var cvs = document.getElementById('mascot-canvas');
-  if (!cvs) return;
+// Generate PS5-compatible Base64 PNG mascot
+function setPS5MascotSource() {
+  var cvs = document.createElement('canvas');
+  cvs.width = 400;
+  cvs.height = 400;
   var c = cvs.getContext('2d');
-  
-  c.clearRect(0, 0, 400, 400);
 
-  // Outer Leaf Outline & Fill
   c.lineWidth = 10;
   c.strokeStyle = '#000000';
   c.fillStyle = '#39ff14';
 
-  // Central Leaf Body
+  // Leaf Base Shape
   c.beginPath();
   c.moveTo(200, 20);
   c.lineTo(180, 70); c.lineTo(195, 80);
@@ -422,15 +443,12 @@ function renderPS5Mascot() {
   // Bloodshot Eyes
   c.fillStyle = '#ffffff';
   c.lineWidth = 6;
-
-  // Left Eye
   c.beginPath(); c.ellipse(160, 160, 28, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();
   c.fillStyle = '#0088ff';
   c.beginPath(); c.arc(165, 162, 12, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#000';
   c.beginPath(); c.arc(165, 162, 5, 0, Math.PI * 2); c.fill();
 
-  // Right Eye
   c.fillStyle = '#ffffff';
   c.beginPath(); c.ellipse(240, 160, 28, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();
   c.fillStyle = '#0088ff';
@@ -461,15 +479,16 @@ function renderPS5Mascot() {
   c.fill();
   c.stroke();
 
-  // Burning Cherry Tip
   c.fillStyle = '#ff3300';
   c.beginPath();
   c.arc(350, 228, 10, 0, Math.PI * 2);
   c.fill();
+
+  document.getElementById('mascot-img').src = cvs.toDataURL('image/png');
 }
 
 window.onload = function() {
-  renderPS5Mascot();
+  setPS5MascotSource();
 };
 
 function switchTab(tab) {
@@ -481,7 +500,6 @@ function switchTab(tab) {
   if (tab === 'jb') {
     document.getElementById('tab-jb').classList.add('active');
     document.getElementById('panel-jb').classList.add('active');
-    renderPS5Mascot();
   } else {
     document.getElementById('tab-payloads').classList.add('active');
     document.getElementById('panel-payloads').classList.add('active');
@@ -498,7 +516,7 @@ function sendPayload(name, port) {
   }, 1000);
 }
 
-// Background Canvas Animation
+// Background Particle Canvas
 var canvas = document.getElementById('bg-canvas');
 var ctx = canvas.getContext('2d');
 function resizeCanvas() {
