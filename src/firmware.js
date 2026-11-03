@@ -14,14 +14,23 @@ const firmwareUserAgent = navigator.userAgent;
 const firmwareMatch = /PlayStation 5\/(\d+\.\d+)/.exec(firmwareUserAgent);
 const isPS5 = firmwareUserAgent.includes("PlayStation 5");
 
-// Use detected PS5 firmware, or supply a mock preview tag on standard browsers
-const firmwareVersion = firmwareMatch ? firmwareMatch[1] : (isPS5 ? "" : "10.00 (Preview)");
+// Extract detected PS5 version, or assign Preview tag if opened on PC/Phone
+const firmwareVersion = firmwareMatch ? firmwareMatch[1] : (isPS5 ? "" : "Preview");
 
 window.isPS5 = isPS5;
 window.fw_str = firmwareVersion;
+
+// Update UI badge if present
+window.addEventListener("DOMContentLoaded", () => {
+  const badge = document.getElementById("fw-badge");
+  if (badge) {
+    badge.textContent = isPS5 ? `PS5 FW ${firmwareVersion}` : "Universal Preview Mode";
+  }
+});
+
 window.firmware = {
   rejection() {
-    // Bypass device lock on PC / Mobile browsers for UI viewing
+    // Let non-PS5 systems pass safely without errors
     if (!isPS5) {
       return null;
     }
