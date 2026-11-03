@@ -307,16 +307,16 @@ footer {
     </div>
   </header>
 
-  <!-- Jailbreak View with Exact Cartoon Mascot[cite: 6] -->
+  <!-- Main View -->
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
       <div class="character-card">
-        <img class="mascot-img" id="mascot-img" alt="Cartoon Weed Mascot">
+        <img class="mascot-img" id="mascot-img" alt="Cartoon Mascot">
       </div>
     </div>
 
     <div class="btn-group">
-      <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
+      <button class="btn" id="run-jb" onclick="switchTab('payloads')">JAILBREAK NOW</button>
       <button class="btn btn-secondary" onclick="switchTab('payloads')">PAYLOAD SENDER</button>
     </div>
   </div>
@@ -419,8 +419,8 @@ footer {
     </div>
 
     <div class="terminal-box" id="term-log">
-      > PSN-HUB Payload Sender Ready.<br>
-      > Select a payload cartridge above to inject...
+      &gt; PSN-HUB Payload Sender Ready.<br>
+      &gt; Select a payload cartridge above to inject...
     </div>
   </div>
 
@@ -430,8 +430,6 @@ footer {
 </div>
 
 <script>
-// Programmatically render your exact cartoon weed mascot on HTML5 Canvas & convert to Base64 
-// to guarantee 100% foolproof rendering in the PS5 WebKit browser.
 function generateExactMascot() {
   var cvs = document.createElement('canvas');
   cvs.width = 500;
@@ -541,7 +539,6 @@ function generateExactMascot() {
   c.beginPath(); c.arc(375, 270, 14, 0, Math.PI * 2); c.fill(); c.stroke();
   c.beginPath(); c.arc(390, 280, 14, 0, Math.PI * 2); c.fill(); c.stroke();
 
-  // Set as source for image element
   document.getElementById('mascot-img').src = cvs.toDataURL('image/png');
 }
 
@@ -566,10 +563,10 @@ function switchTab(tab) {
 
 function sendPayload(name, port) {
   var log = document.getElementById('term-log');
-  log.innerHTML += '<br>> Injecting ' + name + ' on port ' + port + '...';
+  log.innerHTML += '<br>&gt; Injecting ' + name + ' on port ' + port + '...';
   log.scrollTop = log.scrollHeight;
   setTimeout(function() {
-    log.innerHTML += '<br><span style="color:#ffe600">> Payload ' + name + ' Sent Successfully!</span>';
+    log.innerHTML += '<br><span style="color:#ffe600">&gt; Payload ' + name + ' Sent Successfully!</span>';
     log.scrollTop = log.scrollHeight;
   }, 1000);
 }
