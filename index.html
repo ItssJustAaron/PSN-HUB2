@@ -5,19 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>PSN-HUB</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Permanent+Marker&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --green-main: #39ff14;
-  --green-dark: #123806;
-  --purple-bg: #1a0826;
-  --yellow-accent: #ffe600;
-  --pink-accent: #ff007f;
-  --orange-cherry: #ff3300;
+  --green-main: #4dff28;
+  --green-dark: #1e5c0e;
+  --purple-bg: #140520;
+  --purple-card: #280a3e;
+  --yellow-accent: #ffeb3b;
+  --orange-accent: #ff5722;
+  --pink-accent: #e91e63;
   --border-thick: 4px solid #000;
-  --box-shadow: 6px 6px 0px #000;
+  --box-shadow: 5px 5px 0px #000;
+  --font-comic: 'Impact', 'Comic Sans MS', 'Arial Black', sans-serif;
+  --font-body: 'Comic Sans MS', 'Arial', sans-serif;
 }
 
 * {
@@ -34,7 +34,7 @@ body {
   overflow: hidden;
   background: radial-gradient(circle at center, #2e004f 0%, var(--purple-bg) 100%);
   color: #fff;
-  font-family: 'Fredoka', cursive, sans-serif;
+  font-family: var(--font-body);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -42,7 +42,6 @@ body {
   position: relative;
 }
 
-/* Background Particle Canvas */
 #bg-canvas {
   position: absolute;
   top: 0;
@@ -57,281 +56,253 @@ body {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 800px;
+  max-width: 850px;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 10px 14px;
 }
 
-/* Header */
 header {
   text-align: center;
-  margin-top: 5px;
+  margin-top: 2px;
 }
 
 h1 {
-  font-family: 'Bungee', cursive;
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-family: var(--font-comic);
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
   margin: 0;
   color: var(--green-main);
-  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent), 0 0 15px rgba(57, 255, 20, 0.6);
+  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent), 0 0 20px rgba(77, 255, 40, 0.6);
   letter-spacing: 2px;
 }
 
-.subtitle {
-  font-family: 'Permanent Marker', cursive;
-  color: var(--yellow-accent);
-  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-  margin-top: -5px;
-  text-shadow: 2px 2px 0px #000;
+.nav-tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 6px;
 }
 
-.fw-badge {
-  background: #000;
-  border: 2px solid var(--green-main);
-  padding: 3px 12px;
-  border-radius: 20px;
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 0.85rem;
+.tab-btn {
+  font-family: var(--font-comic);
+  background: var(--purple-card);
+  color: #fff;
+  border: var(--border-thick);
+  border-radius: 12px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  box-shadow: 3px 3px 0px #000;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  background: var(--green-main);
+  color: #000;
   box-shadow: 3px 3px 0px var(--pink-accent);
 }
 
-.fw-val {
-  color: var(--yellow-accent);
-  font-weight: bold;
+.view-panel {
+  display: none;
+  width: 100%;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-height: 72vh;
 }
 
-/* Character Container */
+.view-panel.active {
+  display: flex;
+}
+
 .mascot-area {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex: 1;
-  max-height: 48vh;
   width: 100%;
-  margin: 5px 0;
+  height: 100%;
 }
 
 .character-card {
   position: relative;
   height: 100%;
-  max-height: 380px;
+  max-height: 360px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
 }
 
-.weed-img {
+.bud-svg {
   height: 100%;
-  max-height: 360px;
+  max-height: 340px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.3));
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(77, 255, 40, 0.4));
+  transition: transform 0.2s ease;
 }
 
-.character-card:hover .weed-img {
+.character-card:hover .bud-svg {
   transform: scale(1.03) rotate(1deg);
 }
 
-.character-card:active .weed-img {
-  transform: scale(0.96) rotate(-2deg);
-}
-
-/* Dynamic Burning Joint Cherry Ember */
 .ember-glow {
   position: absolute;
-  top: 51.5%;
-  right: 18.5%;
-  width: 18px;
-  height: 18px;
+  top: 40.5%;
+  left: 20.5%;
+  width: 16px;
+  height: 16px;
   background: radial-gradient(circle, #ffffff 10%, #ffcc00 30%, #ff3300 70%, transparent 100%);
   border-radius: 50%;
-  box-shadow: 0 0 12px #ff3300, 0 0 25px #ff9900, 0 0 35px #ff0000;
+  box-shadow: 0 0 12px #ff3300, 0 0 25px #ff9900;
   animation: emberBurn 1.2s infinite alternate ease-in-out;
   pointer-events: none;
 }
 
 @keyframes emberBurn {
-  0% { transform: scale(0.85); opacity: 0.8; filter: brightness(1); }
-  50% { transform: scale(1.2); opacity: 1; filter: brightness(1.4); }
-  100% { transform: scale(0.95); opacity: 0.9; filter: brightness(1.1); }
+  0% { transform: scale(0.85); opacity: 0.8; }
+  100% { transform: scale(1.25); opacity: 1; }
 }
 
-/* Smoke Emitter Anchor */
 .smoke-emitter {
   position: absolute;
-  top: 50%;
-  right: 17%;
+  top: 40%;
+  left: 19%;
   width: 1px;
   height: 1px;
   pointer-events: none;
 }
 
-/* Floating Smoke Clouds */
-.smoke-puff {
+.smoke-ring {
   position: absolute;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(200, 220, 200, 0.4) 50%, transparent 80%);
+  border: 5px solid rgba(255, 255, 255, 0.85);
   border-radius: 50%;
   pointer-events: none;
-  animation: floatSmoke 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: floatRing 3.5s forwards;
 }
 
-@keyframes floatSmoke {
-  0% {
-    transform: translate(0, 0) scale(0.4);
-    opacity: 0.9;
-  }
-  50% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: translate(70px, -130px) scale(2.8);
-    opacity: 0;
-  }
+@keyframes floatRing {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 0.9; }
+  100% { transform: translate(-80px, -120px) scale(2.5); opacity: 0; }
 }
 
-/* Cartoon Speech Bubble */
-.speech-bubble {
-  position: absolute;
-  top: 0%;
-  left: 5%;
-  background: #fff;
-  color: #000;
-  font-family: 'Permanent Marker', cursive;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: var(--border-thick);
-  box-shadow: var(--box-shadow);
-  font-size: 1rem;
-  z-index: 10;
-  opacity: 0;
-  transform: scale(0.5) rotate(-5deg);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: none;
-}
-
-.speech-bubble.active {
-  opacity: 1;
-  transform: scale(1) rotate(-3deg);
-}
-
-.speech-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  right: 25px;
-  border-width: 12px 10px 0;
-  border-style: solid;
-  border-color: #fff transparent;
-  display: block;
-  width: 0;
-}
-
-.speech-bubble::before {
-  content: '';
-  position: absolute;
-  bottom: -17px;
-  right: 23px;
-  border-width: 14px 12px 0;
-  border-style: solid;
-  border-color: #000 transparent;
-  display: block;
-  width: 0;
-}
-
-/* Buttons Area */
 .btn-group {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  margin-bottom: 5px;
+  margin-top: 10px;
 }
 
 .btn {
-  font-family: 'Bungee', cursive;
+  font-family: var(--font-comic);
   text-decoration: none;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 85%;
-  max-width: 420px;
+  max-width: 400px;
   padding: 12px 20px;
   font-size: clamp(1.1rem, 3vw, 1.5rem);
   color: #000;
   background: var(--green-main);
   border: var(--border-thick);
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: var(--box-shadow);
   cursor: pointer;
   transition: all 0.15s ease;
-  text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
   outline: none;
 }
 
 .btn:hover, .btn:focus {
-  transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0px #000;
-  background: #4dff28;
-}
-
-.btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 2px 2px 0px #000;
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #000;
+  background: #6aff48;
 }
 
 .btn-secondary {
   background: var(--yellow-accent);
   font-size: clamp(0.95rem, 2.5vw, 1.2rem);
   padding: 8px 16px;
+  max-width: 340px;
 }
 
-.btn-secondary:hover, .btn-secondary:focus {
-  background: #fff04d;
+/* Payload Sender Grid */
+.payload-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 700px;
+  margin-top: 10px;
 }
 
-/* Credits Footer */
+.payload-card {
+  background: var(--purple-card);
+  border: var(--border-thick);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #000;
+  transition: all 0.15s ease;
+}
+
+.payload-card:hover {
+  transform: translate(-2px, -2px);
+  background: #3c125a;
+  box-shadow: 6px 6px 0px var(--green-main);
+}
+
+.payload-icon {
+  font-size: 1.8rem;
+  margin-bottom: 2px;
+}
+
+.payload-title {
+  font-family: var(--font-comic);
+  color: var(--yellow-accent);
+  font-size: 1rem;
+}
+
+.payload-port {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.terminal-box {
+  width: 100%;
+  max-width: 700px;
+  background: #000;
+  border: var(--border-thick);
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 10px;
+  font-family: monospace;
+  color: var(--green-main);
+  font-size: 0.85rem;
+  height: 80px;
+  overflow-y: auto;
+  box-shadow: inset 0 0 10px rgba(77, 255, 40, 0.3);
+}
+
 footer {
   width: 100%;
   text-align: center;
-  background: rgba(0, 0, 0, 0.75);
+  background: #000;
   border: var(--border-thick);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 6px 10px;
-  margin-bottom: 5px;
-  box-shadow: 4px 4px 0px #000;
-}
-
-footer .credits-title {
-  color: var(--pink-accent);
-  font-family: 'Bungee', cursive;
-  font-size: 0.75rem;
-  letter-spacing: 1px;
-}
-
-footer .names {
+  margin-bottom: 4px;
+  box-shadow: 3px 3px 0px var(--orange-accent);
+  font-size: 0.72rem;
   color: #ddd;
-  font-size: 0.68rem;
-  line-height: 1.25;
-  margin: 2px 0;
-  max-height: 2.6em;
-  overflow: hidden;
-  text-shadow: 1px 1px 0px #000;
-}
-
-footer .based-on {
-  color: var(--yellow-accent);
-  font-size: 0.62rem;
-  font-style: italic;
-  margin: 0;
 }
 </style>
 </head>
@@ -340,259 +311,155 @@ footer .based-on {
 <canvas id="bg-canvas"></canvas>
 
 <div class="content-wrapper">
-  <!-- Header -->
   <header>
     <h1>PSN-HUB</h1>
-    <div class="subtitle">HIGH FIRMWARE PORTAL</div>
-    <div class="fw-badge">Current FW: <span class="fw-val" id="current-fw">Detecting...</span></div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tab-jb" onclick="switchTab('jb')">JAILBREAK</button>
+      <button class="tab-btn" id="tab-payloads" onclick="switchTab('payloads')">PAYLOADS</button>
+    </div>
   </header>
 
-  <!-- Main Mascot Area -->
-  <div class="mascot-area">
-    <div class="speech-bubble" id="speech-bubble">Pass the payload!</div>
-    
-    <div class="character-card" id="mascot-card">
-      <img src="https://images.unsplash.com/photo-1536483228102-1815f9d146bf?q=80&w=600&auto=format&fit=crop" style="display:none;" alt="pre-loader">
-      <svg class="weed-img" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-        <!-- SVG recreation of high-res cartoony smoking weed leaf -->
-        <g id="weed-character">
-          <!-- Back Leaves -->
-          <path d="M 120 380 Q 50 310 10 250 Q 70 240 140 280 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
-          <path d="M 380 380 Q 450 310 490 250 Q 430 240 360 280 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
-          <path d="M 100 270 Q 20 180 5 120 Q 80 130 160 210 Z" fill="#39a828" stroke="#000" stroke-width="8"/>
-          <path d="M 400 270 Q 480 180 495 120 Q 420 130 340 210 Z" fill="#39a828" stroke="#000" stroke-width="8"/>
-          
-          <!-- Top Leaf Blade -->
-          <path d="M 250 20 Q 200 100 180 200 L 320 200 Q 300 100 250 20 Z" fill="#47cc33" stroke="#000" stroke-width="8"/>
-          
-          <!-- Main Body Leaf -->
-          <path d="M 250 30 C 130 120 100 220 150 420 C 220 460 280 460 350 420 C 400 220 370 120 250 30 Z" fill="#52e03a" stroke="#000" stroke-width="9"/>
-          
-          <!-- Stem Base -->
-          <path d="M 235 430 Q 220 480 200 495 L 235 495 Q 265 470 265 430 Z" fill="#226b15" stroke="#000" stroke-width="7"/>
+  <!-- Jailbreak Main View -->
+  <div class="view-panel active" id="panel-jb">
+    <div class="mascot-area">
+      <div class="character-card" id="mascot-card">
+        <svg class="bud-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="budGrad" cx="50%" cy="40%" r="50%">
+              <stop offset="0%" stop-color="#73e639"/>
+              <stop offset="60%" stop-color="#41a813"/>
+              <stop offset="100%" stop-color="#1e5c0e"/>
+            </radialGradient>
+            <radialGradient id="purpleGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#9c27b0"/>
+              <stop offset="100%" stop-color="#4a148c"/>
+            </radialGradient>
+            <radialGradient id="lensGrad" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#ff7043"/>
+              <stop offset="50%" stop-color="#e91e63"/>
+              <stop offset="100%" stop-color="#4a148c"/>
+            </radialGradient>
+          </defs>
 
-          <!-- Serrated Edges Overlay -->
-          <path d="M 250 30 L 230 60 L 245 70 L 220 100 L 238 110 L 210 150 L 230 160 L 190 210 L 215 220 L 170 280 L 195 290 L 155 350 L 180 360 C 230 440 270 440 320 360 L 345 350 L 305 290 L 330 280 L 285 220 L 310 210 L 270 160 L 290 150 L 262 110 L 280 100 L 255 70 L 270 60 Z" fill="#4ade35" stroke="#000" stroke-width="8"/>
+          <g id="hash-plant-character">
+            <!-- Background Leaves -->
+            <path d="M 120 420 Q 20 380 10 320 Q 80 300 160 360 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
+            <path d="M 480 420 Q 580 380 590 320 Q 520 300 440 360 Z" fill="#2d8a1e" stroke="#000" stroke-width="8"/>
 
-          <!-- Veins -->
-          <path d="M 250 80 L 250 400 M 250 150 L 200 120 M 250 150 L 300 120 M 250 220 L 180 180 M 250 220 L 320 180 M 250 300 L 170 270 M 250 300 L 330 270" stroke="#237a13" stroke-width="5" stroke-linecap="round"/>
+            <!-- Flowering Bud -->
+            <path d="M 300 60 C 360 70, 420 110, 440 170 C 480 210, 490 280, 470 340 C 460 400, 410 460, 350 490 C 290 510, 210 500, 160 450 C 120 400, 110 320, 130 250 C 140 180, 200 90, 300 60 Z" fill="url(#budGrad)" stroke="#000" stroke-width="10"/>
 
-          <!-- Bloodshot Heavy Eyes -->
-          <g id="eyes">
-            <!-- Left Eye -->
-            <ellipse cx="205" cy="185" rx="35" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
-            <ellipse cx="205" cy="185" rx="35" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
-            <!-- Bloodshot veins -->
-            <path d="M 175 185 Q 185 185 190 188 M 235 185 Q 225 185 220 182 M 205 160 L 205 170" stroke="#ff0055" stroke-width="3"/>
-            <circle cx="212" cy="188" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
-            <circle cx="212" cy="188" r="7" fill="#000"/>
-            <circle cx="216" cy="184" r="3" fill="#fff"/>
-            <!-- Droopy Eyelid -->
-            <path d="M 170 178 Q 205 200 240 178 Q 205 160 170 178 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
+            <!-- Calyxes & Pistils -->
+            <path d="M 220 100 Q 260 80 280 120 Q 240 150 220 100 Z" fill="url(#purpleGrad)" stroke="#000" stroke-width="6"/>
+            <path d="M 380 130 Q 420 120 430 160 Q 380 180 380 130 Z" fill="url(#purpleGrad)" stroke="#000" stroke-width="6"/>
+            <path d="M 280 70 Q 260 30 230 40 M 320 80 Q 350 40 380 50" stroke="#ff5722" stroke-width="8" stroke-linecap="round" fill="none"/>
 
-            <!-- Right Eye -->
-            <ellipse cx="295" cy="185" rx="35" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
-            <ellipse cx="295" cy="185" rx="35" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
-            <!-- Bloodshot veins -->
-            <path d="M 265 185 Q 275 185 280 188 M 325 185 Q 315 185 310 182 M 295 160 L 295 170" stroke="#ff0055" stroke-width="3"/>
-            <circle cx="288" cy="188" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
-            <circle cx="288" cy="188" r="7" fill="#000"/>
-            <circle cx="292" cy="184" r="3" fill="#fff"/>
-            <!-- Droopy Eyelid -->
-            <path d="M 260 178 Q 295 200 330 178 Q 295 160 260 178 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
+            <!-- Sunglasses -->
+            <circle cx="230" cy="240" r="50" fill="url(#lensGrad)" stroke="#000" stroke-width="9"/>
+            <circle cx="370" cy="240" r="50" fill="url(#lensGrad)" stroke="#000" stroke-width="9"/>
+            <path d="M 280 230 Q 300 220 320 230" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round"/>
 
-            <!-- Eyebrows -->
-            <path d="M 165 150 Q 205 130 240 155" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
-            <path d="M 260 155 Q 295 130 335 150" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
-          </g>
+            <!-- Mouth -->
+            <path d="M 230 320 Q 300 380 370 320 Z" fill="#000"/>
+            <path d="M 240 325 Q 300 350 360 325 L 355 338 Q 300 360 245 338 Z" fill="#fff"/>
+            <path d="M 260 350 Q 300 330 340 350 Q 300 385 260 350 Z" fill="#ff3366"/>
 
-          <!-- Smirking Mouth -->
-          <g id="mouth">
-            <path d="M 190 250 Q 250 310 310 245 C 320 280 280 315 250 315 C 210 315 180 280 190 250 Z" fill="#80001a" stroke="#000" stroke-width="7"/>
-            <!-- Tongue -->
-            <path d="M 220 295 Q 250 270 280 295 Q 250 325 220 295 Z" fill="#ff3366" stroke="#000" stroke-width="4"/>
-            <!-- Tooth -->
-            <path d="M 205 257 L 225 262 L 220 272 L 202 265 Z" fill="#fff" stroke="#000" stroke-width="3"/>
-          </g>
-
-          <!-- Gloved Cartoon Hand Holding Joint -->
-          <g id="hand-and-joint">
-            <!-- Left Arm Gesture -->
-            <path d="M 150 330 Q 100 350 70 320" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
-            <path d="M 150 330 Q 100 350 70 320" fill="none" stroke="#000" stroke-width="28" stroke-linecap="round" style="z-index:-1"/>
-            <path d="M 150 330 Q 100 350 70 320" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
-            <!-- Left Glove -->
-            <circle cx="65" cy="315" r="22" fill="#fff" stroke="#000" stroke-width="6"/>
-            <circle cx="50" cy="300" r="10" fill="#fff" stroke="#000" stroke-width="5"/>
-            <circle cx="45" cy="320" r="10" fill="#fff" stroke="#000" stroke-width="5"/>
-
-            <!-- Right Arm & Hand Holding Joint -->
-            <path d="M 330 330 Q 370 340 390 290" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
-            <path d="M 330 330 Q 370 340 390 290" fill="none" stroke="#000" stroke-width="28" stroke-linecap="round"/>
-            <path d="M 330 330 Q 370 340 390 290" fill="none" stroke="#3eb828" stroke-width="20" stroke-linecap="round"/>
-
-            <!-- FAT JOINT -->
-            <g id="fat-joint" transform="rotate(-15 380 260)">
-              <!-- Joint Body -->
-              <path d="M 280 260 L 410 245 L 420 270 L 280 275 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
-              <!-- Joint Wrinkles/Twist -->
-              <path d="M 320 257 L 318 274 M 360 252 L 358 272 M 395 248 L 393 269" stroke="#ccc" stroke-width="3"/>
-              <!-- Burning Cherry Tip -->
-              <path d="M 410 245 Q 428 257 420 270 Z" fill="#333" stroke="#000" stroke-width="4"/>
+            <!-- Arm & Joint -->
+            <path d="M 170 340 Q 120 320 140 260" fill="none" stroke="#000" stroke-width="28" stroke-linecap="round"/>
+            <path d="M 170 340 Q 120 320 140 260" fill="none" stroke="#41a813" stroke-width="20" stroke-linecap="round"/>
+            <g id="joint" transform="rotate(25 120 230)">
+              <path d="M 40 230 L 170 215 L 180 240 L 40 245 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
+              <path d="M 40 230 Q 22 237 40 245 Z" fill="#333" stroke="#000" stroke-width="4"/>
             </g>
-
-            <!-- Glove Fingers wrapped around joint -->
-            <circle cx="375" cy="275" r="14" fill="#fff" stroke="#000" stroke-width="5"/>
-            <circle cx="390" cy="285" r="14" fill="#fff" stroke="#000" stroke-width="5"/>
-            <circle cx="365" cy="290" r="14" fill="#fff" stroke="#000" stroke-width="5"/>
           </g>
-        </g>
-      </svg>
+        </svg>
 
-      <!-- Dynamic Glowing Burning Ember -->
-      <div class="ember-glow"></div>
-      
-      <!-- Smoke Emitter Anchor -->
-      <div class="smoke-emitter" id="smoke-emitter"></div>
+        <div class="ember-glow"></div>
+        <div class="smoke-emitter" id="smoke-emitter"></div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
+      <button class="btn btn-secondary" onclick="switchTab('payloads')">PAYLOAD SENDER</button>
     </div>
   </div>
 
-  <!-- Action Buttons -->
-  <div class="btn-group">
-    <a tabindex="0" class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
-    <a tabindex="0" class="btn btn-secondary" id="run-sender" href="relapse.html?senderok=1">PAYLOAD SENDER</a>
+  <!-- Payload Sender View -->
+  <div class="view-panel" id="panel-payloads">
+    <div class="payload-grid">
+      <div class="payload-card" onclick="sendPayload('etaHEN', 9080)">
+        <div class="payload-icon">⚡</div>
+        <div class="payload-title">etaHEN</div>
+        <div class="payload-port">Port: 9080</div>
+      </div>
+      <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
+        <div class="payload-icon">🐛</div>
+        <div class="payload-title">PS5Debug</div>
+        <div class="payload-port">Port: 9021</div>
+      </div>
+      <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
+        <div class="payload-icon">🎮</div>
+        <div class="payload-title">WebRTE</div>
+        <div class="payload-port">Port: 9056</div>
+      </div>
+      <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
+        <div class="payload-icon">📁</div>
+        <div class="payload-title">FTP Server</div>
+        <div class="payload-port">Port: 1337</div>
+      </div>
+      <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
+        <div class="payload-icon">🔓</div>
+        <div class="payload-title">Kstuff</div>
+        <div class="payload-port">Port: 9020</div>
+      </div>
+      <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
+        <div class="payload-icon">💾</div>
+        <div class="payload-title">App Dumper</div>
+        <div class="payload-port">Port: 9023</div>
+      </div>
+    </div>
+
+    <div class="terminal-box" id="term-log">
+      > PSN-HUB Payload Sender Ready.<br>
+      > Select a payload cartridge above to inject...
+    </div>
   </div>
 
-  <!-- Credits Footer -->
   <footer>
-    <div class="credits-title">CREDS &amp; GREETZ</div>
-    <div class="names">
-      Karo, zecoxao, ChendoChap, abc/psfree, idlesauce, flat_z, TheFlow, c0w-ar, earthonion, SIStro, egycnq, abkarino, gezine, Dr.Yenyen, StonedModder, VoidWhisper, EchoStretch, BestPig, AlAzif, drakmor, hzhreal, hammer-83, ntfargo, shahrilnet, Znullptr, LM, ItsJokerZz, Soniciso1, cblock, BeLegal, Lord Caio Barros
-    </div>
-    <div class="based-on">based on Relapse by j0rdy &amp; soniciso1</div>
+    CREDS & GREETZ: Karo, Zecoxao, ChendoChap, flat_z, TheFlow &amp; all relapsers!
   </footer>
 </div>
 
 <script>
-// Firmware Detection Script
-try {
-  var firmwareMatch = /PlayStation 5\/(\d+\.\d+)/.exec(navigator.userAgent);
-  var firmware = firmwareMatch ? firmwareMatch[1] : "";
-  document.getElementById("current-fw").textContent = firmware || "10.01 (Mocked)";
-} catch (e) {
-  document.getElementById("current-fw").textContent = "Not detected";
-}
+function switchTab(tab) {
+  document.getElementById('tab-jb').classList.remove('active');
+  document.getElementById('tab-payloads').classList.remove('active');
+  document.getElementById('panel-jb').classList.remove('active');
+  document.getElementById('panel-payloads').classList.remove('active');
 
-try { document.getElementById("run-jb").focus(); } catch (e) { }
-
-// Audio Synthesizer (Web Audio API)
-var audioCtx = null;
-function playRetroSound(type) {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    
-    var osc = audioCtx.createOscillator();
-    var gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    if (type === 'puff') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.4);
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.4);
-    } else if (type === 'hover') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.08);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.08);
-    }
-  } catch(e) {}
-}
-
-// Dynamic Smoke Generator
-function createSmokePuff() {
-  var emitter = document.getElementById('smoke-emitter');
-  if (!emitter) return;
-  
-  var rect = emitter.getBoundingClientRect();
-  var puff = document.createElement('div');
-  puff.className = 'smoke-puff';
-  
-  var size = Math.random() * 25 + 20;
-  puff.style.width = size + 'px';
-  puff.style.height = size + 'px';
-  
-  puff.style.left = (rect.left + window.scrollX + (Math.random() * 10 - 5)) + 'px';
-  puff.style.top = (rect.top + window.scrollY + (Math.random() * 10 - 5)) + 'px';
-  
-  document.body.appendChild(puff);
-  
-  setTimeout(function() {
-    if (puff.parentNode) {
-      puff.parentNode.removeChild(puff);
-    }
-  }, 3000);
-}
-
-// Continuous background smoking
-setInterval(createSmokePuff, 800);
-
-// Interactive Character Click / Tap
-var phrases = [
-  "PS5 Jailbreak Ready!",
-  "Stay Chilled...",
-  "High Firmware Vibes!",
-  "Injecting Payloads...",
-  "Kernel Exploit Puffed!",
-  "Groovy 13.60 Support!"
-];
-
-var mascotCard = document.getElementById('mascot-card');
-var speechBubble = document.getElementById('speech-bubble');
-var speechTimeout;
-
-mascotCard.addEventListener('click', function() {
-  playRetroSound('puff');
-  
-  // Blast multiple smoke puffs
-  for (var i = 0; i < 6; i++) {
-    setTimeout(createSmokePuff, i * 80);
+  if (tab === 'jb') {
+    document.getElementById('tab-jb').classList.add('active');
+    document.getElementById('panel-jb').classList.add('active');
+  } else {
+    document.getElementById('tab-payloads').classList.add('active');
+    document.getElementById('panel-payloads').classList.add('active');
   }
-  
-  // Display random quote
-  var randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-  speechBubble.textContent = randomPhrase;
-  speechBubble.classList.add('active');
-  
-  clearTimeout(speechTimeout);
-  speechTimeout = setTimeout(function() {
-    speechBubble.classList.remove('active');
-  }, 2200);
-});
+}
 
-// Sound FX on Hover/Focus
-var btns = document.querySelectorAll('.btn');
-btns.forEach(function(btn) {
-  btn.addEventListener('mouseenter', function() { playRetroSound('hover'); });
-  btn.addEventListener('focus', function() { playRetroSound('hover'); });
-});
+function sendPayload(name, port) {
+  var log = document.getElementById('term-log');
+  log.innerHTML += '<br>> Injecting ' + name + ' on port ' + port + '...';
+  log.scrollTop = log.scrollHeight;
+  setTimeout(function() {
+    log.innerHTML += '<br><span style="color:#ffeb3b">> Payload ' + name + ' Sent Successfully!</span>';
+    log.scrollTop = log.scrollHeight;
+  }, 1000);
+}
 
-// Canvas Background Floating Leaf & Particle Animation
+// Background Particles
 var canvas = document.getElementById('bg-canvas');
 var ctx = canvas.getContext('2d');
-
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -601,47 +468,26 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 var particles = [];
-for (var i = 0; i < 25; i++) {
+for (var i = 0; i < 20; i++) {
   particles.push({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
-    size: Math.random() * 12 + 6,
-    speedX: Math.random() * 1 - 0.5,
-    speedY: Math.random() * -1 - 0.5,
-    rotation: Math.random() * Math.PI * 2,
-    rotSpeed: Math.random() * 0.04 - 0.02,
-    opacity: Math.random() * 0.5 + 0.2
+    size: Math.random() * 6 + 4,
+    speedY: Math.random() * -0.8 - 0.2
   });
 }
 
 function drawBackground() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+  ctx.fillStyle = '#4dff28';
   for (var i = 0; i < particles.length; i++) {
     var p = particles[i];
-    p.x += p.speedX;
     p.y += p.speedY;
-    p.rotation += p.rotSpeed;
-    
-    if (p.y < -20) {
-      p.y = canvas.height + 20;
-      p.x = Math.random() * canvas.width;
-    }
-    
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rotation);
-    ctx.globalAlpha = p.opacity;
-    
-    // Draw simple floating star/leaf particle
-    ctx.fillStyle = '#39ff14';
+    if (p.y < -10) p.y = canvas.height + 10;
     ctx.beginPath();
-    ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
-    
-    ctx.restore();
   }
-  
   requestAnimationFrame(drawBackground);
 }
 drawBackground();
