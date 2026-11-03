@@ -4,6 +4,7 @@ import { installWindowP } from "./utils/mem.js";
 const output = document.getElementById("console");
 
 function writeLog(message, type = "log", replace = false) {
+  if (!output) return;
   let line = replace ? output.lastElementChild : null;
   if (!line) {
     line = document.createElement("div");
@@ -17,8 +18,10 @@ function writeLog(message, type = "log", replace = false) {
 }
 
 function writeEvent(name, detail, type) {
-  writeLog(detail == null || detail === "" ? name : `${name}: ${detail}`,
-    type || (name === "Failed" ? "error" : "log"));
+  writeLog(
+    detail == null || detail === "" ? name : `${name}: ${detail}`,
+    type || (name === "Failed" ? "error" : "log")
+  );
 }
 
 window.writeLog = writeLog;
@@ -49,17 +52,36 @@ function getWebKitBase() {
 }
 
 async function run() {
-  const rejection = window.firmware.rejection();
-  if (rejection)
+  // 1. Detect if the browser is running on a PlayStation 5
+  const isPS5 = /PlayStation 5/i.test(navigator.userAgent);
+
+  if (!isPS5) {
+    writeLog("Non-PS5 environment detected (PC / Mobile).", "info");
+    writeLog("Preview Mode active: Hardware-specific memory primitives disabled.", "success");
+    writeLog(`User Agent: ${navigator.userAgent}`, "log");
+    return; // Safely stop execution so the UI remains fully interactive
+  }
+
+  // 2. Hardware environment execution (Only runs on an actual PS5)
+  const rejection = window.firmware && typeof window.firmware.rejection === "function"
+    ? window.firmware.rejection()
+    : null;
+
+  if (rejection) {
     throw new Error(rejection);
+  }
+
   writeLog("Credits: Sonic_Iso, Jordy, ntfargo, ufm42, Dr. Yenyen, TheFlow, SlidyBat, Flatz, cow, nhk, bollarz, Sleirsgoevy, EchoStretch, EarthOnion", "info");
   writeLog(`Agent: ${navigator.userAgent}`, "info");
-  writeLog(`Firmware: ${window.fw_str}`, "info");
+  writeLog(`Firmware: ${window.fw_str || "Unknown"}`, "info");
+
   const primitive = await getPrimitive();
   writeLog(`WebKit base: 0x${getWebKitBase().toString(16)}`, "info");
 
   await import("./relapse_exploit.js");
-  await main(primitive);
+  if (typeof main === "function") {
+    await main(primitive);
+  }
 }
 
 run().catch((error) => writeLog(error instanceof Error ? error.message : String(error), "error"));
