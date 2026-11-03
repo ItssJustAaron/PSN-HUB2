@@ -8,7 +8,6 @@
 <style>
 :root {
   --green-main: #39ff14;
-  --green-dark: #123806;
   --purple-bg: #140520;
   --purple-card: #280a3e;
   --yellow-accent: #ffe600;
@@ -32,7 +31,7 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: radial-gradient(circle at center, #2e004f 0%, var(--purple-bg) 100%);
+  background: #140520;
   color: #fff;
   font-family: var(--font-body);
   display: flex;
@@ -75,7 +74,7 @@ h1 {
   font-size: clamp(2.2rem, 5.5vw, 3.6rem);
   margin: 0;
   color: var(--green-main);
-  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent), 0 0 20px rgba(57, 255, 20, 0.6);
+  text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent);
   letter-spacing: 2px;
 }
 
@@ -96,7 +95,6 @@ h1 {
   cursor: pointer;
   font-size: 0.9rem;
   box-shadow: 3px 3px 0px #000;
-  transition: all 0.15s ease;
 }
 
 .tab-btn.active {
@@ -138,58 +136,9 @@ h1 {
   cursor: pointer;
 }
 
-.weed-svg {
-  height: 100%;
+#mascot-canvas {
   max-height: 360px;
   width: auto;
-  object-fit: contain;
-  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.4));
-  transition: transform 0.2s ease;
-}
-
-.character-card:hover .weed-svg {
-  transform: scale(1.03) rotate(1deg);
-}
-
-/* Burning Joint Cherry Ember */
-.ember-glow {
-  position: absolute;
-  top: 50.5%;
-  right: 17.5%;
-  width: 16px;
-  height: 16px;
-  background: radial-gradient(circle, #ffffff 10%, #ffcc00 30%, #ff3300 70%, transparent 100%);
-  border-radius: 50%;
-  box-shadow: 0 0 12px #ff3300, 0 0 25px #ff9900;
-  animation: emberBurn 1.2s infinite alternate ease-in-out;
-  pointer-events: none;
-}
-
-@keyframes emberBurn {
-  0% { transform: scale(0.85); opacity: 0.8; }
-  100% { transform: scale(1.25); opacity: 1; }
-}
-
-.smoke-emitter {
-  position: absolute;
-  top: 50%;
-  right: 16%;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-}
-
-.smoke-ring {
-  position: absolute;
-  border: 5px solid rgba(255, 255, 255, 0.85);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: floatRing 3.5s forwards;
-}
-
-@keyframes floatRing {
-  0% { transform: translate(0, 0) scale(0.3); opacity: 0.9; }
-  100% { transform: translate(70px, -130px) scale(2.6); opacity: 0; }
 }
 
 .btn-group {
@@ -217,14 +166,7 @@ h1 {
   border-radius: 18px;
   box-shadow: var(--box-shadow);
   cursor: pointer;
-  transition: all 0.15s ease;
   outline: none;
-}
-
-.btn:hover, .btn:focus {
-  transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0px #000;
-  background: #6aff48;
 }
 
 .btn-secondary {
@@ -234,7 +176,6 @@ h1 {
   max-width: 340px;
 }
 
-/* Scrollable Payload Grid */
 .payload-scroll-area {
   width: 100%;
   max-width: 750px;
@@ -242,22 +183,6 @@ h1 {
   overflow-y: auto;
   padding-right: 6px;
   margin-top: 8px;
-}
-
-.payload-scroll-area::-webkit-scrollbar {
-  width: 8px;
-}
-
-.payload-scroll-area::-webkit-scrollbar-track {
-  background: #0d0216;
-  border-radius: 10px;
-  border: 2px solid #000;
-}
-
-.payload-scroll-area::-webkit-scrollbar-thumb {
-  background: var(--green-main);
-  border-radius: 10px;
-  border: 2px solid #000;
 }
 
 .payload-grid {
@@ -275,24 +200,24 @@ h1 {
   text-align: center;
   cursor: pointer;
   box-shadow: 4px 4px 0px #000;
-  transition: all 0.15s ease;
 }
 
-.payload-card:hover {
-  transform: translate(-2px, -2px);
-  background: #3c125a;
-  box-shadow: 6px 6px 0px var(--green-main);
-}
-
-.payload-icon {
-  font-size: 1.5rem;
-  margin-bottom: 2px;
+.payload-badge {
+  display: inline-block;
+  background: var(--green-main);
+  color: #000;
+  font-family: var(--font-comic);
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  border: 2px solid #000;
 }
 
 .payload-title {
   font-family: var(--font-comic);
   color: var(--yellow-accent);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .payload-port {
@@ -313,7 +238,6 @@ h1 {
   font-size: 0.8rem;
   height: 65px;
   overflow-y: auto;
-  box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.3);
 }
 
 footer {
@@ -343,83 +267,11 @@ footer {
     </div>
   </header>
 
-  <!-- Jailbreak Main View -->
+  <!-- Jailbreak View -->
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
       <div class="character-card" id="mascot-card">
-        <svg class="weed-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-          <g id="leaf-mascot">
-            <path d="M 160 380 Q 80 340 20 280 Q 90 260 180 310 Z" fill="#2d8a1e" stroke="#000" stroke-width="7"/>
-            <path d="M 160 380 Q 80 340 20 280 Q 90 260 180 310 Z" fill="#47cc33" stroke="#000" stroke-width="5"/>
-            <path d="M 340 380 Q 420 340 480 280 Q 410 260 320 310 Z" fill="#2d8a1e" stroke="#000" stroke-width="7"/>
-            <path d="M 340 380 Q 420 340 480 280 Q 410 260 320 310 Z" fill="#47cc33" stroke="#000" stroke-width="5"/>
-            <path d="M 120 270 Q 30 190 10 130 Q 90 140 170 210 Z" fill="#39a828" stroke="#000" stroke-width="7"/>
-            <path d="M 380 270 Q 470 190 490 130 Q 410 140 330 210 Z" fill="#39a828" stroke="#000" stroke-width="7"/>
-
-            <!-- Main Central Serrated Leaf Body -->
-            <path d="M 250 20 
-                     L 230 55 L 245 65 L 220 95 L 238 105 L 210 145 L 230 155 L 185 205 L 210 215 L 165 270 L 190 280 L 150 340 L 175 350 
-                     C 220 430 280 430 325 350 L 350 340 L 310 280 L 335 270 L 290 215 L 315 205 L 270 155 L 290 145 L 262 105 L 280 95 L 255 65 L 270 55 Z" 
-                  fill="#52e03a" stroke="#000" stroke-width="8"/>
-
-            <path d="M 235 420 Q 220 470 200 495 L 235 495 Q 265 470 265 420 Z" fill="#226b15" stroke="#000" stroke-width="7"/>
-            <path d="M 250 70 L 250 410 M 250 140 L 205 110 M 250 140 L 295 110 M 250 210 L 185 170 M 250 210 L 315 170 M 250 290 L 175 255 M 250 290 L 325 255" stroke="#237a13" stroke-width="5" stroke-linecap="round"/>
-
-            <!-- Eyes -->
-            <g id="eyes">
-              <ellipse cx="205" cy="180" rx="36" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
-              <ellipse cx="205" cy="180" rx="36" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
-              <path d="M 175 180 Q 185 180 190 183 M 235 180 Q 225 180 220 177" stroke="#ff0055" stroke-width="3"/>
-              <circle cx="212" cy="183" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
-              <circle cx="212" cy="183" r="7" fill="#000"/>
-              <circle cx="216" cy="179" r="3" fill="#fff"/>
-              <path d="M 170 172 Q 205 194 241 172 Q 205 155 170 172 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
-
-              <ellipse cx="295" cy="180" rx="36" ry="28" fill="#fff" stroke="#000" stroke-width="7"/>
-              <ellipse cx="295" cy="180" rx="36" ry="28" fill="rgba(255, 0, 80, 0.25)"/>
-              <path d="M 265 180 Q 275 180 280 183 M 325 180 Q 315 180 310 177" stroke="#ff0055" stroke-width="3"/>
-              <circle cx="288" cy="183" r="16" fill="#0088ff" stroke="#000" stroke-width="4"/>
-              <circle cx="288" cy="183" r="7" fill="#000"/>
-              <circle cx="292" cy="179" r="3" fill="#fff"/>
-              <path d="M 260 172 Q 295 194 330 172 Q 295 155 260 172 Z" fill="#3eb828" stroke="#000" stroke-width="6"/>
-
-              <path d="M 165 145 Q 205 125 240 150" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
-              <path d="M 260 150 Q 295 125 335 145" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
-            </g>
-
-            <!-- Mouth -->
-            <g id="mouth">
-              <path d="M 190 245 Q 250 305 310 240 C 320 275 280 310 250 310 C 210 310 180 275 190 245 Z" fill="#80001a" stroke="#000" stroke-width="7"/>
-              <path d="M 220 290 Q 250 265 280 290 Q 250 320 220 290 Z" fill="#ff3366" stroke="#000" stroke-width="4"/>
-              <path d="M 205 252 L 225 257 L 220 267 L 202 260 Z" fill="#fff" stroke="#000" stroke-width="3"/>
-            </g>
-
-            <!-- Hands & Joint -->
-            <g id="hands">
-              <path d="M 150 325 Q 100 345 70 315" fill="none" stroke="#000" stroke-width="26" stroke-linecap="round"/>
-              <path d="M 150 325 Q 100 345 70 315" fill="none" stroke="#3eb828" stroke-width="18" stroke-linecap="round"/>
-              <circle cx="65" cy="310" r="20" fill="#fff" stroke="#000" stroke-width="5"/>
-              <circle cx="50" cy="295" r="9" fill="#fff" stroke="#000" stroke-width="4"/>
-              <circle cx="45" cy="315" r="9" fill="#fff" stroke="#000" stroke-width="4"/>
-
-              <path d="M 330 325 Q 370 335 390 285" fill="none" stroke="#000" stroke-width="26" stroke-linecap="round"/>
-              <path d="M 330 325 Q 370 335 390 285" fill="none" stroke="#3eb828" stroke-width="18" stroke-linecap="round"/>
-
-              <g id="fat-joint" transform="rotate(-15 380 255)">
-                <path d="M 280 255 L 410 240 L 420 265 L 280 270 Z" fill="#f0efe6" stroke="#000" stroke-width="6"/>
-                <path d="M 320 252 L 318 269 M 360 247 L 358 267 M 395 243 L 393 264" stroke="#ccc" stroke-width="3"/>
-                <path d="M 410 240 Q 428 252 420 265 Z" fill="#333" stroke="#000" stroke-width="4"/>
-              </g>
-
-              <circle cx="375" cy="270" r="13" fill="#fff" stroke="#000" stroke-width="5"/>
-              <circle cx="390" cy="280" r="13" fill="#fff" stroke="#000" stroke-width="5"/>
-              <circle cx="365" cy="285" r="13" fill="#fff" stroke="#000" stroke-width="5"/>
-            </g>
-          </g>
-        </svg>
-
-        <div class="ember-glow"></div>
-        <div class="smoke-emitter" id="smoke-emitter"></div>
+        <canvas id="mascot-canvas" width="400" height="400"></canvas>
       </div>
     </div>
 
@@ -429,97 +281,97 @@ footer {
     </div>
   </div>
 
-  <!-- Extended Payload Sender View (18 Payloads) -->
+  <!-- Payload Sender View -->
   <div class="view-panel" id="panel-payloads">
     <div class="payload-scroll-area">
       <div class="payload-grid">
         <div class="payload-card" onclick="sendPayload('etaHEN 1.8b', 9080)">
-          <div class="payload-icon">⚡</div>
+          <div class="payload-badge">HEN</div>
           <div class="payload-title">etaHEN 1.8b</div>
           <div class="payload-port">Port: 9080</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
-          <div class="payload-icon">🔓</div>
+          <div class="payload-badge">FPKG</div>
           <div class="payload-title">Kstuff</div>
           <div class="payload-port">Port: 9020</div>
         </div>
         <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
-          <div class="payload-icon">🐛</div>
+          <div class="payload-badge">DBG</div>
           <div class="payload-title">PS5Debug</div>
           <div class="payload-port">Port: 9021</div>
         </div>
         <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
-          <div class="payload-icon">🎮</div>
+          <div class="payload-badge">RTE</div>
           <div class="payload-title">WebRTE</div>
           <div class="payload-port">Port: 9056</div>
         </div>
         <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
-          <div class="payload-icon">📁</div>
+          <div class="payload-badge">FTP</div>
           <div class="payload-title">FTP Server</div>
           <div class="payload-port">Port: 1337</div>
         </div>
         <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
-          <div class="payload-icon">💾</div>
+          <div class="payload-badge">DUMP</div>
           <div class="payload-title">App Dumper</div>
           <div class="payload-port">Port: 9023</div>
         </div>
         <div class="payload-card" onclick="sendPayload('ELF Loader', 9027)">
-          <div class="payload-icon">🚀</div>
+          <div class="payload-badge">ELF</div>
           <div class="payload-title">ELF Loader</div>
           <div class="payload-port">Port: 9027</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Kernel Dumper', 9025)">
-          <div class="payload-icon">🔍</div>
+          <div class="payload-badge">KERN</div>
           <div class="payload-title">Kernel Dumper</div>
           <div class="payload-port">Port: 9025</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Fan Control', 9028)">
-          <div class="payload-icon">❄️</div>
+          <div class="payload-badge">SYS</div>
           <div class="payload-title">Fan Control</div>
           <div class="payload-port">Port: 9028</div>
         </div>
         <div class="payload-card" onclick="sendPayload('DB Backup', 9029)">
-          <div class="payload-icon">🗄️</div>
+          <div class="payload-badge">BACKUP</div>
           <div class="payload-title">DB Backup</div>
           <div class="payload-port">Port: 9029</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Cache Clear', 9030)">
-          <div class="payload-icon">🧹</div>
+          <div class="payload-badge">CACHE</div>
           <div class="payload-title">Cache Clear</div>
           <div class="payload-port">Port: 9030</div>
         </div>
         <div class="payload-card" onclick="sendPayload('PS5 Payload Server', 9090)">
-          <div class="payload-icon">📡</div>
+          <div class="payload-badge">SERV</div>
           <div class="payload-title">Payload Server</div>
           <div class="payload-port">Port: 9090</div>
         </div>
         <div class="payload-card" onclick="sendPayload('LBL Exploit', 9031)">
-          <div class="payload-icon">🔥</div>
+          <div class="payload-badge">EXP</div>
           <div class="payload-title">LBL Exploit</div>
           <div class="payload-port">Port: 9031</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Itemzflow', 9032)">
-          <div class="payload-icon">📦</div>
+          <div class="payload-badge">MGR</div>
           <div class="payload-title">Itemzflow</div>
           <div class="payload-port">Port: 9032</div>
         </div>
         <div class="payload-card" onclick="sendPayload('GDB Server', 2159)">
-          <div class="payload-icon">⚙️</div>
+          <div class="payload-badge">GDB</div>
           <div class="payload-title">GDB Server</div>
           <div class="payload-port">Port: 2159</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Linux Loader 2GB', 9033)">
-          <div class="payload-icon">🐧</div>
+          <div class="payload-badge">LNX</div>
           <div class="payload-title">Linux (2GB)</div>
           <div class="payload-port">Port: 9033</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Linux Loader 4GB', 9034)">
-          <div class="payload-icon">🐧</div>
+          <div class="payload-badge">LNX</div>
           <div class="payload-title">Linux (4GB)</div>
           <div class="payload-port">Port: 9034</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Browser Unlocker', 9035)">
-          <div class="payload-icon">🌐</div>
+          <div class="payload-badge">WEB</div>
           <div class="payload-title">Web Unlocker</div>
           <div class="payload-port">Port: 9035</div>
         </div>
@@ -538,6 +390,88 @@ footer {
 </div>
 
 <script>
+// Hardware Canvas Renderer for PS5 Compatibility
+function renderPS5Mascot() {
+  var cvs = document.getElementById('mascot-canvas');
+  if (!cvs) return;
+  var c = cvs.getContext('2d');
+  
+  c.clearRect(0, 0, 400, 400);
+
+  // Outer Leaf Outline & Fill
+  c.lineWidth = 10;
+  c.strokeStyle = '#000000';
+  c.fillStyle = '#39ff14';
+
+  // Central Leaf Body
+  c.beginPath();
+  c.moveTo(200, 20);
+  c.lineTo(180, 70); c.lineTo(195, 80);
+  c.lineTo(165, 130); c.lineTo(185, 140);
+  c.lineTo(140, 200); c.lineTo(165, 210);
+  c.lineTo(120, 290); c.lineTo(150, 300);
+  c.quadraticCurveTo(200, 380, 250, 300);
+  c.lineTo(280, 290); c.lineTo(235, 210);
+  c.lineTo(260, 200); c.lineTo(215, 140);
+  c.lineTo(235, 130); c.lineTo(205, 80);
+  c.lineTo(220, 70);
+  c.closePath();
+  c.fill();
+  c.stroke();
+
+  // Bloodshot Eyes
+  c.fillStyle = '#ffffff';
+  c.lineWidth = 6;
+
+  // Left Eye
+  c.beginPath(); c.ellipse(160, 160, 28, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#0088ff';
+  c.beginPath(); c.arc(165, 162, 12, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#000';
+  c.beginPath(); c.arc(165, 162, 5, 0, Math.PI * 2); c.fill();
+
+  // Right Eye
+  c.fillStyle = '#ffffff';
+  c.beginPath(); c.ellipse(240, 160, 28, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#0088ff';
+  c.beginPath(); c.arc(235, 162, 12, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#000';
+  c.beginPath(); c.arc(235, 162, 5, 0, Math.PI * 2); c.fill();
+
+  // Droopy Eyelids
+  c.fillStyle = '#2db80d';
+  c.beginPath(); c.arc(160, 150, 28, 0, Math.PI); c.fill(); c.stroke();
+  c.beginPath(); c.arc(240, 150, 28, 0, Math.PI); c.fill(); c.stroke();
+
+  // Mouth
+  c.fillStyle = '#80001a';
+  c.beginPath();
+  c.arc(200, 210, 40, 0, Math.PI);
+  c.fill();
+  c.stroke();
+
+  // Teeth
+  c.fillStyle = '#ffffff';
+  c.fillRect(180, 210, 40, 10);
+
+  // Joint
+  c.fillStyle = '#f0efe6';
+  c.beginPath();
+  c.rect(260, 220, 90, 16);
+  c.fill();
+  c.stroke();
+
+  // Burning Cherry Tip
+  c.fillStyle = '#ff3300';
+  c.beginPath();
+  c.arc(350, 228, 10, 0, Math.PI * 2);
+  c.fill();
+}
+
+window.onload = function() {
+  renderPS5Mascot();
+};
+
 function switchTab(tab) {
   document.getElementById('tab-jb').classList.remove('active');
   document.getElementById('tab-payloads').classList.remove('active');
@@ -547,6 +481,7 @@ function switchTab(tab) {
   if (tab === 'jb') {
     document.getElementById('tab-jb').classList.add('active');
     document.getElementById('panel-jb').classList.add('active');
+    renderPS5Mascot();
   } else {
     document.getElementById('tab-payloads').classList.add('active');
     document.getElementById('panel-payloads').classList.add('active');
@@ -563,23 +498,6 @@ function sendPayload(name, port) {
   }, 1000);
 }
 
-// Dynamic Smoke Rings
-function createSmokeRing() {
-  var emitter = document.getElementById('smoke-emitter');
-  if (!emitter) return;
-  var rect = emitter.getBoundingClientRect();
-  var ring = document.createElement('div');
-  ring.className = 'smoke-ring';
-  var size = Math.random() * 18 + 20;
-  ring.style.width = size + 'px';
-  ring.style.height = size + 'px';
-  ring.style.left = (rect.left + window.scrollX) + 'px';
-  ring.style.top = (rect.top + window.scrollY) + 'px';
-  document.body.appendChild(ring);
-  setTimeout(function() { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 3500);
-}
-setInterval(createSmokeRing, 900);
-
 // Background Canvas Animation
 var canvas = document.getElementById('bg-canvas');
 var ctx = canvas.getContext('2d');
@@ -591,11 +509,11 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 var particles = [];
-for (var i = 0; i < 22; i++) {
+for (var i = 0; i < 20; i++) {
   particles.push({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
-    size: Math.random() * 6 + 4,
+    size: Math.random() * 5 + 3,
     speedY: Math.random() * -0.8 - 0.2
   });
 }
