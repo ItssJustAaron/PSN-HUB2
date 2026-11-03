@@ -8,15 +8,16 @@
 <style>
 :root {
   --green-main: #39ff14;
-  --purple-bg: #140520;
-  --purple-card: #280a3e;
+  --purple-bg: #0f0318;
+  --purple-card: #1f0833;
+  --purple-border: #3b105e;
   --yellow-accent: #ffe600;
   --orange-cherry: #ff3300;
   --pink-accent: #ff007f;
-  --border-thick: 4px solid #000;
-  --box-shadow: 5px 5px 0px #000;
-  --font-comic: 'Impact', 'Comic Sans MS', 'Arial Black', sans-serif;
-  --font-body: 'Comic Sans MS', 'Arial', sans-serif;
+  --border-thick: 3px solid #000;
+  --box-shadow: 4px 4px 0px #000;
+  --font-comic: 'Impact', 'Arial Black', sans-serif;
+  --font-body: 'Arial', sans-serif;
 }
 
 * {
@@ -31,7 +32,7 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: radial-gradient(circle at center, #2e004f 0%, var(--purple-bg) 100%);
+  background: radial-gradient(circle at center, #260840 0%, var(--purple-bg) 100%);
   color: #fff;
   font-family: var(--font-body);
   display: flex;
@@ -61,17 +62,17 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 12px 14px;
 }
 
 header {
   text-align: center;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 h1 {
   font-family: var(--font-comic);
-  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+  font-size: clamp(2.4rem, 6vw, 3.8rem);
   margin: 0;
   color: var(--green-main);
   text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent);
@@ -80,9 +81,9 @@ h1 {
 
 .nav-tabs {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .tab-btn {
@@ -91,10 +92,11 @@ h1 {
   color: #fff;
   border: var(--border-thick);
   border-radius: 12px;
-  padding: 6px 16px;
+  padding: 8px 20px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   box-shadow: 3px 3px 0px #000;
+  letter-spacing: 1px;
 }
 
 .tab-btn.active {
@@ -110,13 +112,14 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-height: 72vh;
+  max-height: 70vh;
 }
 
 .view-panel.active {
   display: flex;
 }
 
+/* Redesigned Mascot Logo Emblem */
 .mascot-area {
   position: relative;
   display: flex;
@@ -126,40 +129,33 @@ h1 {
   height: 100%;
 }
 
-.character-card {
-  position: relative;
-  height: 100%;
-  max-height: 380px;
+.logo-badge {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, #2d8a1e 0%, #123806 100%);
+  border: 6px solid #000;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px var(--green-main), 0 10px 25px rgba(0,0,0,0.8);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
+  position: relative;
 }
 
-/* Base64 Embedded High-Res Mascot */
-.mascot-img {
-  max-height: 340px;
-  width: auto;
-  object-fit: contain;
-  filter: drop-shadow(0px 8px 0px #000);
+.logo-leaf-svg {
+  width: 140px;
+  height: 140px;
+  filter: drop-shadow(0px 4px 0px #000);
 }
 
-.ember-glow {
-  position: absolute;
-  top: 50.5%;
-  right: 17.5%;
-  width: 16px;
-  height: 16px;
-  background: radial-gradient(circle, #ffffff 10%, #ffcc00 30%, #ff3300 70%, transparent 100%);
-  border-radius: 50%;
-  box-shadow: 0 0 12px #ff3300, 0 0 25px #ff9900;
-  animation: emberBurn 1.2s infinite alternate ease-in-out;
-  pointer-events: none;
-}
-
-@keyframes emberBurn {
-  0% { transform: scale(0.85); opacity: 0.8; }
-  100% { transform: scale(1.25); opacity: 1; }
+.logo-text-ring {
+  font-family: var(--font-comic);
+  font-size: 0.9rem;
+  color: var(--yellow-accent);
+  letter-spacing: 2px;
+  margin-top: -10px;
+  text-shadow: 2px 2px 0px #000;
 }
 
 .btn-group {
@@ -168,7 +164,7 @@ h1 {
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 .btn {
@@ -199,8 +195,8 @@ h1 {
 
 .payload-scroll-area {
   width: 100%;
-  max-width: 750px;
-  max-height: 52vh;
+  max-width: 780px;
+  max-height: 50vh;
   overflow-y: auto;
   padding-right: 6px;
   margin-top: 8px;
@@ -209,51 +205,62 @@ h1 {
 .payload-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
 .payload-card {
   background: var(--purple-card);
-  border: var(--border-thick);
-  border-radius: 12px;
-  padding: 10px;
+  border: 2px solid var(--purple-border);
+  border-radius: 14px;
+  padding: 12px;
   text-align: center;
   cursor: pointer;
   box-shadow: 4px 4px 0px #000;
+  transition: background 0.2s;
 }
 
-.payload-badge {
+.payload-card:hover {
+  background: #2f0d4d;
+  border-color: var(--green-main);
+}
+
+/* Styled Inline SVG / Text Icons for PS5 Reliability */
+.payload-icon-badge {
   display: inline-block;
   background: var(--green-main);
   color: #000;
   font-family: var(--font-comic);
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-bottom: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
   border: 2px solid #000;
+  box-shadow: 2px 2px 0px #000;
 }
 
 .payload-title {
   font-family: var(--font-comic);
   color: var(--yellow-accent);
   font-size: 0.95rem;
+  letter-spacing: 0.5px;
 }
 
 .payload-port {
-  font-size: 0.72rem;
-  color: #aaa;
+  font-size: 0.75rem;
+  color: #bbb;
+  margin-top: 2px;
 }
 
 .terminal-box {
   width: 100%;
-  max-width: 750px;
+  max-width: 780px;
   background: #000;
   border: var(--border-thick);
   border-radius: 10px;
   padding: 8px 12px;
-  margin-top: 8px;
+  margin-top: 10px;
   font-family: monospace;
   color: var(--green-main);
   font-size: 0.8rem;
@@ -291,10 +298,18 @@ footer {
   <!-- Jailbreak View -->
   <div class="view-panel active" id="panel-jb">
     <div class="mascot-area">
-      <div class="character-card" id="mascot-card">
-        <!-- Self-contained Data URI Image guarantees rendering in PS5 WebKit -->
-        <img class="mascot-img" id="mascot-img" alt="Leaf Mascot">
-        <div class="ember-glow"></div>
+      <div class="logo-badge">
+        <svg class="logo-leaf-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Stylized High-Quality Leaf Silhouette Logo -->
+          <path d="M50 10 C45 35 25 25 15 45 C30 45 35 60 50 85 C65 60 70 45 85 45 C75 25 55 35 50 10 Z" fill="#39ff14" stroke="#000" stroke-width="3"/>
+          <path d="M50 85 L50 95" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+          <path d="M50 30 L50 75 M50 45 L35 35 M50 55 L30 50 M50 45 L65 35 M50 55 L70 50" stroke="#123806" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Sunglasses Emblem -->
+          <rect x="28" y="42" width="18" height="12" rx="3" fill="#000"/>
+          <rect x="54" y="42" width="18" height="12" rx="3" fill="#000"/>
+          <line x1="46" y1="46" x2="54" y2="46" stroke="#000" stroke-width="3"/>
+        </svg>
+        <div class="logo-text-ring">HIGH FIRMWARE</div>
       </div>
     </div>
 
@@ -309,92 +324,92 @@ footer {
     <div class="payload-scroll-area">
       <div class="payload-grid">
         <div class="payload-card" onclick="sendPayload('etaHEN 1.8b', 9080)">
-          <div class="payload-badge">HEN</div>
+          <div class="payload-icon-badge">HEN</div>
           <div class="payload-title">etaHEN 1.8b</div>
           <div class="payload-port">Port: 9080</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
-          <div class="payload-badge">FPKG</div>
+          <div class="payload-icon-badge">FPKG</div>
           <div class="payload-title">Kstuff</div>
           <div class="payload-port">Port: 9020</div>
         </div>
         <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
-          <div class="payload-badge">DBG</div>
+          <div class="payload-icon-badge">DBG</div>
           <div class="payload-title">PS5Debug</div>
           <div class="payload-port">Port: 9021</div>
         </div>
         <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
-          <div class="payload-badge">RTE</div>
+          <div class="payload-icon-badge">RTE</div>
           <div class="payload-title">WebRTE</div>
           <div class="payload-port">Port: 9056</div>
         </div>
         <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
-          <div class="payload-badge">FTP</div>
+          <div class="payload-icon-badge">FTP</div>
           <div class="payload-title">FTP Server</div>
           <div class="payload-port">Port: 1337</div>
         </div>
         <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
-          <div class="payload-badge">DUMP</div>
+          <div class="payload-icon-badge">DUMP</div>
           <div class="payload-title">App Dumper</div>
           <div class="payload-port">Port: 9023</div>
         </div>
         <div class="payload-card" onclick="sendPayload('ELF Loader', 9027)">
-          <div class="payload-badge">ELF</div>
+          <div class="payload-icon-badge">ELF</div>
           <div class="payload-title">ELF Loader</div>
           <div class="payload-port">Port: 9027</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Kernel Dumper', 9025)">
-          <div class="payload-badge">KERN</div>
+          <div class="payload-icon-badge">KERN</div>
           <div class="payload-title">Kernel Dumper</div>
           <div class="payload-port">Port: 9025</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Fan Control', 9028)">
-          <div class="payload-badge">SYS</div>
+          <div class="payload-icon-badge">SYS</div>
           <div class="payload-title">Fan Control</div>
           <div class="payload-port">Port: 9028</div>
         </div>
         <div class="payload-card" onclick="sendPayload('DB Backup', 9029)">
-          <div class="payload-badge">BACKUP</div>
+          <div class="payload-icon-badge">BACKUP</div>
           <div class="payload-title">DB Backup</div>
           <div class="payload-port">Port: 9029</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Cache Clear', 9030)">
-          <div class="payload-badge">CACHE</div>
+          <div class="payload-icon-badge">CACHE</div>
           <div class="payload-title">Cache Clear</div>
           <div class="payload-port">Port: 9030</div>
         </div>
         <div class="payload-card" onclick="sendPayload('PS5 Payload Server', 9090)">
-          <div class="payload-badge">SERV</div>
+          <div class="payload-icon-badge">SERV</div>
           <div class="payload-title">Payload Server</div>
           <div class="payload-port">Port: 9090</div>
         </div>
         <div class="payload-card" onclick="sendPayload('LBL Exploit', 9031)">
-          <div class="payload-badge">EXP</div>
+          <div class="payload-icon-badge">EXP</div>
           <div class="payload-title">LBL Exploit</div>
           <div class="payload-port">Port: 9031</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Itemzflow', 9032)">
-          <div class="payload-badge">MGR</div>
+          <div class="payload-icon-badge">MGR</div>
           <div class="payload-title">Itemzflow</div>
           <div class="payload-port">Port: 9032</div>
         </div>
         <div class="payload-card" onclick="sendPayload('GDB Server', 2159)">
-          <div class="payload-badge">GDB</div>
+          <div class="payload-icon-badge">GDB</div>
           <div class="payload-title">GDB Server</div>
           <div class="payload-port">Port: 2159</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Linux Loader 2GB', 9033)">
-          <div class="payload-badge">LNX</div>
+          <div class="payload-icon-badge">LNX</div>
           <div class="payload-title">Linux (2GB)</div>
           <div class="payload-port">Port: 9033</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Linux Loader 4GB', 9034)">
-          <div class="payload-badge">LNX</div>
+          <div class="payload-icon-badge">LNX</div>
           <div class="payload-title">Linux (4GB)</div>
           <div class="payload-port">Port: 9034</div>
         </div>
         <div class="payload-card" onclick="sendPayload('Browser Unlocker', 9035)">
-          <div class="payload-badge">WEB</div>
+          <div class="payload-icon-badge">WEB</div>
           <div class="payload-title">Web Unlocker</div>
           <div class="payload-port">Port: 9035</div>
         </div>
@@ -413,84 +428,6 @@ footer {
 </div>
 
 <script>
-// Generate PS5-compatible Base64 PNG mascot
-function setPS5MascotSource() {
-  var cvs = document.createElement('canvas');
-  cvs.width = 400;
-  cvs.height = 400;
-  var c = cvs.getContext('2d');
-
-  c.lineWidth = 10;
-  c.strokeStyle = '#000000';
-  c.fillStyle = '#39ff14';
-
-  // Leaf Base Shape
-  c.beginPath();
-  c.moveTo(200, 20);
-  c.lineTo(180, 70); c.lineTo(195, 80);
-  c.lineTo(165, 130); c.lineTo(185, 140);
-  c.lineTo(140, 200); c.lineTo(165, 210);
-  c.lineTo(120, 290); c.lineTo(150, 300);
-  c.quadraticCurveTo(200, 380, 250, 300);
-  c.lineTo(280, 290); c.lineTo(235, 210);
-  c.lineTo(260, 200); c.lineTo(215, 140);
-  c.lineTo(235, 130); c.lineTo(205, 80);
-  c.lineTo(220, 70);
-  c.closePath();
-  c.fill();
-  c.stroke();
-
-  // Bloodshot Eyes
-  c.fillStyle = '#ffffff';
-  c.lineWidth = 6;
-  c.beginPath(); c.ellipse(160, 160, 28, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#0088ff';
-  c.beginPath(); c.arc(165, 162, 12, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#000';
-  c.beginPath(); c.arc(165, 162, 5, 0, Math.PI * 2); c.fill();
-
-  c.fillStyle = '#ffffff';
-  c.beginPath(); c.ellipse(240, 160, 28, 22, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#0088ff';
-  c.beginPath(); c.arc(235, 162, 12, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#000';
-  c.beginPath(); c.arc(235, 162, 5, 0, Math.PI * 2); c.fill();
-
-  // Droopy Eyelids
-  c.fillStyle = '#2db80d';
-  c.beginPath(); c.arc(160, 150, 28, 0, Math.PI); c.fill(); c.stroke();
-  c.beginPath(); c.arc(240, 150, 28, 0, Math.PI); c.fill(); c.stroke();
-
-  // Mouth
-  c.fillStyle = '#80001a';
-  c.beginPath();
-  c.arc(200, 210, 40, 0, Math.PI);
-  c.fill();
-  c.stroke();
-
-  // Teeth
-  c.fillStyle = '#ffffff';
-  c.fillRect(180, 210, 40, 10);
-
-  // Joint
-  c.fillStyle = '#f0efe6';
-  c.beginPath();
-  c.rect(260, 220, 90, 16);
-  c.fill();
-  c.stroke();
-
-  c.fillStyle = '#ff3300';
-  c.beginPath();
-  c.arc(350, 228, 10, 0, Math.PI * 2);
-  c.fill();
-
-  document.getElementById('mascot-img').src = cvs.toDataURL('image/png');
-}
-
-window.onload = function() {
-  setPS5MascotSource();
-};
-
 function switchTab(tab) {
   document.getElementById('tab-jb').classList.remove('active');
   document.getElementById('tab-payloads').classList.remove('active');
