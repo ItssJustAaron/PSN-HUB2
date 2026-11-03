@@ -4,548 +4,327 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>PSNHUB-2 // PS5-Relapse 420 Edition</title>
+  <title>PS5-Relapse // 420 Edition</title>
+  
+  <!-- Retro 90s Cartoon & Arcade Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=VT323&family=Fredoka+One&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --c-bg: #0c140c;
-      --c-card: #152416;
-      --c-border: #000000;
-      --c-ganja: #39ff14;
-      --c-dank: #1b8a24;
-      --c-purple: #b5179e;
-      --c-haze: #7209b7;
-      --c-gold: #ffbe0b;
-      --c-paper: #f4f1de;
-      --shadow-comic: 5px 5px 0px #000000;
-      --shadow-comic-sm: 3px 3px 0px #000000;
+      --weed-green: #39ff14;
+      --deep-herb: #1b4d24;
+      --bud-lime: #a6e22e;
+      --purp-haze: #7b1fa2;
+      --blaze-orange: #ff7700;
+      --paper-cream: #f4eedb;
+      --cartoon-stroke: #121212;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
       user-select: none;
     }
 
     body {
-      background-color: var(--c-bg);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(114, 9, 183, 0.25) 0%, transparent 60%),
-        radial-gradient(circle at 10% 80%, rgba(57, 255, 20, 0.12) 0%, transparent 50%),
-        linear-gradient(rgba(0,0,0,0.5) 2px, transparent 2px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at center, #1e3822 0%, #0d1a0f 70%, #050a06 100%);
       color: #fff;
-      font-family: 'VT323', monospace;
+      font-family: 'Fredoka One', cursive, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 16px;
-      position: relative;
+      justify-content: flex-start;
       overflow-x: hidden;
+      position: relative;
     }
 
-    /* CRT Overlay Layer - OFF by default */
-    #crt-overlay {
-      display: none;
+    /* CRT Scanline & Grain Overlay */
+    body::before {
+      content: " ";
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 100;
       pointer-events: none;
-      z-index: 99999;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
-                  linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
-      background-size: 100% 4px, 6px 100%;
     }
 
-    body.crt-active #crt-overlay {
-      display: block;
-    }
-
-    body.crt-active {
-      text-shadow: 0 0 2px rgba(57, 255, 20, 0.7);
-    }
-
-    /* Smoke Particle FX */
-    .smoke-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-      overflow: hidden;
-    }
-
-    .smoke {
+    /* Cartoon Smoke Particles in Background */
+    .smoke-puff {
       position: absolute;
-      bottom: -60px;
-      background: radial-gradient(circle, rgba(140, 255, 140, 0.12) 0%, rgba(200, 255, 200, 0.04) 50%, transparent 70%);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 50%;
-      animation: rise 14s infinite ease-out;
+      filter: blur(20px);
+      animation: drift 14s infinite linear;
+      z-index: 0;
     }
 
-    @keyframes rise {
-      0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+    @keyframes drift {
+      0% { transform: translateY(105vh) scale(0.8) rotate(0deg); opacity: 0; }
       20% { opacity: 0.6; }
-      80% { opacity: 0.3; }
-      100% { transform: translateY(-110vh) scale(2.2) rotate(180deg); opacity: 0; }
+      80% { opacity: 0.4; }
+      100% { transform: translateY(-20vh) scale(1.6) rotate(360deg); opacity: 0; }
     }
 
-    /* App Wrapper */
-    .app-wrap {
-      width: 100%;
-      max-width: 960px;
-      z-index: 2;
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 820px;
+      margin: 30px auto;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-
-    /* Top Control Bar */
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: #000;
-      border: 3px solid #000;
-      box-shadow: var(--shadow-comic-sm);
-      border-radius: 8px;
-      padding: 6px 12px;
+      gap: 20px;
     }
 
-    .telemetry {
-      display: flex;
-      gap: 14px;
-      font-size: 1.15rem;
-      color: var(--c-gold);
-    }
-
-    .telemetry span b {
-      color: var(--c-ganja);
-    }
-
-    .btn-toggle {
-      background: var(--c-purple);
-      border: 2px solid #000;
-      color: #fff;
-      font-family: 'Bungee', sans-serif;
-      font-size: 0.75rem;
-      padding: 4px 10px;
-      cursor: pointer;
-      box-shadow: 2px 2px 0px #000;
-      transition: all 0.1s ease;
-    }
-
-    .btn-toggle.active {
-      background: var(--c-ganja);
-      color: #000;
-    }
-
-    .btn-toggle:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0 0 0;
-    }
-
-    /* Hero Banner */
-    .hero-banner {
-      background: linear-gradient(135deg, #1b381e 0%, #101c12 100%);
-      border: 4px solid var(--c-border);
-      box-shadow: var(--shadow-comic);
-      border-radius: 14px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+    /* Sticker Header */
+    .header-box {
+      background: var(--weed-green);
+      border: 4px solid var(--cartoon-stroke);
+      box-shadow: 8px 8px 0px var(--cartoon-stroke);
+      padding: 18px 30px;
+      border-radius: 24px;
+      transform: rotate(-1.5deg);
+      text-align: center;
       position: relative;
+      width: 100%;
     }
 
-    .hero-text h1 {
+    .header-box h1 {
+      margin: 0;
       font-family: 'Bungee', cursive;
-      font-size: 2.3rem;
-      line-height: 1.1;
-      color: var(--c-ganja);
-      -webkit-text-stroke: 1.5px #000;
-      text-shadow: 3px 3px 0px #000;
-      margin-bottom: 4px;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: #fff;
+      text-shadow: 
+        4px 4px 0 var(--cartoon-stroke),
+        -2px -2px 0 var(--cartoon-stroke),
+        2px -2px 0 var(--cartoon-stroke),
+        -2px 2px 0 var(--cartoon-stroke);
+      letter-spacing: 2px;
     }
 
-    .hero-text h1 span {
-      color: var(--c-gold);
+    .tagline {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: var(--purp-haze);
+      background: var(--paper-cream);
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 12px;
+      border: 3px solid var(--cartoon-stroke);
+      box-shadow: 3px 3px 0 var(--cartoon-stroke);
+      margin-top: 8px;
+      transform: rotate(2deg);
     }
 
-    .badges-row {
+    /* Cartoony PS5 Leaf Mascot */
+    .mascot {
+      width: 70px;
+      height: 70px;
+      position: absolute;
+      top: -30px;
+      right: 15px;
+      transform: rotate(15deg);
+      filter: drop-shadow(4px 4px 0 var(--cartoon-stroke));
+      animation: bobble 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes bobble {
+      0% { transform: translateY(0) rotate(12deg); }
+      100% { transform: translateY(-8px) rotate(18deg); }
+    }
+
+    /* PS5 Controller Button Bar */
+    .quick-status-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .badge {
+      background: #111;
+      border: 3px solid var(--cartoon-stroke);
+      box-shadow: 4px 4px 0 var(--cartoon-stroke);
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-fw {
+      background: var(--blaze-orange);
+      color: #000;
+      font-weight: bold;
+    }
+
+    .indicator-light {
+      width: 12px;
+      height: 12px;
+      background: var(--weed-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--weed-green);
+      border: 2px solid var(--cartoon-stroke);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    /* Console Container Styled as a Retro Joint/Arcade Monitor */
+    .monitor-frame {
+      width: 100%;
+      background: #152217;
+      border: 5px solid var(--cartoon-stroke);
+      border-radius: 20px;
+      box-shadow: 10px 10px 0 var(--cartoon-stroke);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .monitor-top {
+      background: var(--purp-haze);
+      border-bottom: 4px solid var(--cartoon-stroke);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .window-dots {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 6px;
     }
 
-    .badge-pill {
-      font-family: 'Bungee', sans-serif;
-      font-size: 0.65rem;
-      padding: 4px 8px;
-      border: 2px solid #000;
-      border-radius: 6px;
-      box-shadow: 2px 2px 0px #000;
-      color: #fff;
-    }
-
-    .badge-fw { background: var(--c-haze); }
-    .badge-status { background: var(--c-dank); }
-
-    /* Cartoon Weed Mascot */
-    .mascot-box {
-      flex-shrink: 0;
-      width: 90px;
-      height: 90px;
-      background: #000;
-      border: 3px solid var(--c-ganja);
+    .dot {
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
-      box-shadow: var(--shadow-comic-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      animation: floatMascot 3s ease-in-out infinite alternate;
+      border: 2px solid var(--cartoon-stroke);
     }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
 
-    @keyframes floatMascot {
-      0% { transform: translateY(0px) rotate(-3deg); }
-      100% { transform: translateY(-6px) rotate(4deg); }
-    }
-
-    .mascot-svg {
-      width: 72px;
-      height: 72px;
-    }
-
-    /* Joint Smoke Animation */
-    .joint-smoke {
-      position: absolute;
-      top: 18px;
-      right: 2px;
-      font-size: 1.3rem;
-      animation: puff 1.8s infinite ease-out;
-    }
-
-    @keyframes puff {
-      0% { transform: translate(0, 0) scale(0.6); opacity: 0.8; }
-      100% { transform: translate(14px, -24px) scale(1.6); opacity: 0; }
-    }
-
-    /* Payloads Deck */
-    .deck-section {
-      background: var(--c-card);
-      border: 4px solid var(--c-border);
-      box-shadow: var(--shadow-comic);
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .deck-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      border-bottom: 2px dashed #244426;
-      padding-bottom: 8px;
-    }
-
-    .deck-title {
-      font-family: 'Bungee', sans-serif;
-      font-size: 1.1rem;
-      color: var(--c-ganja);
-      text-shadow: 1px 1px 0px #000;
-    }
-
-    .payload-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-    }
-
-    /* Payload Comic Cards */
-    .payload-btn {
-      background: #101c12;
-      border: 3px solid #000;
-      border-radius: 10px;
-      box-shadow: var(--shadow-comic-sm);
-      padding: 12px;
-      cursor: pointer;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
-      color: #fff;
-    }
-
-    .payload-btn:hover {
-      background: #182e1b;
-      border-color: var(--c-ganja);
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0px #000;
-    }
-
-    .payload-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px #000;
-    }
-
-    .btn-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn-icon-wrap {
-      width: 38px;
-      height: 38px;
-      background: #000;
-      border: 2px solid var(--c-gold);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3rem;
-      flex-shrink: 0;
-    }
-
-    .btn-title-box {
-      font-family: 'Bungee', sans-serif;
-      font-size: 0.95rem;
-      color: var(--c-ganja);
-      text-shadow: 1px 1px 0px #000;
-      line-height: 1.1;
-    }
-
-    .btn-desc {
+    .window-title {
       font-family: 'VT323', monospace;
-      font-size: 1.05rem;
-      color: #a7f3d0;
-      line-height: 1.1;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
     }
 
-    /* Terminal Console */
-    .terminal-section {
-      background: #000;
-      border: 4px solid var(--c-border);
-      box-shadow: var(--shadow-comic);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-
-    .terminal-bar {
-      background: #1b261b;
-      padding: 6px 12px;
-      border-bottom: 2px solid #000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: 'Bungee', sans-serif;
-      font-size: 0.75rem;
-      color: var(--c-gold);
-    }
-
+    /* Native Exploit Output Target (#console) */
     #console {
-      height: 180px;
-      overflow-y: auto;
-      padding: 12px;
-      font-size: 1.15rem;
-      line-height: 1.25;
-      color: var(--c-ganja);
+      height: 280px;
+      background-color: #050b07;
+      padding: 16px;
       font-family: 'VT323', monospace;
-      background: #040804;
-    }
-
-    #console div {
+      font-size: 1.35rem;
+      line-height: 1.4;
+      color: var(--weed-green);
+      text-shadow: 0 0 4px rgba(57, 255, 20, 0.4);
+      overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
     }
 
-    .log-err { color: #ff4d6d !important; }
-    .log-suc { color: #52b788 !important; }
-
-    footer {
-      text-align: center;
-      font-family: 'VT323', monospace;
-      font-size: 1.1rem;
-      color: #4b664d;
-      margin-top: 4px;
+    #console::-webkit-scrollbar {
+      width: 10px;
+    }
+    #console::-webkit-scrollbar-track {
+      background: #09130b;
+    }
+    #console::-webkit-scrollbar-thumb {
+      background: var(--deep-herb);
+      border: 2px solid var(--cartoon-stroke);
     }
 
-    @media (max-width: 600px) {
-      .hero-banner { flex-direction: column-reverse; text-align: center; }
-      .badges-row { justify-content: center; }
-      .mascot-box { margin: 0 auto; }
-      .top-bar { flex-direction: column; gap: 8px; }
+    /* Footer Stickers / Action Elements */
+    .stickers-footer {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 10px;
+      font-family: 'VT323', monospace;
+      font-size: 1.1rem;
+      color: #7b9e82;
     }
   </style>
 </head>
 <body>
-  <!-- CRT Filter (OFF by default) -->
-  <div id="crt-overlay"></div>
 
-  <!-- Background Smoke Elements -->
-  <div class="smoke-container">
-    <div class="smoke" style="left: 10%; width: 140px; height: 140px; animation-delay: 0s;"></div>
-    <div class="smoke" style="left: 40%; width: 180px; height: 180px; animation-delay: 4s;"></div>
-    <div class="smoke" style="left: 75%; width: 120px; height: 120px; animation-delay: 8s;"></div>
-  </div>
+  <!-- Floating Weed Smoke Puffs -->
+  <div class="smoke-puff" style="width: 140px; height: 140px; left: 15%; animation-delay: 0s;"></div>
+  <div class="smoke-puff" style="width: 220px; height: 220px; left: 65%; animation-delay: 5s;"></div>
+  <div class="smoke-puff" style="width: 180px; height: 180px; left: 35%; animation-delay: 9s;"></div>
 
-  <div class="app-wrap">
-    <!-- Top Telemetry & Controls -->
-    <div class="top-bar">
-      <div class="telemetry">
-        <span>FREQ: <b>420 MHz</b></span>
-        <span>HEAP: <b id="heap-stat">DANK</b></span>
+  <div class="container">
+    
+    <!-- Cartoon Header -->
+    <header class="header-box">
+      <!-- 7-point Cartoon Weed Leaf SVG -->
+      <svg class="mascot" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 82C50 82 46 68 35 70C24 72 20 62 20 62C20 62 30 55 35 48C40 41 30 35 30 35C30 35 42 38 47 30C50 22 50 10 50 10C50 10 50 22 53 30C58 38 70 35 70 35C70 35 60 41 65 48C70 55 80 62 80 62C80 62 76 72 65 70C54 68 50 82 50 82Z" 
+              fill="#39ff14" stroke="#121212" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M50 82V94" stroke="#121212" stroke-width="5" stroke-linecap="round"/>
+        <!-- Cartoon Baked Eyes -->
+        <ellipse cx="44" cy="48" rx="4" ry="2" fill="#ff4d4d" stroke="#121212" stroke-width="1.5"/>
+        <ellipse cx="56" cy="48" rx="4" ry="2" fill="#ff4d4d" stroke="#121212" stroke-width="1.5"/>
+        <path d="M46 56Q50 60 54 56" stroke="#121212" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      
+      <h1>PS5 - RELAPSE</h1>
+      <div class="tagline">★ 420 HOST // ROLL IT & LOAD IT ★</div>
+    </header>
+
+    <!-- Host Status & Info Row -->
+    <div class="quick-status-bar">
+      <div class="badge">
+        <span class="indicator-light"></span>
+        <span>DAEMON: READY</span>
       </div>
-      <div>
-        <button id="crt-btn" class="btn-toggle" onclick="toggleCRT()">CRT: <span id="crt-label">OFF</span></button>
+      <div class="badge badge-fw">
+        <span>FW: 3.xx - 4.xx</span>
+      </div>
+      <div class="badge">
+        <span>STATUS: EXECUTING</span>
       </div>
     </div>
 
-    <!-- Hero Comic Mascot Banner -->
-    <div class="hero-banner">
-      <div class="hero-text">
-        <h1>PSNHUB-2 <span>// RELAPSE</span></h1>
-        <div class="badges-row">
-          <span class="badge-pill badge-fw" id="fw-badge">PREVIEW MODE</span>
-          <span class="badge-pill badge-status">READY TO ROLL</span>
+    <!-- Arcade Styled Exploit Console -->
+    <div class="monitor-frame">
+      <div class="monitor-top">
+        <div class="window-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
         </div>
+        <div class="window-title">[ TTY: /DEV/STASH - PAYLOAD ENGINE ]</div>
+        <div style="width: 50px;"></div>
       </div>
-
-      <!-- Animated Cartoon Mascot -->
-      <div class="mascot-box" title="Stay Lifted">
-        <div class="joint-smoke">💨</div>
-        <svg class="mascot-svg" viewBox="0 0 100 100">
-          <!-- Weed Leaf Body -->
-          <path d="M50 8 C46 22 28 32 30 52 C20 42 12 50 18 64 C8 60 4 72 16 78 C28 84 46 80 48 94 L52 94 C54 80 72 84 84 78 C96 72 92 60 82 64 C88 50 80 42 70 52 C72 32 54 22 50 8 Z" 
-                fill="#39ff14" stroke="#000" stroke-width="3" />
-          <!-- Leaf Veins -->
-          <path d="M50 15 L50 88 M50 45 L32 36 M50 45 L68 36 M50 62 L26 58 M50 62 L74 58" 
-                stroke="#1b8a24" stroke-width="2" stroke-linecap="round" />
-          <!-- Sunglasses -->
-          <polygon points="26,48 48,48 44,58 30,58" fill="#000" stroke="#ffbe0b" stroke-width="1.5" />
-          <polygon points="52,48 74,48 70,58 56,58" fill="#000" stroke="#ffbe0b" stroke-width="1.5" />
-          <line x1="48" y1="51" x2="52" y2="51" stroke="#ffbe0b" stroke-width="2" />
-          <!-- Spliff / Joint -->
-          <rect x="52" y="66" width="22" height="5" rx="2" transform="rotate(-15 52 66)" fill="#f4f1de" stroke="#000" stroke-width="1.5" />
-          <!-- Glowing Cherry -->
-          <circle cx="73" cy="60" r="3.5" fill="#ff3838" />
-        </svg>
-      </div>
-    </div>
-
-    <!-- Payload Grid -->
-    <div class="deck-section">
-      <div class="deck-header">
-        <span class="deck-title">🔥 STASH PAYLOADS</span>
-      </div>
-
-      <div class="payload-grid">
-        <!-- ShadowMount+ -->
-        <button class="payload-btn" onclick="playBeep(); loadElfPayload('shadowmount+.elf');">
-          <div class="btn-top">
-            <div class="btn-icon-wrap">📁</div>
-            <div class="btn-title-box">SHADOWMOUNT+</div>
-          </div>
-          <div class="btn-desc">Mount & manage virtual optical drives / raw disk images</div>
-        </button>
-
-        <!-- ELF Loader -->
-        <button class="payload-btn" onclick="playBeep(); loadElfPayload('elfldr-ps5-1.0.0.elf');">
-          <div class="btn-top">
-            <div class="btn-icon-wrap">⚡</div>
-            <div class="btn-title-box">ELF LOADER</div>
-          </div>
-          <div class="btn-desc">Listen on port 9021 for incoming payload binaries</div>
-        </button>
-
-        <!-- kstuff -->
-        <button class="payload-btn" onclick="playBeep(); loadElfPayload('kstuff.elf');">
-          <div class="btn-top">
-            <div class="btn-icon-wrap">🌿</div>
-            <div class="btn-title-box">KSTUFF</div>
-          </div>
-          <div class="btn-desc">fself & fpkg kernel patches for game backups</div>
-        </button>
-
-        <!-- etaHEN -->
-        <button class="payload-btn" onclick="playBeep(); loadElfPayload('etaHEN.elf');">
-          <div class="btn-top">
-            <div class="btn-icon-wrap">💨</div>
-            <div class="btn-title-box">ETAHEN</div>
-          </div>
-          <div class="btn-desc">All-in-one AIO homebrew enabler & FTP daemon</div>
-        </button>
-      </div>
-    </div>
-
-    <!-- Retro Terminal Console -->
-    <div class="terminal-section">
-      <div class="terminal-bar">
-        <span>LOGS // TTY0</span>
-        <span>420 BAUD</span>
-      </div>
+      
+      <!-- Primary Exploit DOM Mount -->
       <div id="console"></div>
     </div>
 
-    <footer>PSNHUB-2 Host / Relapse Engine</footer>
+    <div class="stickers-footer">
+      <span>[X] EXPLOIT ACTIVE</span>
+      <span>KEEP BROWSER RUNNING • DO NOT REBOOT</span>
+    </div>
+
   </div>
 
-  <script>
-    // 1. Audio Synthesizer (Chiptune Sound FX)
-    let audioCtx = null;
-    function playBeep() {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(420, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(840, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
-      } catch (e) {}
-    }
-
-    // 2. CRT Toggle (OFF by default)
-    let crtState = false;
-    function toggleCRT() {
-      playBeep();
-      crtState = !crtState;
-      const overlay = document.getElementById("crt-overlay");
-      const label = document.getElementById("crt-label");
-      const btn = document.getElementById("crt-btn");
-
-      if (crtState) {
-        document.body.classList.add("crt-active");
-        label.textContent = "ON";
-        btn.classList.add("active");
-      } else {
-        document.body.classList.remove("crt-active");
-        label.textContent = "OFF";
-        btn.classList.remove("active");
-      }
-    }
-  </script>
-
-  <!-- Required Exploit Engine Scripts -->
+  <!-- Intact Native PS5 Exploit Scripts -->
   <script src="./src/firmware.js"></script>
   <script src="./src/main.js"></script>
   <script src="./src/rop.js"></script>
