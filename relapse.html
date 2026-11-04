@@ -229,6 +229,9 @@ cursorEl.className = "cursor";
 
 function print(message, level) {
     __bcn(message);
+    try {
+        window.parent.postMessage({ type: 'log', message: String(message), level: level }, '*');
+    } catch (e) {}
     const line = document.createElement("div");
     line.className = level || "LOG-LOG";
     line.textContent = "> " + String(message);
