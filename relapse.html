@@ -42,7 +42,7 @@
 <div id="console"></div>
 
 <script src="rop.js"></script>
-<script src="payloads.js?v=1"></script>
+<script src="payloads.js?v=2"></script>
 <script src="firmware.js?v=4"></script>
 <script src="main.js?v=6"></script>
 
@@ -443,8 +443,10 @@ function showPayloadMenu() {
 buildPayloadMenu();
 run().then(() => {
     try { sessionStorage.removeItem("relapse.auto-retry"); } catch (e) {}
-    if (window.__elfldrUp && typeof window.__sendPayload === "function")
+    if (window.__elfldrUp && typeof window.__sendPayload === "function") {
+        try { sessionStorage.setItem("psn_jb_done", "true"); } catch (e) {}
         showPayloadMenu();
+    }
 }).catch(reportFailure);
 </script>
 
