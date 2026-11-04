@@ -85,7 +85,6 @@ h1 {
   letter-spacing: 1px;
 }
 
-/* Mascot Display Area */
 .mascot-area {
   position: relative;
   display: flex;
@@ -176,7 +175,6 @@ footer {
     <div class="subtitle">PS5 EXPLOIT HOST (7.00 - 13.60)</div>
   </header>
 
-  <!-- Mascot container rendering directly with transparent canvas -->
   <div class="mascot-area">
     <div class="character-card">
       <canvas id="mascot-canvas"></canvas>
@@ -193,7 +191,6 @@ footer {
 </div>
 
 <script>
-// 1. Removes all white/off-white background pixels from the mascot image
 function renderTransparentMascot(imgSrc) {
   var img = new Image();
   img.crossOrigin = "anonymous";
@@ -207,23 +204,72 @@ function renderTransparentMascot(imgSrc) {
     ctx.drawImage(img, 0, 0);
     var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var d = imgData.data;
+    var w = canvas.width;
+    var h = canvas.height;
 
-    // Iterate through every pixel; convert white background to transparent
-    for (var i = 0; i < d.length; i += 4) {
-      var r = d[i];
-      var g = d[i+1];
-      var b = d[i+2];
+    var visited = new Uint8Array(w * h);
+    var queue = [];
 
-      // If pixel is white or near-white (background threshold)
-      if (r > 235 && g > 235 && b > 235) {
-        d[i+3] = 0; // Alpha channel -> fully transparent
+    function isBgColor(idx) {
+      var r = d[idx];
+      var g = d[idx + 1];
+      var b = d[idx + 2];
+      return (r > 220 && g > 220 && b > 220);
+    }
+
+    // Seed the fill queue only from outer borders
+    for (var x = 0; x < w; x++) {
+      queue.push(x, 0);
+      queue.push(x, h - 1);
+      visited[x] = 1;
+      visited[(h - 1) * w + x] = 1;
+    }
+    for (var y = 0; y < h; y++) {
+      queue.push(0, y);
+      queue.push(w - 1, y);
+      visited[y * w] = 1;
+      visited[y * w + (w - 1)] = 1;
+    }
+
+    // Flood-fill outward background only
+    var qIdx = 0;
+    while (qIdx < queue.length) {
+      var cx = queue[qIdx++];
+      var cy = queue[qIdx++];
+      var pIdx = (cy * w + cx) * 4;
+
+      if (isBgColor(pIdx)) {
+        d[pIdx + 3] = 0;
+
+        var neighbors = [
+          cx + 1, cy,
+          cx - 1, cy,
+          cx, cy + 1,
+          cx, cy - 1
+        ];
+
+        for (var n = 0; n < neighbors.length; n += 2) {
+          var nx = neighbors[n];
+          var ny = neighbors[n + 1];
+
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            var nPos = ny * w + nx;
+            if (!visited[nPos]) {
+              visited[nPos] = 1;
+              var nPixelIdx = nPos * 4;
+              if (isBgColor(nPixelIdx)) {
+                queue.push(nx, ny);
+              }
+            }
+          }
+        }
       }
     }
+
     ctx.putImageData(imgData, 0, 0);
   };
 }
 
-// 2. Background floating particles
 var bgCanvas = document.getElementById('bg-canvas');
 var bgCtx = bgCanvas.getContext('2d');
 
@@ -262,7 +308,6 @@ function drawBackground() {
 }
 
 window.onload = function() {
-  // Pass the filename of the mascot image here:
   renderTransparentMascot("mascot.png");
   drawBackground();
 };
