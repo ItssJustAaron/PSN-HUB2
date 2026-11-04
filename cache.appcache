@@ -1,0 +1,27 @@
+CACHE MANIFEST
+# PSN-HUB Cache v1.0.1
+
+CACHE:
+index.html
+relapse.html
+main.js
+payloads.js
+exploit.js
+payloads/etaHEN.elf
+payloads/onionhen.elf
+payloads/ps5upload_v5.41.0.elf
+payloads/WebKit-Autoloader-Installer_v0.5.2.elf
+payloads/ps5debug_v1.3.2.elf
+payloads/zftpd_v1.6.0.elf
+payloads/CheatRunner_v0.17.1.elf
+payloads/ftpsrv-drakmor_1.16-ng-stable.elf
+payloads/garlic-savemgr_v1.13.1.elf
+payloads/kstuff_v1.11_fix.elf
+payloads/Lapy-JB-Daemon_v1.2.elf
+payloads/PKG-Manager_v1.4.1.elf
+payloads/pldmgr.elf
+payloads/ps5-app-dumper_v2.00.elf
+payloads/ShadowMountPlus_1.7beta2.elf
+
+NETWORK:
+*
