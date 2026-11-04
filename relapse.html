@@ -247,6 +247,16 @@ function buildPayloadMenu() {
         font-size: 0.95rem;
       }
 
+      #relapse-payload-menu .payload-status[data-state="success"] {
+        color: var(--green-main) !important;
+        -webkit-text-fill-color: var(--green-main) !important;
+      }
+
+      #relapse-payload-menu .payload-status[data-state="error"] {
+        color: var(--pink-accent) !important;
+        -webkit-text-fill-color: var(--pink-accent) !important;
+      }
+
       #relapse-payload-menu .payload-help {
         margin: 4px 0 0;
         color: #ddd !important;
@@ -363,6 +373,8 @@ function buildPayloadMenu() {
     title.textContent = "PSN-HUB PAYLOADS";
     const status = document.createElement("p");
     status.className = "payload-status";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
     status.textContent = "ELF Loader active on 127.0.0.1:9021";
     const help = document.createElement("p");
     help.className = "payload-help";
@@ -401,18 +413,29 @@ function buildPayloadMenu() {
 
         a.addEventListener("click", async (e) => {
             e.preventDefault();
+            if (a.getAttribute("aria-busy") === "true") return;
+            a.setAttribute("aria-busy", "true");
             a.classList.remove("sent", "failed");
             a.classList.add("sending");
+            status.dataset.state = "sending";
+            status.textContent = "Sending " + t.title + " to elfldr on port 9021…";
             print(t.title + ": sending...", "LOG-INFO");
             try {
                 const n = await window.__sendPayload(t.name);
                 a.classList.remove("sending", "failed");
                 a.classList.add("sent");
+                status.dataset.state = "success";
+                status.textContent = t.title + ": sent " + n + " bytes to elfldr.";
                 print(t.title + ": sent " + n + " bytes to port 9021", "LOG-SUCCESS");
             } catch (err) {
                 a.classList.remove("sending", "sent");
                 a.classList.add("failed");
-                print(t.title + ": " + ((err && err.message) || err), "LOG-ERROR");
+                const message = (err && err.message) || String(err);
+                status.dataset.state = "error";
+                status.textContent = t.title + ": " + message;
+                print(t.title + ": " + message, "LOG-ERROR");
+            } finally {
+                a.removeAttribute("aria-busy");
             }
         });
         grid.appendChild(a);
