@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>PSN-HUB</title>
-  <p1>By Akay</p1>
 <style>
 :root {
   --green-main: #39ff14;
   --purple-bg: #0d0216;
   --purple-card: #1f0733;
+  --purple-border: #4a127a;
   --yellow-accent: #ffe600;
   --pink-accent: #ff007f;
   --border-thick: 3px solid #000;
@@ -20,56 +19,35 @@
   --font-body: 'Arial', sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-  user-select: none;
-  -webkit-user-select: none;
-}
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
 
 body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  width: 100vw;
+  margin: 0; padding: 0;
+  height: 100vh; width: 100vw;
   overflow: hidden;
   background: radial-gradient(circle at center, #23063b 0%, var(--purple-bg) 100%);
   color: #fff;
   font-family: var(--font-body);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; flex-direction: column;
+  justify-content: space-between; align-items: center;
   position: relative;
 }
 
 #bg-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1; pointer-events: none;
 }
 
 .content-wrapper {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 850px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 14px;
+  position: relative; z-index: 2;
+  width: 100%; max-width: 850px; height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: space-between; align-items: center;
+  padding: 14px;
 }
 
-header {
-  text-align: center;
-  margin-top: 4px;
-}
-
+header { text-align: center; margin-top: 4px; }
 h1 {
   font-family: var(--font-comic);
   font-size: clamp(2.6rem, 6.5vw, 4rem);
@@ -78,105 +56,57 @@ h1 {
   text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent);
   letter-spacing: 2px;
 }
-
 .subtitle {
   color: var(--yellow-accent);
   font-family: monospace;
-  font-size: 0.95rem;
-  margin-top: 4px;
-  letter-spacing: 1px;
+  font-size: 0.95rem; margin-top: 4px; letter-spacing: 1px;
 }
 
-/* Dynamic Mascot Container */
 .mascot-area {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  flex: 1;
+  position: relative; display: flex;
+  justify-content: center; align-items: center;
+  width: 100%; flex: 1;
 }
-
 .mascot-svg {
-  width: 100%;
-  max-width: 440px;
-  height: auto;
-  max-height: 48vh;
+  width: 100%; max-width: 440px; height: auto; max-height: 48vh;
   filter: drop-shadow(0px 10px 0px #000) drop-shadow(0px 0px 24px rgba(57, 255, 20, 0.45));
 }
 
-/* Mascot Keyframe Animations */
-.anim-body {
-  animation: leafFloat 3.2s ease-in-out infinite;
-  transform-origin: 200px 330px;
-}
-
-.anim-hand-left {
-  animation: handLeftSway 2.6s ease-in-out infinite alternate;
-  transform-origin: 105px 170px;
-}
-
-.anim-hand-right {
-  animation: handRightSway 2.8s ease-in-out infinite alternate;
-  transform-origin: 295px 170px;
-}
-
-.anim-foot-left {
-  animation: footTapLeft 1.6s ease-in-out infinite alternate;
-  transform-origin: 165px 330px;
-}
-
-.anim-foot-right {
-  animation: footTapRight 1.8s ease-in-out infinite alternate;
-  transform-origin: 235px 330px;
-}
+.anim-body { animation: leafFloat 3.2s ease-in-out infinite; transform-origin: 200px 330px; }
+.anim-hand-left { animation: handLeftSway 2.6s ease-in-out infinite alternate; transform-origin: 105px 170px; }
+.anim-hand-right { animation: handRightSway 2.8s ease-in-out infinite alternate; transform-origin: 295px 170px; }
+.anim-foot-left { animation: footTapLeft 1.6s ease-in-out infinite alternate; transform-origin: 165px 330px; }
+.anim-foot-right { animation: footTapRight 1.8s ease-in-out infinite alternate; transform-origin: 235px 330px; }
 
 @keyframes leafFloat {
-  0%, 100% {
-    transform: translateY(0px) rotate(-1deg) scaleY(1);
-  }
-  50% {
-    transform: translateY(-9px) rotate(1.2deg) scaleY(1.02);
-  }
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50% { transform: translateY(-9px) rotate(1.2deg); }
 }
-
 @keyframes handLeftSway {
   0% { transform: translateY(0px) rotate(0deg); }
   100% { transform: translateY(-7px) rotate(-5deg); }
 }
-
 @keyframes handRightSway {
   0% { transform: translateY(0px) rotate(0deg); }
   100% { transform: translateY(-7px) rotate(5deg); }
 }
-
 @keyframes footTapLeft {
   0%, 80% { transform: translateY(0) rotate(0deg); }
   90% { transform: translateY(-3px) rotate(-4deg); }
   100% { transform: translateY(0) rotate(0deg); }
 }
-
 @keyframes footTapRight {
   0%, 80% { transform: translateY(0) rotate(0deg); }
   90% { transform: translateY(-3px) rotate(4deg); }
   100% { transform: translateY(0) rotate(0deg); }
 }
 
-.btn-group {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
+.btn-group { width: 100%; display: flex; justify-content: center; margin-bottom: 10px; }
 .btn {
   font-family: var(--font-comic);
   text-decoration: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 85%;
-  max-width: 420px;
+  display: flex; justify-content: center; align-items: center;
+  width: 85%; max-width: 420px;
   padding: 14px 20px;
   font-size: clamp(1.2rem, 3.5vw, 1.6rem);
   color: #000;
@@ -184,28 +114,106 @@ h1 {
   border: var(--border-thick);
   border-radius: 18px;
   box-shadow: var(--box-shadow);
-  cursor: pointer;
-  outline: none;
+  cursor: pointer; outline: none;
   transition: transform 0.15s ease, background 0.15s ease;
 }
-
 .btn:hover, .btn:focus {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px #000;
   background: #5aff36;
 }
 
+/* TERMINAL MODAL OVERLAY (Hidden until clicked) */
+#terminal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(13, 2, 22, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  justify-content: center; align-items: center;
+  animation: modalFadeIn 0.25s ease-out forwards;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#term-wrapper {
+  position: relative;
+  width: 90%; max-width: 800px; height: 75vh;
+  background: #08010d;
+  border: 4px solid #000; border-radius: 20px;
+  box-shadow: 8px 8px 0px #000, 0px 0px 24px rgba(57, 255, 20, 0.35);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+.term-header {
+  background: var(--purple-card);
+  border-bottom: 3px solid #000;
+  padding: 10px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.term-dots { display: flex; gap: 8px; }
+.term-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #000; }
+.dot-red { background: var(--pink-accent); }
+.dot-yellow { background: var(--yellow-accent); }
+.dot-green { background: var(--green-main); }
+.term-title {
+  font-family: var(--font-comic);
+  color: var(--green-main);
+  letter-spacing: 1.5px; font-size: 1.15rem;
+  text-shadow: 2px 2px 0px #000;
+}
+.term-badge {
+  background: #000; color: var(--yellow-accent);
+  font-family: monospace; font-size: 0.75rem;
+  padding: 2px 8px; border-radius: 6px;
+  border: 1.5px solid var(--purple-border);
+}
+
+.crt-screen {
+  position: relative; flex: 1; padding: 16px 20px;
+  background: #040106; overflow: hidden;
+}
+.crt-screen::before {
+  content: " "; position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%);
+  background-size: 100% 4px;
+  z-index: 10; pointer-events: none;
+}
+
+#console-output {
+  height: 100%; overflow-y: auto;
+  font: 13px/1.55 'Courier New', Courier, monospace;
+  white-space: pre-wrap; word-break: break-all;
+  color: #a3ff8f;
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+  padding-bottom: 20px;
+}
+#console-output div { padding: 1px 0; }
+.LOG-DEBUG { color: #6f548d; }
+.LOG-INFO { color: var(--green-main); }
+.LOG-LOG { color: #87f573; }
+.LOG-WARN { color: var(--yellow-accent); }
+.LOG-ERROR { color: var(--pink-accent); }
+.LOG-SUCCESS { color: #fff; background: #133a08; font-weight: bold; }
+
+.cursor {
+  display: inline-block; width: 8px; height: 14px;
+  background: var(--green-main); vertical-align: middle;
+  animation: blink 0.8s infinite; margin-left: 4px;
+}
+@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
 footer {
-  width: 100%;
-  text-align: center;
-  background: #000;
-  border: var(--border-thick);
-  border-radius: 10px;
-  padding: 8px 10px;
-  margin-bottom: 4px;
+  width: 100%; text-align: center;
+  background: #000; border: var(--border-thick);
+  border-radius: 10px; padding: 8px 10px; margin-bottom: 4px;
   box-shadow: 3px 3px 0px var(--pink-accent);
-  font-size: 0.75rem;
-  color: #ddd;
+  font-size: 0.75rem; color: #ddd;
 }
 </style>
 </head>
@@ -219,200 +227,94 @@ footer {
     <div class="subtitle">PS5 EXPLOIT HOST (7.00 - 13.60)</div>
   </header>
 
-  <!-- Dynamic Vector Mascot (No White Background) -->
   <div class="mascot-area">
     <svg class="mascot-svg" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- Gradients -->
         <linearGradient id="leafGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#69b52a"/>
-          <stop offset="60%" stop-color="#4e9919"/>
-          <stop offset="100%" stop-color="#3c7913"/>
+          <stop offset="0%" stop-color="#69b52a"/><stop offset="60%" stop-color="#4e9919"/><stop offset="100%" stop-color="#3c7913"/>
         </linearGradient>
         <linearGradient id="leafDarkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#468817"/>
-          <stop offset="100%" stop-color="#2a5c0b"/>
+          <stop offset="0%" stop-color="#468817"/><stop offset="100%" stop-color="#2a5c0b"/>
         </linearGradient>
         <linearGradient id="redShoe" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#f01a30"/>
-          <stop offset="100%" stop-color="#b80c1e"/>
+          <stop offset="0%" stop-color="#f01a30"/><stop offset="100%" stop-color="#b80c1e"/>
         </linearGradient>
       </defs>
 
-      <!-- FEET & LEGS (Grounded) -->
-      <!-- Left Leg & Shoe -->
+      <!-- Feet -->
       <g class="anim-foot-left">
         <path d="M 174 300 L 170 365" stroke="#000" stroke-width="10" stroke-linecap="round"/>
-        <!-- Red Sneaker -->
-        <path d="M 140 375 C 135 365 145 350 170 358 L 186 360 C 196 362 198 375 190 388 C 175 393 125 394 125 385 Z" fill="url(#redShoe)" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
-        <!-- White Cap & Sole -->
+        <path d="M 140 375 C 135 365 145 350 170 358 L 186 360 C 196 362 198 375 190 388 C 175 393 125 394 125 385 Z" fill="url(#redShoe)" stroke="#000" stroke-width="4.5"/>
         <path d="M 124 380 C 122 372 133 365 142 368 L 140 388 C 132 388 125 385 124 380 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
         <path d="M 123 384 C 135 385 185 385 194 380 C 195 388 185 396 170 396 L 132 396 C 120 395 120 388 123 384 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
-        <!-- Eyelets / Lace Lines -->
-        <line x1="150" y1="365" x2="153" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-        <line x1="162" y1="365" x2="165" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-        <line x1="174" y1="365" x2="177" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
       </g>
-
-      <!-- Right Leg & Shoe -->
       <g class="anim-foot-right">
         <path d="M 226 300 L 230 365" stroke="#000" stroke-width="10" stroke-linecap="round"/>
-        <!-- Red Sneaker -->
-        <path d="M 260 375 C 265 365 255 350 230 358 L 214 360 C 204 362 202 375 210 388 C 225 393 275 394 275 385 Z" fill="url(#redShoe)" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
-        <!-- White Cap & Sole -->
+        <path d="M 260 375 C 265 365 255 350 230 358 L 214 360 C 204 362 202 375 210 388 C 225 393 275 394 275 385 Z" fill="url(#redShoe)" stroke="#000" stroke-width="4.5"/>
         <path d="M 276 380 C 278 372 267 365 258 368 L 260 388 C 268 388 275 385 276 380 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
         <path d="M 277 384 C 265 385 215 385 206 380 C 205 388 215 396 230 396 L 268 396 C 280 395 280 388 277 384 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
-        <!-- Eyelets / Lace Lines -->
-        <line x1="250" y1="365" x2="247" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-        <line x1="238" y1="365" x2="235" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-        <line x1="226" y1="365" x2="223" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
       </g>
 
-      <!-- MAIN FLOATING CHARACTER BODY -->
+      <!-- Body -->
       <g class="anim-body">
-        
-        <!-- BACK / LOWER LEAF BLADES -->
         <g stroke="#000" stroke-width="5" stroke-linejoin="round">
-          <!-- Far Left Bottom -->
           <path d="M 140 280 Q 80 320 60 360 Q 95 330 145 315 Z" fill="url(#leafDarkGrad)"/>
-          <!-- Far Right Bottom -->
           <path d="M 260 280 Q 320 320 340 360 Q 305 330 255 315 Z" fill="url(#leafDarkGrad)"/>
-          <!-- Mid Left Leaf -->
           <path d="M 125 210 Q 40 240 5 285 Q 50 250 130 250 Z" fill="url(#leafDarkGrad)"/>
-          <!-- Mid Right Leaf -->
           <path d="M 275 210 Q 360 240 395 285 Q 350 250 270 250 Z" fill="url(#leafDarkGrad)"/>
-          <!-- Upper Left Leaf -->
           <path d="M 135 150 Q 55 120 20 160 Q 70 175 140 195 Z" fill="url(#leafDarkGrad)"/>
-          <!-- Upper Right Leaf -->
           <path d="M 265 150 Q 345 120 380 160 Q 330 175 260 195 Z" fill="url(#leafDarkGrad)"/>
         </g>
 
-        <!-- MAIN SERRATED CANNABIS PALM BODY -->
-        <path d="
-          M 200 10 
-          C 192 45, 175 60, 165 78
-          L 175 84 
-          C 160 102, 142 120, 130 140
-          L 142 146
-          C 120 175, 100 200, 95 240
-          L 110 244
-          C 95 270, 90 295, 100 330
-          L 116 322
-          C 120 345, 135 365, 155 385
-          C 175 350, 190 320, 200 310
-          C 210 320, 225 350, 245 385
-          L 255 372
-          C 265 350, 280 325, 300 330
-          L 290 295
-          C 300 270, 305 244, 290 244
-          L 305 240
-          C 300 200, 280 175, 258 146
-          L 270 140
-          C 258 120, 240 102, 225 84
-          L 235 78
-          C 225 60, 208 45, 200 10 Z"
+        <path d="M 200 10 C 192 45, 175 60, 165 78 L 175 84 C 160 102, 142 120, 130 140 L 142 146 C 120 175, 100 200, 95 240 L 110 244 C 95 270, 90 295, 100 330 L 116 322 C 120 345, 135 365, 155 385 C 175 350, 190 320, 200 310 C 210 320, 225 350, 245 385 L 255 372 C 265 350, 280 325, 300 330 L 290 295 C 300 270, 305 244, 290 244 L 305 240 C 300 200, 280 175, 258 146 L 270 140 C 258 120, 240 102, 225 84 L 235 78 C 225 60, 208 45, 200 10 Z"
           fill="url(#leafGrad)" stroke="#000" stroke-width="6.5" stroke-linejoin="round"/>
 
-        <!-- Leaf Rib Lines & Veins -->
-        <g stroke="#356d0d" stroke-width="3" stroke-linecap="round">
-          <line x1="200" y1="40" x2="200" y2="105"/>
-          <line x1="200" y1="80" x2="175" y2="60"/>
-          <line x1="200" y1="80" x2="225" y2="60"/>
-          <line x1="200" y1="100" x2="160" y2="90"/>
-          <line x1="200" y1="100" x2="240" y2="90"/>
-        </g>
-
-        <!-- CARTOON FACE -->
-        <!-- Eyebrows -->
+        <!-- Face -->
         <path d="M 165 110 Q 185 96 200 115" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>
         <path d="M 235 110 Q 215 96 200 115" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>
-
-        <!-- Stoned / Slanted Eyelids & Eyes -->
-        <!-- Left Eye -->
         <g>
           <ellipse cx="178" cy="142" rx="19" ry="22" fill="#fffae0" stroke="#000" stroke-width="4.5"/>
-          <!-- Drooping Upper Lid -->
           <path d="M 158 136 Q 178 116 198 136 Z" fill="#4e9919" stroke="#000" stroke-width="4"/>
-          <!-- Pupil & Iris -->
-          <circle cx="179" cy="147" r="7" fill="#442a00"/>
-          <circle cx="179" cy="147" r="4" fill="#000"/>
-          <circle cx="176" cy="144" r="2" fill="#fff"/>
+          <circle cx="179" cy="147" r="7" fill="#442a00"/><circle cx="179" cy="147" r="4" fill="#000"/><circle cx="176" cy="144" r="2" fill="#fff"/>
         </g>
-
-        <!-- Right Eye -->
         <g>
           <ellipse cx="222" cy="142" rx="19" ry="22" fill="#fffae0" stroke="#000" stroke-width="4.5"/>
-          <!-- Drooping Upper Lid -->
           <path d="M 202 136 Q 222 116 242 136 Z" fill="#4e9919" stroke="#000" stroke-width="4"/>
-          <!-- Pupil & Iris -->
-          <circle cx="221" cy="147" r="7" fill="#442a00"/>
-          <circle cx="221" cy="147" r="4" fill="#000"/>
-          <circle cx="218" cy="144" r="2" fill="#fff"/>
+          <circle cx="221" cy="147" r="7" fill="#442a00"/><circle cx="221" cy="147" r="4" fill="#000"/><circle cx="218" cy="144" r="2" fill="#fff"/>
         </g>
+        <path d="M 165 180 Q 200 196 235 180 C 238 215 215 238 200 238 C 185 238 162 215 165 180 Z" fill="#2b0008" stroke="#000" stroke-width="5.5"/>
+        <path d="M 172 184 Q 200 194 228 184 L 227 194 Q 200 200 173 194 Z" fill="#ffffff" stroke="#000" stroke-width="3"/>
+        <path d="M 182 225 Q 200 205 218 225 C 210 234 190 234 182 225 Z" fill="#e83a75"/>
 
-        <!-- Smirking Open Mouth -->
-        <g>
-          <!-- Outer Mouth Shape -->
-          <path d="M 165 180 Q 200 196 235 180 C 238 215 215 238 200 238 C 185 238 162 215 165 180 Z" 
-                fill="#2b0008" stroke="#000" stroke-width="5.5" stroke-linejoin="round"/>
-          <!-- Upper White Teeth Bar -->
-          <path d="M 172 184 Q 200 194 228 184 L 227 194 Q 200 200 173 194 Z" fill="#ffffff" stroke="#000" stroke-width="3"/>
-          <!-- Tongue -->
-          <path d="M 182 225 Q 200 205 218 225 C 210 234 190 234 182 225 Z" fill="#e83a75"/>
-          <!-- Smile Creases -->
-          <path d="M 160 178 Q 166 186 168 190" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M 240 178 Q 234 186 232 190" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
-        </g>
-
-        <!-- DYNAMIC ARMS & GLOVES (OK Signs) -->
-        <!-- Left Arm & Hand -->
+        <!-- Hands (OK gestures) -->
         <g class="anim-hand-left">
-          <!-- Black Tubular Arm -->
           <path d="M 130 220 C 100 230 75 220 90 180" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round"/>
-          
-          <!-- White Glove Wrist Cuff -->
           <rect x="75" y="166" width="24" height="12" rx="6" fill="#ffffff" stroke="#000" stroke-width="4.5" transform="rotate(-15 87 172)"/>
-
-          <!-- Glove Palm & OK Sign Fingers -->
           <g stroke="#000" stroke-width="4" stroke-linejoin="round">
-            <!-- Extended Pinky, Ring, Middle Fingers Upwards -->
             <path d="M 72 165 C 60 148 68 120 78 126 C 84 130 84 148 86 156" fill="#ffffff"/>
             <path d="M 85 146 C 80 125 90 115 97 122 C 104 128 98 145 96 156" fill="#ffffff"/>
             <path d="M 98 146 C 98 130 108 124 114 132 C 120 140 108 156 104 165" fill="#ffffff"/>
-            
-            <!-- Index & Thumb Curled Circle ("OK" hole) -->
             <path d="M 90 166 C 90 152 115 152 118 168 C 120 180 100 188 90 176 Z" fill="#ffffff"/>
             <circle cx="104" cy="168" r="6" fill="#2b0008"/>
           </g>
         </g>
-
-        <!-- Right Arm & Hand -->
         <g class="anim-hand-right">
-          <!-- Black Tubular Arm -->
           <path d="M 270 220 C 300 230 325 220 310 180" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round"/>
-
-          <!-- White Glove Wrist Cuff -->
           <rect x="301" y="166" width="24" height="12" rx="6" fill="#ffffff" stroke="#000" stroke-width="4.5" transform="rotate(15 313 172)"/>
-
-          <!-- Glove Palm & OK Sign Fingers -->
           <g stroke="#000" stroke-width="4" stroke-linejoin="round">
-            <!-- Extended Fingers Upwards -->
             <path d="M 328 165 C 340 148 332 120 322 126 C 316 130 316 148 314 156" fill="#ffffff"/>
             <path d="M 315 146 C 320 125 310 115 303 122 C 296 128 302 145 304 156" fill="#ffffff"/>
             <path d="M 302 146 C 302 130 292 124 286 132 C 280 140 292 156 296 165" fill="#ffffff"/>
-            
-            <!-- Index & Thumb Curled Circle ("OK" hole) -->
             <path d="M 310 166 C 310 152 285 152 282 168 C 280 180 300 188 310 176 Z" fill="#ffffff"/>
             <circle cx="296" cy="168" r="6" fill="#2b0008"/>
           </g>
         </g>
-
       </g>
     </svg>
   </div>
 
   <div class="btn-group">
-    <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
+    <button class="btn" id="run-jb" onclick="launchExploit()">JAILBREAK NOW</button>
   </div>
 
   <footer>
@@ -420,15 +322,32 @@ footer {
   </footer>
 </div>
 
+<!-- POPUP CRT TERMINAL MODAL -->
+<div id="terminal-overlay">
+  <div id="term-wrapper">
+    <div class="term-header">
+      <div class="term-dots">
+        <div class="term-dot dot-red"></div>
+        <div class="term-dot dot-yellow"></div>
+        <div class="term-dot dot-green"></div>
+      </div>
+      <div class="term-title">PSN-HUB // EXPLOIT TERMINAL</div>
+      <div class="term-badge" id="term-status-badge">INITIALIZING</div>
+    </div>
+    <div class="crt-screen">
+      <div id="console-output"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HIDDEN IFRAME FOR REAL EXPLOIT RUNNER -->
+<iframe id="exploit-runner" style="display:none;"></iframe>
+
 <script>
 // Floating Particle Canvas
 var canvas = document.getElementById('bg-canvas');
 var ctx = canvas.getContext('2d');
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
@@ -441,17 +360,13 @@ for (var i = 0; i < 22; i++) {
     speedY: Math.random() * -0.7 - 0.2
   });
 }
-
 function drawBackground() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#39ff14';
   for (var i = 0; i < particles.length; i++) {
     var p = particles[i];
     p.y += p.speedY;
-    if (p.y < -10) {
-      p.y = canvas.height + 10;
-      p.x = Math.random() * canvas.width;
-    }
+    if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
@@ -459,6 +374,57 @@ function drawBackground() {
   requestAnimationFrame(drawBackground);
 }
 drawBackground();
+
+// LAUNCH EXPLOIT OVERLAY
+function launchExploit() {
+  var overlay = document.getElementById('terminal-overlay');
+  overlay.style.display = 'flex';
+
+  var consoleView = document.getElementById('console-output');
+  consoleView.innerHTML = '<div>> [BOOT] Initializing WebKit engine...</div><div>> [BOOT] Preparing memory pipeline...</div>';
+
+  var cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  consoleView.appendChild(cursor);
+
+  // Load relapse.html inside iframe to execute exploit without blanking screen
+  var iframe = document.getElementById('exploit-runner');
+  iframe.src = 'relapse.html';
+}
+
+// Receive live log lines and completion messages from relapse.html inside iframe
+window.addEventListener('message', function(event) {
+  var data = event.data;
+  if (!data || typeof data !== 'object') return;
+
+  var consoleView = document.getElementById('console-output');
+  var badge = document.getElementById('term-status-badge');
+
+  if (data.type === 'log') {
+    var line = document.createElement('div');
+    line.className = data.level || 'LOG-LOG';
+    line.textContent = '> ' + data.message;
+    var cursor = consoleView.querySelector('.cursor');
+    if (cursor) cursor.remove();
+    consoleView.appendChild(line);
+    var newCursor = document.createElement('span');
+    newCursor.className = 'cursor';
+    consoleView.appendChild(newCursor);
+    consoleView.scrollTop = consoleView.scrollHeight;
+  }
+
+  if (data.type === 'stage') {
+    badge.textContent = data.stage;
+  }
+
+  if (data.type === 'done') {
+    badge.textContent = 'ELF LOADER ACTIVE';
+    // Navigate directly into relapse.html with full screen payloads
+    setTimeout(function() {
+      window.location.href = 'relapse.html?show_payloads=1';
+    }, 1200);
+  }
+});
 </script>
 
 </body>
