@@ -18,7 +18,7 @@
 const http = require("http"), net = require("net"), fs = require("fs"),
       path = require("path"), url = require("url");
 
-const ROOT = process.cwd();
+const ROOT = path.resolve(process.cwd());
 const PORT = parseInt(process.argv[2] || "8080", 10);
 const ELFLDR_PORT = 9021;
 
@@ -48,7 +48,13 @@ function sendPayload(name, ip, cb) {
 }
 
 http.createServer((req, res) => {
-    const p = decodeURIComponent(url.parse(req.url).pathname);
+    let p;
+    try {
+        p = decodeURIComponent(url.parse(req.url).pathname);
+    } catch (_) {
+        res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+        return res.end("bad request path");
+    }
     const m = p.match(/\/api\/payload\/([^/]+)$/);
 
     if (m) {
@@ -86,9 +92,13 @@ http.createServer((req, res) => {
     // the site's own beacons; answer them so they do not 404-spam the log
     if (p.indexOf("/log/") >= 0) { res.writeHead(204); return res.end(); }
 
-    let file = path.join(ROOT, p);
+    let file = path.resolve(ROOT, "." + p);
     if (p.endsWith("/")) file = path.join(file, "index.html");
-    if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end("forbidden"); }
+    const relative = path.relative(ROOT, file);
+    if (relative === ".." || relative.startsWith(".." + path.sep) || path.isAbsolute(relative)) {
+        res.writeHead(403);
+        return res.end("forbidden");
+    }
     fs.readFile(file, (err, buf) => {
         if (err) { res.writeHead(404); console.log("[404] " + p); return res.end("not found"); }
         res.writeHead(200, { "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream" });

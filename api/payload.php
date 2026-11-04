@@ -33,7 +33,8 @@ if ($name === '' || !preg_match('/^[A-Za-z0-9._-]+\.(elf|bin)$/', $name))
 
 $path = realpath($PAYLOAD_DIR . '/' . $name);
 $root = realpath($PAYLOAD_DIR);
-if ($path === false || $root === false || strpos($path, $root) !== 0)
+if ($path === false || $root === false ||
+    ($path !== $root && strpos($path, $root . DIRECTORY_SEPARATOR) !== 0))
     fail('payload not found', 404);
 
 $data = @file_get_contents($path);
