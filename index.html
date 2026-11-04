@@ -10,10 +10,8 @@
   --green-main: #39ff14;
   --purple-bg: #0d0216;
   --purple-card: #1f0733;
-  --purple-border: #4a127a;
   --yellow-accent: #ffe600;
   --pink-accent: #ff007f;
-  --orange-cherry: #ff3300;
   --border-thick: 3px solid #000;
   --box-shadow: 4px 4px 0px #000;
   --font-comic: 'Impact', 'Arial Black', sans-serif;
@@ -62,101 +60,111 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 14px 14px;
 }
 
 header {
   text-align: center;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 h1 {
   font-family: var(--font-comic);
-  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  font-size: clamp(2.6rem, 6.5vw, 4rem);
   margin: 0;
   color: var(--green-main);
   text-shadow: 4px 4px 0px #000, -2px -2px 0px var(--pink-accent);
   letter-spacing: 2px;
 }
 
-.nav-tabs {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 6px;
+.subtitle {
+  color: var(--yellow-accent);
+  font-family: monospace;
+  font-size: 0.95rem;
+  margin-top: 4px;
+  letter-spacing: 1px;
 }
 
-.tab-btn {
-  font-family: var(--font-comic);
-  background: var(--purple-card);
-  color: #fff;
-  border: var(--border-thick);
-  border-radius: 12px;
-  padding: 6px 16px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  box-shadow: 3px 3px 0px #000;
-}
-
-.tab-btn.active {
-  background: var(--green-main);
-  color: #000;
-  box-shadow: 3px 3px 0px var(--pink-accent);
-}
-
-.view-panel {
-  display: none;
-  width: 100%;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-height: 72vh;
-}
-
-.view-panel.active {
-  display: flex;
-}
-
-/* Mascot Container */
+/* Dynamic Mascot Container */
 .mascot-area {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 100%;
+  flex: 1;
 }
 
-.character-card {
-  position: relative;
-  height: 100%;
-  max-height: 380px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: mascotBob 3s ease-in-out infinite;
+.mascot-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  max-height: 48vh;
+  filter: drop-shadow(0px 10px 0px #000) drop-shadow(0px 0px 24px rgba(57, 255, 20, 0.45));
 }
 
-@keyframes mascotBob {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-6px) rotate(1deg); }
+/* Mascot Keyframe Animations */
+.anim-body {
+  animation: leafFloat 3.2s ease-in-out infinite;
+  transform-origin: 200px 330px;
 }
 
-.mascot-img {
-  max-height: 340px;
-  width: auto;
-  object-fit: contain;
-  filter: drop-shadow(0px 8px 0px #000) drop-shadow(0px 0px 20px rgba(57, 255, 20, 0.4));
+.anim-hand-left {
+  animation: handLeftSway 2.6s ease-in-out infinite alternate;
+  transform-origin: 105px 170px;
+}
+
+.anim-hand-right {
+  animation: handRightSway 2.8s ease-in-out infinite alternate;
+  transform-origin: 295px 170px;
+}
+
+.anim-foot-left {
+  animation: footTapLeft 1.6s ease-in-out infinite alternate;
+  transform-origin: 165px 330px;
+}
+
+.anim-foot-right {
+  animation: footTapRight 1.8s ease-in-out infinite alternate;
+  transform-origin: 235px 330px;
+}
+
+@keyframes leafFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(-1deg) scaleY(1);
+  }
+  50% {
+    transform: translateY(-9px) rotate(1.2deg) scaleY(1.02);
+  }
+}
+
+@keyframes handLeftSway {
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-7px) rotate(-5deg); }
+}
+
+@keyframes handRightSway {
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-7px) rotate(5deg); }
+}
+
+@keyframes footTapLeft {
+  0%, 80% { transform: translateY(0) rotate(0deg); }
+  90% { transform: translateY(-3px) rotate(-4deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+@keyframes footTapRight {
+  0%, 80% { transform: translateY(0) rotate(0deg); }
+  90% { transform: translateY(-3px) rotate(4deg); }
+  100% { transform: translateY(0) rotate(0deg); }
 }
 
 .btn-group {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  margin-top: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
 }
 
 .btn {
@@ -166,9 +174,9 @@ h1 {
   justify-content: center;
   align-items: center;
   width: 85%;
-  max-width: 400px;
-  padding: 12px 20px;
-  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  max-width: 420px;
+  padding: 14px 20px;
+  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
   color: #000;
   background: var(--green-main);
   border: var(--border-thick);
@@ -176,6 +184,7 @@ h1 {
   box-shadow: var(--box-shadow);
   cursor: pointer;
   outline: none;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .btn:hover, .btn:focus {
@@ -184,112 +193,16 @@ h1 {
   background: #5aff36;
 }
 
-.btn-secondary {
-  background: var(--yellow-accent);
-  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
-  padding: 8px 16px;
-  max-width: 340px;
-}
-
-/* Payload Sender Grid */
-.payload-scroll-area {
-  width: 100%;
-  max-width: 780px;
-  max-height: 52vh;
-  overflow-y: auto;
-  padding-right: 6px;
-  margin-top: 6px;
-}
-
-.payload-scroll-area::-webkit-scrollbar {
-  width: 8px;
-}
-.payload-scroll-area::-webkit-scrollbar-track {
-  background: #0d0216;
-  border-radius: 10px;
-  border: 2px solid #000;
-}
-.payload-scroll-area::-webkit-scrollbar-thumb {
-  background: var(--green-main);
-  border-radius: 10px;
-  border: 2px solid #000;
-}
-
-.payload-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  width: 100%;
-}
-
-.payload-card {
-  background: var(--purple-card);
-  border: 2px solid var(--purple-border);
-  border-radius: 14px;
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: 4px 4px 0px #000;
-  transition: all 0.15s ease;
-}
-
-.payload-card:hover {
-  transform: translate(-2px, -2px);
-  background: #2f0d4d;
-  border-color: var(--green-main);
-  box-shadow: 6px 6px 0px var(--green-main);
-}
-
-.payload-badge {
-  display: inline-block;
-  background: var(--green-main);
-  color: #000;
-  font-family: var(--font-comic);
-  font-size: 0.75rem;
-  font-weight: bold;
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  border: 2px solid #000;
-}
-
-.payload-title {
-  font-family: var(--font-comic);
-  color: var(--yellow-accent);
-  font-size: 0.95rem;
-}
-
-.payload-port {
-  font-size: 0.72rem;
-  color: #bbb;
-  margin-top: 2px;
-}
-
-.terminal-box {
-  width: 100%;
-  max-width: 780px;
-  background: #000;
-  border: var(--border-thick);
-  border-radius: 10px;
-  padding: 8px 12px;
-  margin-top: 8px;
-  font-family: monospace;
-  color: var(--green-main);
-  font-size: 0.8rem;
-  height: 60px;
-  overflow-y: auto;
-}
-
 footer {
   width: 100%;
   text-align: center;
   background: #000;
   border: var(--border-thick);
   border-radius: 10px;
-  padding: 6px 10px;
+  padding: 8px 10px;
   margin-bottom: 4px;
   box-shadow: 3px 3px 0px var(--pink-accent);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #ddd;
 }
 </style>
@@ -301,127 +214,203 @@ footer {
 <div class="content-wrapper">
   <header>
     <h1>PSN-HUB</h1>
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tab-jb" onclick="switchTab('jb')">JAILBREAK</button>
-      <button class="tab-btn" id="tab-payloads" onclick="switchTab('payloads')">PAYLOADS (18)</button>
-    </div>
+    <div class="subtitle">PS5 EXPLOIT HOST (7.00 - 13.60)</div>
   </header>
 
-  <!-- Main View -->
-  <div class="view-panel active" id="panel-jb">
-    <div class="mascot-area">
-      <div class="character-card">
-        <img class="mascot-img" id="mascot-img" alt="Cartoon Mascot">
-      </div>
-    </div>
+  <!-- Dynamic Vector Mascot (No White Background) -->
+  <div class="mascot-area">
+    <svg class="mascot-svg" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Gradients -->
+        <linearGradient id="leafGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#69b52a"/>
+          <stop offset="60%" stop-color="#4e9919"/>
+          <stop offset="100%" stop-color="#3c7913"/>
+        </linearGradient>
+        <linearGradient id="leafDarkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#468817"/>
+          <stop offset="100%" stop-color="#2a5c0b"/>
+        </linearGradient>
+        <linearGradient id="redShoe" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#f01a30"/>
+          <stop offset="100%" stop-color="#b80c1e"/>
+        </linearGradient>
+      </defs>
 
-    <div class="btn-group">
-      <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
-      <button class="btn btn-secondary" onclick="switchTab('payloads')">PAYLOAD SENDER</button>
-    </div>
+      <!-- FEET & LEGS (Grounded) -->
+      <!-- Left Leg & Shoe -->
+      <g class="anim-foot-left">
+        <path d="M 174 300 L 170 365" stroke="#000" stroke-width="10" stroke-linecap="round"/>
+        <!-- Red Sneaker -->
+        <path d="M 140 375 C 135 365 145 350 170 358 L 186 360 C 196 362 198 375 190 388 C 175 393 125 394 125 385 Z" fill="url(#redShoe)" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+        <!-- White Cap & Sole -->
+        <path d="M 124 380 C 122 372 133 365 142 368 L 140 388 C 132 388 125 385 124 380 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
+        <path d="M 123 384 C 135 385 185 385 194 380 C 195 388 185 396 170 396 L 132 396 C 120 395 120 388 123 384 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
+        <!-- Eyelets / Lace Lines -->
+        <line x1="150" y1="365" x2="153" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <line x1="162" y1="365" x2="165" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <line x1="174" y1="365" x2="177" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- Right Leg & Shoe -->
+      <g class="anim-foot-right">
+        <path d="M 226 300 L 230 365" stroke="#000" stroke-width="10" stroke-linecap="round"/>
+        <!-- Red Sneaker -->
+        <path d="M 260 375 C 265 365 255 350 230 358 L 214 360 C 204 362 202 375 210 388 C 225 393 275 394 275 385 Z" fill="url(#redShoe)" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+        <!-- White Cap & Sole -->
+        <path d="M 276 380 C 278 372 267 365 258 368 L 260 388 C 268 388 275 385 276 380 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
+        <path d="M 277 384 C 265 385 215 385 206 380 C 205 388 215 396 230 396 L 268 396 C 280 395 280 388 277 384 Z" fill="#ffffff" stroke="#000" stroke-width="4"/>
+        <!-- Eyelets / Lace Lines -->
+        <line x1="250" y1="365" x2="247" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <line x1="238" y1="365" x2="235" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <line x1="226" y1="365" x2="223" y2="375" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- MAIN FLOATING CHARACTER BODY -->
+      <g class="anim-body">
+        
+        <!-- BACK / LOWER LEAF BLADES -->
+        <g stroke="#000" stroke-width="5" stroke-linejoin="round">
+          <!-- Far Left Bottom -->
+          <path d="M 140 280 Q 80 320 60 360 Q 95 330 145 315 Z" fill="url(#leafDarkGrad)"/>
+          <!-- Far Right Bottom -->
+          <path d="M 260 280 Q 320 320 340 360 Q 305 330 255 315 Z" fill="url(#leafDarkGrad)"/>
+          <!-- Mid Left Leaf -->
+          <path d="M 125 210 Q 40 240 5 285 Q 50 250 130 250 Z" fill="url(#leafDarkGrad)"/>
+          <!-- Mid Right Leaf -->
+          <path d="M 275 210 Q 360 240 395 285 Q 350 250 270 250 Z" fill="url(#leafDarkGrad)"/>
+          <!-- Upper Left Leaf -->
+          <path d="M 135 150 Q 55 120 20 160 Q 70 175 140 195 Z" fill="url(#leafDarkGrad)"/>
+          <!-- Upper Right Leaf -->
+          <path d="M 265 150 Q 345 120 380 160 Q 330 175 260 195 Z" fill="url(#leafDarkGrad)"/>
+        </g>
+
+        <!-- MAIN SERRATED CANNABIS PALM BODY -->
+        <path d="
+          M 200 10 
+          C 192 45, 175 60, 165 78
+          L 175 84 
+          C 160 102, 142 120, 130 140
+          L 142 146
+          C 120 175, 100 200, 95 240
+          L 110 244
+          C 95 270, 90 295, 100 330
+          L 116 322
+          C 120 345, 135 365, 155 385
+          C 175 350, 190 320, 200 310
+          C 210 320, 225 350, 245 385
+          L 255 372
+          C 265 350, 280 325, 300 330
+          L 290 295
+          C 300 270, 305 244, 290 244
+          L 305 240
+          C 300 200, 280 175, 258 146
+          L 270 140
+          C 258 120, 240 102, 225 84
+          L 235 78
+          C 225 60, 208 45, 200 10 Z"
+          fill="url(#leafGrad)" stroke="#000" stroke-width="6.5" stroke-linejoin="round"/>
+
+        <!-- Leaf Rib Lines & Veins -->
+        <g stroke="#356d0d" stroke-width="3" stroke-linecap="round">
+          <line x1="200" y1="40" x2="200" y2="105"/>
+          <line x1="200" y1="80" x2="175" y2="60"/>
+          <line x1="200" y1="80" x2="225" y2="60"/>
+          <line x1="200" y1="100" x2="160" y2="90"/>
+          <line x1="200" y1="100" x2="240" y2="90"/>
+        </g>
+
+        <!-- CARTOON FACE -->
+        <!-- Eyebrows -->
+        <path d="M 165 110 Q 185 96 200 115" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 235 110 Q 215 96 200 115" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+
+        <!-- Stoned / Slanted Eyelids & Eyes -->
+        <!-- Left Eye -->
+        <g>
+          <ellipse cx="178" cy="142" rx="19" ry="22" fill="#fffae0" stroke="#000" stroke-width="4.5"/>
+          <!-- Drooping Upper Lid -->
+          <path d="M 158 136 Q 178 116 198 136 Z" fill="#4e9919" stroke="#000" stroke-width="4"/>
+          <!-- Pupil & Iris -->
+          <circle cx="179" cy="147" r="7" fill="#442a00"/>
+          <circle cx="179" cy="147" r="4" fill="#000"/>
+          <circle cx="176" cy="144" r="2" fill="#fff"/>
+        </g>
+
+        <!-- Right Eye -->
+        <g>
+          <ellipse cx="222" cy="142" rx="19" ry="22" fill="#fffae0" stroke="#000" stroke-width="4.5"/>
+          <!-- Drooping Upper Lid -->
+          <path d="M 202 136 Q 222 116 242 136 Z" fill="#4e9919" stroke="#000" stroke-width="4"/>
+          <!-- Pupil & Iris -->
+          <circle cx="221" cy="147" r="7" fill="#442a00"/>
+          <circle cx="221" cy="147" r="4" fill="#000"/>
+          <circle cx="218" cy="144" r="2" fill="#fff"/>
+        </g>
+
+        <!-- Smirking Open Mouth -->
+        <g>
+          <!-- Outer Mouth Shape -->
+          <path d="M 165 180 Q 200 196 235 180 C 238 215 215 238 200 238 C 185 238 162 215 165 180 Z" 
+                fill="#2b0008" stroke="#000" stroke-width="5.5" stroke-linejoin="round"/>
+          <!-- Upper White Teeth Bar -->
+          <path d="M 172 184 Q 200 194 228 184 L 227 194 Q 200 200 173 194 Z" fill="#ffffff" stroke="#000" stroke-width="3"/>
+          <!-- Tongue -->
+          <path d="M 182 225 Q 200 205 218 225 C 210 234 190 234 182 225 Z" fill="#e83a75"/>
+          <!-- Smile Creases -->
+          <path d="M 160 178 Q 166 186 168 190" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M 240 178 Q 234 186 232 190" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- DYNAMIC ARMS & GLOVES (OK Signs) -->
+        <!-- Left Arm & Hand -->
+        <g class="anim-hand-left">
+          <!-- Black Tubular Arm -->
+          <path d="M 130 220 C 100 230 75 220 90 180" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+          
+          <!-- White Glove Wrist Cuff -->
+          <rect x="75" y="166" width="24" height="12" rx="6" fill="#ffffff" stroke="#000" stroke-width="4.5" transform="rotate(-15 87 172)"/>
+
+          <!-- Glove Palm & OK Sign Fingers -->
+          <g stroke="#000" stroke-width="4" stroke-linejoin="round">
+            <!-- Extended Pinky, Ring, Middle Fingers Upwards -->
+            <path d="M 72 165 C 60 148 68 120 78 126 C 84 130 84 148 86 156" fill="#ffffff"/>
+            <path d="M 85 146 C 80 125 90 115 97 122 C 104 128 98 145 96 156" fill="#ffffff"/>
+            <path d="M 98 146 C 98 130 108 124 114 132 C 120 140 108 156 104 165" fill="#ffffff"/>
+            
+            <!-- Index & Thumb Curled Circle ("OK" hole) -->
+            <path d="M 90 166 C 90 152 115 152 118 168 C 120 180 100 188 90 176 Z" fill="#ffffff"/>
+            <circle cx="104" cy="168" r="6" fill="#2b0008"/>
+          </g>
+        </g>
+
+        <!-- Right Arm & Hand -->
+        <g class="anim-hand-right">
+          <!-- Black Tubular Arm -->
+          <path d="M 270 220 C 300 230 325 220 310 180" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+
+          <!-- White Glove Wrist Cuff -->
+          <rect x="301" y="166" width="24" height="12" rx="6" fill="#ffffff" stroke="#000" stroke-width="4.5" transform="rotate(15 313 172)"/>
+
+          <!-- Glove Palm & OK Sign Fingers -->
+          <g stroke="#000" stroke-width="4" stroke-linejoin="round">
+            <!-- Extended Fingers Upwards -->
+            <path d="M 328 165 C 340 148 332 120 322 126 C 316 130 316 148 314 156" fill="#ffffff"/>
+            <path d="M 315 146 C 320 125 310 115 303 122 C 296 128 302 145 304 156" fill="#ffffff"/>
+            <path d="M 302 146 C 302 130 292 124 286 132 C 280 140 292 156 296 165" fill="#ffffff"/>
+            
+            <!-- Index & Thumb Curled Circle ("OK" hole) -->
+            <path d="M 310 166 C 310 152 285 152 282 168 C 280 180 300 188 310 176 Z" fill="#ffffff"/>
+            <circle cx="296" cy="168" r="6" fill="#2b0008"/>
+          </g>
+        </g>
+
+      </g>
+    </svg>
   </div>
 
-  <!-- Payload Sender View -->
-  <div class="view-panel" id="panel-payloads">
-    <div class="payload-scroll-area">
-      <div class="payload-grid">
-        <div class="payload-card" onclick="sendPayload('etaHEN 1.8b', 9080)">
-          <div class="payload-badge">HEN</div>
-          <div class="payload-title">etaHEN 1.8b</div>
-          <div class="payload-port">Port: 9080</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Kstuff', 9020)">
-          <div class="payload-badge">FPKG</div>
-          <div class="payload-title">Kstuff</div>
-          <div class="payload-port">Port: 9020</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('PS5Debug', 9021)">
-          <div class="payload-badge">DBG</div>
-          <div class="payload-title">PS5Debug</div>
-          <div class="payload-port">Port: 9021</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('WebRTE', 9056)">
-          <div class="payload-badge">RTE</div>
-          <div class="payload-title">WebRTE</div>
-          <div class="payload-port">Port: 9056</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('FTP Server', 1337)">
-          <div class="payload-badge">FTP</div>
-          <div class="payload-title">FTP Server</div>
-          <div class="payload-port">Port: 1337</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('App Dumper', 9023)">
-          <div class="payload-badge">DUMP</div>
-          <div class="payload-title">App Dumper</div>
-          <div class="payload-port">Port: 9023</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('ELF Loader', 9027)">
-          <div class="payload-badge">ELF</div>
-          <div class="payload-title">ELF Loader</div>
-          <div class="payload-port">Port: 9027</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Kernel Dumper', 9025)">
-          <div class="payload-badge">KERN</div>
-          <div class="payload-title">Kernel Dumper</div>
-          <div class="payload-port">Port: 9025</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Fan Control', 9028)">
-          <div class="payload-badge">SYS</div>
-          <div class="payload-title">Fan Control</div>
-          <div class="payload-port">Port: 9028</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('DB Backup', 9029)">
-          <div class="payload-badge">BACKUP</div>
-          <div class="payload-title">DB Backup</div>
-          <div class="payload-port">Port: 9029</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Cache Clear', 9030)">
-          <div class="payload-badge">CACHE</div>
-          <div class="payload-title">Cache Clear</div>
-          <div class="payload-port">Port: 9030</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('PS5 Payload Server', 9090)">
-          <div class="payload-badge">SERV</div>
-          <div class="payload-title">Payload Server</div>
-          <div class="payload-port">Port: 9090</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('LBL Exploit', 9031)">
-          <div class="payload-badge">EXP</div>
-          <div class="payload-title">LBL Exploit</div>
-          <div class="payload-port">Port: 9031</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Itemzflow', 9032)">
-          <div class="payload-badge">MGR</div>
-          <div class="payload-title">Itemzflow</div>
-          <div class="payload-port">Port: 9032</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('GDB Server', 2159)">
-          <div class="payload-badge">GDB</div>
-          <div class="payload-title">GDB Server</div>
-          <div class="payload-port">Port: 2159</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Linux Loader 2GB', 9033)">
-          <div class="payload-badge">LNX</div>
-          <div class="payload-title">Linux (2GB)</div>
-          <div class="payload-port">Port: 9033</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Linux Loader 4GB', 9034)">
-          <div class="payload-badge">LNX</div>
-          <div class="payload-title">Linux (4GB)</div>
-          <div class="payload-port">Port: 9034</div>
-        </div>
-        <div class="payload-card" onclick="sendPayload('Browser Unlocker', 9035)">
-          <div class="payload-badge">WEB</div>
-          <div class="payload-title">Web Unlocker</div>
-          <div class="payload-port">Port: 9035</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="terminal-box" id="term-log">
-      &gt; PSN-HUB Payload Sender Ready.<br>
-      &gt; Select a payload cartridge above to inject...
-    </div>
+  <div class="btn-group">
+    <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
   </div>
 
   <footer>
@@ -430,149 +419,10 @@ footer {
 </div>
 
 <script>
-function generateExactMascot() {
-  var cvs = document.createElement('canvas');
-  cvs.width = 500;
-  cvs.height = 500;
-  var c = cvs.getContext('2d');
-
-  c.lineWidth = 9;
-  c.strokeStyle = '#000000';
-
-  // Lower Left & Right Fan Leaves
-  c.fillStyle = '#2d8a1e';
-  c.beginPath(); c.moveTo(160, 380); c.quadraticCurveTo(80, 340, 20, 280); c.quadraticCurveTo(90, 260, 180, 310); c.closePath(); c.fill(); c.stroke();
-  c.beginPath(); c.moveTo(340, 380); c.quadraticCurveTo(420, 340, 480, 280); c.quadraticCurveTo(410, 260, 320, 310); c.closePath(); c.fill(); c.stroke();
-
-  // Mid Left & Right Leaves
-  c.beginPath(); c.moveTo(120, 270); c.quadraticCurveTo(30, 190, 10, 130); c.quadraticCurveTo(90, 140, 170, 210); c.closePath(); c.fill(); c.stroke();
-  c.beginPath(); c.moveTo(380, 270); c.quadraticCurveTo(470, 190, 490, 130); c.quadraticCurveTo(410, 140, 330, 210); c.closePath(); c.fill(); c.stroke();
-
-  // Central Serrated Leaf Body
-  c.fillStyle = '#52e03a';
-  c.beginPath();
-  c.moveTo(250, 20);
-  c.lineTo(230, 55); c.lineTo(245, 65); c.lineTo(220, 95); c.lineTo(238, 105);
-  c.lineTo(210, 145); c.lineTo(230, 155); c.lineTo(185, 205); c.lineTo(210, 215);
-  c.lineTo(165, 270); c.lineTo(190, 280); c.lineTo(150, 340); c.lineTo(175, 350);
-  c.quadraticCurveTo(250, 435, 325, 350);
-  c.lineTo(350, 340); c.lineTo(310, 280); c.lineTo(335, 270); c.lineTo(290, 215);
-  c.lineTo(315, 205); c.lineTo(270, 155); c.lineTo(290, 145); c.lineTo(262, 105);
-  c.lineTo(280, 95); c.lineTo(255, 65); c.lineTo(270, 55);
-  c.closePath();
-  c.fill(); c.stroke();
-
-  // Stem
-  c.fillStyle = '#226b15';
-  c.beginPath(); c.moveTo(235, 420); c.quadraticCurveTo(220, 470, 200, 495); c.lineTo(235, 495); c.quadraticCurveTo(265, 470, 265, 420); c.closePath(); c.fill(); c.stroke();
-
-  // Eyes
-  c.fillStyle = '#ffffff';
-  c.lineWidth = 6;
-  
-  // Left Eye
-  c.beginPath(); c.ellipse(205, 180, 34, 26, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#0088ff';
-  c.lineWidth = 4;
-  c.beginPath(); c.arc(212, 183, 15, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#000';
-  c.beginPath(); c.arc(212, 183, 7, 0, Math.PI * 2); c.fill();
-
-  // Right Eye
-  c.fillStyle = '#ffffff';
-  c.lineWidth = 6;
-  c.beginPath(); c.ellipse(295, 180, 34, 26, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#0088ff';
-  c.lineWidth = 4;
-  c.beginPath(); c.arc(288, 183, 15, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#000';
-  c.beginPath(); c.arc(288, 183, 7, 0, Math.PI * 2); c.fill();
-
-  // Eyebrows
-  c.lineWidth = 7;
-  c.beginPath(); c.moveTo(170, 145); c.quadraticCurveTo(205, 125, 235, 150); c.stroke();
-  c.beginPath(); c.moveTo(330, 145); c.quadraticCurveTo(295, 125, 265, 150); c.stroke();
-
-  // Mouth
-  c.fillStyle = '#80001a';
-  c.lineWidth = 6;
-  c.beginPath();
-  c.moveTo(190, 245); c.quadraticCurveTo(250, 305, 310, 240);
-  c.bezierCurveTo(320, 275, 280, 310, 250, 310);
-  c.bezierCurveTo(210, 310, 180, 275, 190, 245);
-  c.closePath(); c.fill(); c.stroke();
-
-  // Teeth & Tongue
-  c.fillStyle = '#ff3366';
-  c.beginPath(); c.ellipse(250, 290, 30, 16, 0, 0, Math.PI); c.fill();
-  c.fillStyle = '#ffffff';
-  c.fillRect(202, 250, 24, 14);
-
-  // Left Arm
-  c.fillStyle = '#3eb828';
-  c.lineWidth = 22;
-  c.beginPath(); c.moveTo(150, 325); c.quadraticCurveTo(100, 345, 70, 315); c.stroke();
-  c.fillStyle = '#ffffff';
-  c.lineWidth = 5;
-  c.beginPath(); c.arc(65, 310, 18, 0, Math.PI * 2); c.fill(); c.stroke();
-
-  // Right Arm
-  c.lineWidth = 22;
-  c.beginPath(); c.moveTo(330, 325); c.quadraticCurveTo(370, 335, 390, 285); c.stroke();
-
-  // Joint
-  c.save();
-  c.translate(370, 250);
-  c.rotate(-0.3);
-  c.fillStyle = '#f0efe6';
-  c.lineWidth = 5;
-  c.fillRect(-60, -10, 110, 22);
-  c.strokeRect(-60, -10, 110, 22);
-  c.fillStyle = '#ff3300';
-  c.beginPath(); c.arc(50, 0, 11, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.restore();
-
-  // Right Glove
-  c.fillStyle = '#ffffff';
-  c.lineWidth = 5;
-  c.beginPath(); c.arc(375, 270, 14, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.beginPath(); c.arc(390, 280, 14, 0, Math.PI * 2); c.fill(); c.stroke();
-
-  document.getElementById('mascot-img').src = cvs.toDataURL('image/png');
-}
-
-window.onload = function() {
-  generateExactMascot();
-};
-
-function switchTab(tab) {
-  document.getElementById('tab-jb').classList.remove('active');
-  document.getElementById('tab-payloads').classList.remove('active');
-  document.getElementById('panel-jb').classList.remove('active');
-  document.getElementById('panel-payloads').classList.remove('active');
-
-  if (tab === 'jb') {
-    document.getElementById('tab-jb').classList.add('active');
-    document.getElementById('panel-jb').classList.add('active');
-  } else {
-    document.getElementById('tab-payloads').classList.add('active');
-    document.getElementById('panel-payloads').classList.add('active');
-  }
-}
-
-function sendPayload(name, port) {
-  var log = document.getElementById('term-log');
-  log.innerHTML += '<br>&gt; Injecting ' + name + ' on port ' + port + '...';
-  log.scrollTop = log.scrollHeight;
-  setTimeout(function() {
-    log.innerHTML += '<br><span style="color:#ffe600">&gt; Payload ' + name + ' Sent Successfully!</span>';
-    log.scrollTop = log.scrollHeight;
-  }, 1000);
-}
-
-// Background Particle Canvas
+// Floating Particle Canvas
 var canvas = document.getElementById('bg-canvas');
 var ctx = canvas.getContext('2d');
+
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -581,12 +431,12 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 var particles = [];
-for (var i = 0; i < 20; i++) {
+for (var i = 0; i < 22; i++) {
   particles.push({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
     size: Math.random() * 5 + 3,
-    speedY: Math.random() * -0.8 - 0.2
+    speedY: Math.random() * -0.7 - 0.2
   });
 }
 
@@ -596,7 +446,10 @@ function drawBackground() {
   for (var i = 0; i < particles.length; i++) {
     var p = particles[i];
     p.y += p.speedY;
-    if (p.y < -10) p.y = canvas.height + 10;
+    if (p.y < -10) {
+      p.y = canvas.height + 10;
+      p.x = Math.random() * canvas.width;
+    }
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
