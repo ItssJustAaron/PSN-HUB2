@@ -378,7 +378,7 @@ function buildPayloadMenu() {
     status.textContent = "ELF Loader active on 127.0.0.1:9021";
     const help = document.createElement("p");
     help.className = "payload-help";
-    help.textContent = "Select a cartridge below to inject payload.";
+    help.textContent = "PSN-HUB Manager starts automatically; select other payloads below.";
     header.append(title, status, help);
 
     const grid = document.createElement("div");
@@ -388,6 +388,7 @@ function buildPayloadMenu() {
         const a = document.createElement("a");
         a.href = "#";
         a.className = "payload-tile";
+        a.dataset.payloadName = t.name;
         a.tabIndex = 0;
 
         const name = document.createElement("div");
@@ -462,6 +463,19 @@ function showPayloadMenu() {
     print("elfldr is up - ready for injection", "LOG-SUCCESS");
 }
 
+function autoLoadManagerPayload() {
+    if (window.__psnHubManagerAutoLoadStarted) return;
+    window.__psnHubManagerAutoLoadStarted = true;
+    const menu = document.getElementById("relapse-payload-menu");
+    const managerTile = menu && Array.from(menu.querySelectorAll(".payload-tile"))
+        .find((tile) => tile.dataset.payloadName === "PSN-HUB-Manager.elf");
+    if (!managerTile) {
+        print("PSN-HUB Manager auto-load failed: payload tile is missing", "LOG-ERROR");
+        return;
+    }
+    requestAnimationFrame(() => managerTile.click());
+}
+
 // Prebuild the complete payload DOM before the exploit starts to avoid WebKit heap mutations
 buildPayloadMenu();
 run().then(() => {
@@ -469,6 +483,7 @@ run().then(() => {
     if (window.__elfldrUp && typeof window.__sendPayload === "function") {
         try { sessionStorage.setItem("psn_jb_done", "true"); } catch (e) {}
         showPayloadMenu();
+        autoLoadManagerPayload();
     }
 }).catch(reportFailure);
 </script>
