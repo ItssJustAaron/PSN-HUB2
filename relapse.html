@@ -563,16 +563,35 @@ function showPayloadMenu() {
     requestAnimationFrame(() => { void menu.offsetHeight; });
 }
 
-buildPayloadMenu();
-run().then(() => {
-    try { sessionStorage.removeItem("relapse.auto-retry"); } catch (e) {}
-    if (window.__elfldrUp && typeof window.__sendPayload === "function") {
-        try {
-            window.parent.postMessage({ type: 'done' }, '*');
-        } catch (e) {}
+// Check query param from index.html (?menu=1)
+const urlParams = new URLSearchParams(window.location.search);
+const directMenuMode = urlParams.get('menu') === '1';
+
+if (directMenuMode) {
+    const isActivated = sessionStorage.getItem("psn_jb_done") === "true";
+
+    if (!isActivated) {
+        alert("Please run Jailbreak first before accessing the payload menu.");
+        window.location.href = "index.html";
+    } else {
+        // Already executed: skip run() and open the dashboard immediately
+        buildPayloadMenu();
         showPayloadMenu();
     }
-}).catch(reportFailure);
+} else {
+    // Fresh execution path from JAILBREAK NOW
+    buildPayloadMenu();
+    run().then(() => {
+        try { sessionStorage.removeItem("relapse.auto-retry"); } catch (e) {}
+        sessionStorage.setItem("psn_jb_done", "true");
+        if (window.__elfldrUp && typeof window.__sendPayload === "function") {
+            try {
+                window.parent.postMessage({ type: 'done' }, '*');
+            } catch (e) {}
+            showPayloadMenu();
+        }
+    }).catch(reportFailure);
+}
 </script>
 
 </body>
