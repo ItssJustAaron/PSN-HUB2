@@ -4,180 +4,42 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PSN-HUB - Exploit Terminal</title>
+<title>PSN-HUB - Exploit & Payloads</title>
 <style>
-  :root {
-    --green-main: #39ff14;
-    --purple-bg: #0d0216;
-    --purple-card: #1f0733;
-    --purple-border: #4a127a;
-    --yellow-accent: #ffe600;
-    --pink-accent: #ff007f;
-    --font-comic: 'Impact', 'Arial Black', sans-serif;
-  }
-
-  * { box-sizing: border-box; }
-
   html, body {
     margin: 0;
     padding: 0;
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle at center, #23063b 0%, var(--purple-bg) 100%);
+    background: #0d0216;
     color: #fff;
     font-family: Arial, sans-serif;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
 
-  /* Retro Terminal Wrapper */
-  #term-wrapper {
-    position: relative;
-    width: 92%;
-    max-width: 860px;
-    height: 82vh;
-    background: #08010d;
-    border: 4px solid #000;
-    border-radius: 20px;
-    box-shadow: 8px 8px 0px #000, 0px 0px 24px rgba(57, 255, 20, 0.35);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 5;
-  }
-
-  /* Cartoon Terminal Top Bar */
-  .term-header {
-    background: var(--purple-card);
-    border-bottom: 3px solid #000;
-    padding: 10px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
-  }
-
-  .term-dots {
-    display: flex;
-    gap: 8px;
-  }
-
-  .term-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid #000;
-  }
-  .dot-red { background: var(--pink-accent); }
-  .dot-yellow { background: var(--yellow-accent); }
-  .dot-green { background: var(--green-main); }
-
-  .term-title {
-    font-family: var(--font-comic);
-    color: var(--green-main);
-    letter-spacing: 1.5px;
-    font-size: 1.15rem;
-    text-shadow: 2px 2px 0px #000;
-  }
-
-  .term-badge {
-    background: #000;
-    color: var(--yellow-accent);
-    font-family: monospace;
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 6px;
-    border: 1.5px solid var(--purple-border);
-  }
-
-  /* CRT Screen Area */
-  .crt-screen {
-    position: relative;
-    flex: 1;
-    padding: 16px 20px;
-    background: #040106;
-    overflow: hidden;
-  }
-
-  /* Scanlines Overlay */
-  .crt-screen::before {
-    content: " ";
-    position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%);
-    background-size: 100% 4px;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  /* Console Output */
-  #console {
-    height: 100%;
-    overflow-y: auto;
-    font: 13.5px/1.55 'Courier New', Courier, monospace;
+  /* Progress console */
+  #console { display: none; }
+  body.verbose #console {
+    display: block;
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 14px 16px;
+    background: radial-gradient(circle at center, #1f0733 0%, #0d0216 100%);
+    color: #dfe3ee;
+    font: 13px/1.55 ui-monospace, Consolas, monospace;
     white-space: pre-wrap;
     word-break: break-all;
-    color: #a3ff8f;
-    text-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
-    padding-bottom: 24px;
+    overflow-y: auto;
   }
-
-  #console::-webkit-scrollbar {
-    width: 8px;
-  }
-  #console::-webkit-scrollbar-track {
-    background: #000;
-  }
-  #console::-webkit-scrollbar-thumb {
-    background: var(--green-main);
-    border-radius: 4px;
-  }
-
-  #console div { padding: 1.5px 0; }
-  .LOG-DEBUG { color: #6f548d; text-shadow: none; }
-  .LOG-INFO { color: var(--green-main); }
-  .LOG-LOG { color: #87f573; }
-  .LOG-WARN { color: var(--yellow-accent); text-shadow: 0 0 5px rgba(255, 230, 0, 0.5); }
-  .LOG-ERROR { color: var(--pink-accent); text-shadow: 0 0 6px rgba(255, 0, 127, 0.6); }
-  .LOG-SUCCESS { color: #fff; background: #133a08; font-weight: bold; padding: 2px 4px; }
-
-  /* Blinking Retro Cursor */
-  .cursor {
-    display: inline-block;
-    width: 9px;
-    height: 15px;
-    background: var(--green-main);
-    vertical-align: middle;
-    animation: blink 0.8s infinite;
-    margin-left: 4px;
-    box-shadow: 0 0 8px var(--green-main);
-  }
-
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-  }
+  #console div { padding: 2px 0; }
+  .LOG-DEBUG { color: #8e74b2; }
+  .LOG-INFO { color: #39ff14; }
+  .LOG-LOG { color: #dfe3ee; }
+  .LOG-WARN { color: #ffe600; }
+  .LOG-ERROR { color: #ff007f; }
+  .LOG-SUCCESS { color: #39ff14; font-weight: bold; }
 </style>
 </head>
 <body>
 
-<div id="term-wrapper">
-  <div class="term-header">
-    <div class="term-dots">
-      <div class="term-dot dot-red"></div>
-      <div class="term-dot dot-yellow"></div>
-      <div class="term-dot dot-green"></div>
-    </div>
-    <div class="term-title">PSN-HUB // KERNEL_INIT</div>
-    <div class="term-badge">STAGE: RUNNING</div>
-  </div>
-
-  <div class="crt-screen">
-    <div id="console"></div>
-  </div>
-</div>
+<div id="console"></div>
 
 <script src="rop.js"></script>
 <script src="payloads.js?v=1"></script>
@@ -185,6 +47,8 @@
 <script src="main.js?v=6"></script>
 
 <script>
+// main.js appends the offsets script for the detected firmware as its last act.
+// Everything downstream needs those globals, so publish a promise for them.
 window.offsetsReady = new Promise(function (resolve, reject) {
     var script = document.querySelector('script[src^="offsets/"]');
     if (!script) return reject(new Error("main.js never injected an offsets script"));
@@ -199,11 +63,16 @@ window.offsetsReady = new Promise(function (resolve, reject) {
 <script src="syscalls.js"></script>
 
 <script>
+// Optional overrides:
+//   ?kexp=<file>     use a different kernel shellcode blob
+//   ?elfldr=<file>   use a different ELF loader payload
+//   ?log=0           hide the on-screen progress log (shown by default)
 (function () {
     var query = new URLSearchParams(location.search);
     window.AIO_CFG = {};
     if (query.get("kexp")) AIO_CFG.kexp = query.get("kexp");
     if (query.get("elfldr")) AIO_CFG.elfldr = query.get("elfldr");
+    if (query.get("log") !== "0") document.body.classList.add("verbose");
 })();
 </script>
 
@@ -223,24 +92,15 @@ function __bcn(m) {
     } catch (e) {}
 }
 
-// Cursor management inside the terminal
-let cursorEl = document.createElement("span");
-cursorEl.className = "cursor";
-
 function print(message, level) {
     __bcn(message);
-    try {
-        window.parent.postMessage({ type: 'log', message: String(message), level: level }, '*');
-    } catch (e) {}
     const line = document.createElement("div");
     line.className = level || "LOG-LOG";
-    line.textContent = "> " + String(message);
+    line.textContent = String(message);
     const view = document.getElementById("console");
-    if (view) {
-        if (cursorEl.parentNode) cursorEl.remove();
-        view.appendChild(line);
-        view.appendChild(cursorEl);
-        view.scrollTop = view.scrollHeight;
+    if (view) { 
+        view.appendChild(line); 
+        view.scrollTop = view.scrollHeight; 
     }
 }
 
@@ -256,31 +116,34 @@ function reportFailure(error) {
     let retries = 0;
     try { retries = parseInt(sessionStorage.getItem("relapse.auto-retry") || "0", 10) || 0; } catch (e) {}
     if (retries >= 1) {
-        print("automatic retry already used; halt", "LOG-WARN");
+        print("automatic retry already used; leaving failure visible", "LOG-WARN");
         return;
     }
 
     retries++;
     try { sessionStorage.setItem("relapse.auto-retry", String(retries)); } catch (e) {}
-    print("transient failure detected - recycling browser environment...", "LOG-WARN");
+    print("transient exploit failure detected - automatic browser recovery 1/1...", "LOG-WARN");
     setTimeout(() => {
         try { history.replaceState(null, ""); } catch (e) {}
         location.reload();
     }, 900);
 }
 
+// Progress hooks
 window.jb = { mark: (tag, detail) => print(detail ? tag + " " + detail : tag, "LOG-INFO") };
+
 window.addEventListener("error", (e) => print("error: " + (e && e.message), "LOG-ERROR"));
 window.addEventListener("unhandledrejection", (e) =>
     print("rejected: " + String((e && e.reason && e.reason.message) || (e && e.reason)), "LOG-ERROR"));
 
+/** Establish userland read/write primitive */
 async function establishUserlandPrimitive() {
     if (globalThis.p && typeof globalThis.p.read8 === "function") {
-        print("reusing userland primitive", "LOG-INFO");
+        print("reusing the existing primitive", "LOG-INFO");
         return globalThis.p;
     }
 
-    print("running WebKit memory placement...", "LOG-INFO");
+    print("running the WebKit bug (placement retries itself)", "LOG-INFO");
     try { history.replaceState(null, ""); } catch (e) {}
     if (typeof globalThis.gc === "function") { try { globalThis.gc(); } catch (e) {} }
     await sleep(750);
@@ -303,58 +166,64 @@ async function establishUserlandPrimitive() {
         },
     });
     if (!pairStatus.promoted)
-        throw new Error("primitive pair not promoted: " + pairStatus.error);
+        throw new Error("the primitive pair was not promoted: " + pairStatus.error);
 
     if (typeof globalThis.gc === "function") { try { globalThis.gc(); } catch (e) {} }
     await sleep(1000);
 
     const p = globalThis.p;
-    if (!p || typeof p.read8 !== "function") throw new Error("window.p not published");
-    print("primitive ready (fakeCellReleased=" + fakeCellReleased() + ")", "LOG-SUCCESS");
+    if (!p || typeof p.read8 !== "function") throw new Error("window.p was never published");
+    print("primitive up (fakeCellReleased=" + fakeCellReleased() + ")", "LOG-INFO");
     return p;
 }
 
 async function run() {
-    print("system check initiated", "LOG-INFO");
     const rejection = window.firmware.rejection();
     if (rejection) throw new Error(rejection);
 
     await offsetsReady;
-    print("firmware target detected: " + window.fw_str, "LOG-INFO");
+    print("firmware " + window.fw_str, "LOG-INFO");
 
     const p = await establishUserlandPrimitive();
 
     await import("./exploit.js");
-    print("executing ROP kernel chain...", "LOG-WARN");
     await main(p);
 
     if (!window.__elfldrUp || typeof window.__sendPayload !== "function") return;
 }
 
-/** Injects the matching PSN-HUB Payload Screen when done */
+/** Theme-matched PSN-HUB Payload Menu */
 function buildPayloadMenu() {
     const existing = document.getElementById("relapse-payload-menu");
     if (existing) return existing;
     const tiles = window.PAYLOAD_TILES || [];
-    if (!tiles.length) return print("no payloads defined (payloads.js missing)", "LOG-ERROR");
+    if (!tiles.length) return print("no payload list (payloads.js missing)", "LOG-ERROR");
 
     const style = document.createElement("style");
     style.textContent = `
+      :root {
+        --green-main: #39ff14;
+        --purple-bg: #0d0216;
+        --purple-card: #1f0733;
+        --purple-border: #4a127a;
+        --yellow-accent: #ffe600;
+        --pink-accent: #ff007f;
+        --font-comic: 'Impact', 'Arial Black', sans-serif;
+      }
+
       #relapse-payload-menu {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw;
-        height: 100vh;
         box-sizing: border-box;
+        width: 100vw;
+        min-height: 100vh;
         padding: 24px 16px;
         background: radial-gradient(circle at center, #23063b 0%, var(--purple-bg) 100%) !important;
         color: #fff !important;
         font-family: Arial, sans-serif;
         overflow-y: auto;
-        z-index: 100;
       }
 
       #relapse-payload-menu .payload-header {
+        position: relative;
         text-align: center;
         max-width: 900px;
         margin: 0 auto 20px;
@@ -470,6 +339,12 @@ function buildPayloadMenu() {
         margin-top: 4px;
       }
 
+      #relapse-payload-menu .payload-tile:hover .payload-title,
+      #relapse-payload-menu .payload-tile:focus .payload-title {
+        color: #fff !important;
+        -webkit-text-fill-color: #fff !important;
+      }
+
       @media (max-width: 768px) {
         #relapse-payload-menu .payload-grid { grid-template-columns: 1fr; }
       }
@@ -528,15 +403,16 @@ function buildPayloadMenu() {
             e.preventDefault();
             a.classList.remove("sent", "failed");
             a.classList.add("sending");
+            print(t.title + ": sending...", "LOG-INFO");
             try {
                 const n = await window.__sendPayload(t.name);
                 a.classList.remove("sending", "failed");
                 a.classList.add("sent");
-                alert(t.title + " injected successfully (" + n + " bytes)");
+                print(t.title + ": sent " + n + " bytes to port 9021", "LOG-SUCCESS");
             } catch (err) {
                 a.classList.remove("sending", "sent");
                 a.classList.add("failed");
-                alert("Payload failed: " + ((err && err.message) || err));
+                print(t.title + ": " + ((err && err.message) || err), "LOG-ERROR");
             }
         });
         grid.appendChild(a);
@@ -551,9 +427,8 @@ function buildPayloadMenu() {
 }
 
 function showPayloadMenu() {
-    const term = document.getElementById("term-wrapper");
-    if (term) term.style.display = "none";
-
+    const consoleEl = document.getElementById("console");
+    if (consoleEl) consoleEl.style.display = "none";
     const menu = buildPayloadMenu();
     if (!menu) return;
     menu.style.setProperty("visibility", "visible", "important");
@@ -561,37 +436,16 @@ function showPayloadMenu() {
     menu.style.setProperty("pointer-events", "auto", "important");
     void menu.offsetHeight;
     requestAnimationFrame(() => { void menu.offsetHeight; });
+    print("elfldr is up - ready for injection", "LOG-SUCCESS");
 }
 
-// Check query param from index.html (?menu=1)
-const urlParams = new URLSearchParams(window.location.search);
-const directMenuMode = urlParams.get('menu') === '1';
-
-if (directMenuMode) {
-    const isActivated = sessionStorage.getItem("psn_jb_done") === "true";
-
-    if (!isActivated) {
-        alert("Please run Jailbreak first before accessing the payload menu.");
-        window.location.href = "index.html";
-    } else {
-        // Already executed: skip run() and open the dashboard immediately
-        buildPayloadMenu();
+// Prebuild the complete payload DOM before the exploit starts to avoid WebKit heap mutations
+buildPayloadMenu();
+run().then(() => {
+    try { sessionStorage.removeItem("relapse.auto-retry"); } catch (e) {}
+    if (window.__elfldrUp && typeof window.__sendPayload === "function")
         showPayloadMenu();
-    }
-} else {
-    // Fresh execution path from JAILBREAK NOW
-    buildPayloadMenu();
-    run().then(() => {
-        try { sessionStorage.removeItem("relapse.auto-retry"); } catch (e) {}
-        sessionStorage.setItem("psn_jb_done", "true");
-        if (window.__elfldrUp && typeof window.__sendPayload === "function") {
-            try {
-                window.parent.postMessage({ type: 'done' }, '*');
-            } catch (e) {}
-            showPayloadMenu();
-        }
-    }).catch(reportFailure);
-}
+}).catch(reportFailure);
 </script>
 
 </body>
