@@ -566,8 +566,12 @@ function showPayloadMenu() {
 buildPayloadMenu();
 run().then(() => {
     try { sessionStorage.removeItem("relapse.auto-retry"); } catch (e) {}
-    if (window.__elfldrUp && typeof window.__sendPayload === "function")
+    if (window.__elfldrUp && typeof window.__sendPayload === "function") {
+        try {
+            window.parent.postMessage({ type: 'done' }, '*');
+        } catch (e) {}
         showPayloadMenu();
+    }
 }).catch(reportFailure);
 </script>
 
