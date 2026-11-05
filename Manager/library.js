@@ -41,6 +41,10 @@
       ctx.fillRect(-1,12,2,18);
     }
     function paint(time) {
+      if (last && time-last < 1000/30) {
+        frame = !reduced.matches && !document.hidden ? window.requestAnimationFrame(paint) : 0;
+        return;
+      }
       const dt = last ? Math.min((time-last)/1000,.05) : 0; last = time;
       ctx.clearRect(0,0,width,height);
       for (const item of leaves) {
@@ -152,9 +156,9 @@
   }
   function findCurrent(item) {
     if (item.kind === 'saved') return item;
-    if (item.kind === 'game') return state.catalog && groupCheats(state.catalog.cheats).find(game => game.id === item.id);
-    const all = state.catalog ? [...state.catalog.hens, ...state.catalog.modMenus, ...(state.catalog.emulators || []), ...state.catalog.cheats] : [];
-    return all.find(x => x.path === item.path);
+    if (!state.catalog) return undefined;
+    const index = catalogueIndex(state.catalog);
+    return item.kind === 'game' ? index.games.get(item.id) : index.files.get(item.path);
   }
   function renderPersonal() {
     for (const [id, items] of [['favourites', favourites], ['recent-items', recents]]) {
@@ -232,19 +236,43 @@
     const badge = $('loader-connection'); badge.textContent = 'elfldr: ' + message;
     badge.className = 'badge' + (ok ? ' good' : ' bad'); badge.dataset.checked = 'true';
   }
+  // Catalogue records are immutable after loading; weak keys release old catalogues on retry.
+  const searchIndex = new WeakMap(), groupedIndex = new WeakMap(), personalIndex = new WeakMap();
+  function searchText(file) {
+    let text = searchIndex.get(file);
+    if (text === undefined) {
+      text = [file.title, file.id, ...(file.creators || [])].join(' ').toLowerCase();
+      searchIndex.set(file, text);
+    }
+    return text;
+  }
+  function catalogueIndex(catalog) {
+    let index = personalIndex.get(catalog);
+    if (!index) {
+      index = {games: new Map(groupCheats(catalog.cheats).map(game => [game.id, game])),
+        files: new Map([...catalog.hens, ...catalog.modMenus, ...(catalog.emulators || []), ...catalog.cheats].map(file => [file.path, file]))};
+      personalIndex.set(catalog, index);
+    }
+    return index;
+  }
   function filterCheats(files, filters) {
     const words = filters.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const version = filters.version.toLowerCase().trim();
+    if (!words.length && !version && !filters.platform && !filters.format) return files;
     return files.filter(file => (!filters.platform || file.platform === filters.platform) &&
-      (!filters.format || file.format === filters.format) && (!filters.version || file.version.toLowerCase().includes(filters.version.toLowerCase().trim())) &&
-      words.every(word => [file.title, file.id, ...(file.creators || [])].join(' ').toLowerCase().includes(word)));
+      (!filters.format || file.format === filters.format) && (!version || file.version.toLowerCase().includes(version)) &&
+      (!words.length || words.every(word => searchText(file).includes(word))));
   }
   function groupCheats(files) {
+    if (groupedIndex.has(files)) return groupedIndex.get(files);
     const games = new Map();
     for (const file of files) {
       if (!games.has(file.id)) games.set(file.id, {title: file.title, id: file.id, platform: file.platform, cover: file.cover, files: []});
       games.get(file.id).files.push(file);
     }
-    return [...games.values()].sort((a, b) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+    const result = [...games.values()].sort((a, b) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+    groupedIndex.set(files, result);
+    return result;
   }
   function applyFilters() {
     if (!state.catalog) return;
@@ -322,7 +350,7 @@
   }
   let viewMode = storeRead('viewMode', 'grid') === 'list' ? 'list' : 'grid';
   async function loadStyle() {
-    const blob = await response(repositoryBase + 'Manager/library.css', {cache:'no-store'});
+    const blob = await response(repositoryBase + 'Manager/library.css', {cache:'no-cache'});
     let style = $('library-style');
     if (!style) { style = element('style'); style.id = 'library-style'; document.head.append(style); }
     style.textContent = await blob.text();

@@ -403,6 +403,10 @@ function renderTransparentMascot(imgSrc) {
       ctx.fillRect(-1,12,2,18);
     }
     function paint(time) {
+      if (last && time-last < 1000/30) {
+        frame = !reduced.matches && !document.hidden ? window.requestAnimationFrame(paint) : 0;
+        return;
+      }
       const dt = last ? Math.min((time-last)/1000,.05) : 0; last = time;
       ctx.clearRect(0,0,width,height);
       for (const item of leaves) {
