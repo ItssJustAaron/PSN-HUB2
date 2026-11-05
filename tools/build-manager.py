@@ -40,7 +40,8 @@ def cheat_metadata(file):
     return info
 
 for directory, section in [("Hens", "hens"), ("Hen", "hens"), ("ModMenus", "modMenus"), ("Emulators", "emulators"), ("Cheats", "cheats")]:
-    for file in sorted((manager / directory).rglob("*")):
+    # Path ordering differs between Windows and Linux; sort portable strings.
+    for file in sorted((manager / directory).rglob("*"), key=lambda entry: entry.relative_to(manager).as_posix()):
         if not file.is_file():
             continue
         extension = file.suffix.lower()
