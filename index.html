@@ -23,8 +23,8 @@
 
 body {
   margin: 0; padding: 0;
-  height: 100vh; width: 100vw;
-  overflow: hidden;
+  min-height: 100vh; width: 100%;
+  overflow-x: hidden;
   background: radial-gradient(circle at center, #23063b 0%, var(--purple-bg) 100%);
   color: #fff;
   font-family: var(--font-body);
@@ -90,7 +90,7 @@ body {
 
 .content-wrapper {
   position: relative; z-index: 2;
-  width: 100%; max-width: 850px; height: 100vh;
+  width: 100%; max-width: 850px; min-height: 100vh;
   display: flex; flex-direction: column;
   justify-content: space-between; align-items: center;
   padding: 16px 14px;
@@ -136,7 +136,7 @@ h1 {
 /* Mascot Area */
 .mascot-area {
   position: relative; display: flex; justify-content: center;
-  align-items: center; width: 100%; flex: 1;
+  align-items: center; width: 100%; flex: 1; min-height: 180px; padding: 20px 0;
 }
 .character-card {
   position: relative; height: 100%; max-height: 380px;
@@ -153,17 +153,17 @@ h1 {
 }
 
 .btn-group {
-  width: 100%; display: flex; justify-content: center; margin-bottom: 12px;
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 12px 0 20px; flex-shrink: 0;
 }
 .btn {
   font-family: var(--font-comic);
   text-decoration: none;
   display: flex; justify-content: center; align-items: center;
-  width: 85%; max-width: 420px; padding: 14px 20px;
+  width: 100%; max-width: 420px; min-height: 64px; padding: 14px 20px;
   font-size: clamp(1.2rem, 3.5vw, 1.6rem);
   color: #000; background: var(--green-main);
   border: var(--border-thick); border-radius: 18px;
-  box-shadow: var(--box-shadow); cursor: pointer; outline: none;
+  box-shadow: var(--box-shadow); cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
 }
 .btn:hover {
@@ -172,6 +172,28 @@ h1 {
   background: #5aff36;
 }
 
+#update-site {
+  width: auto; max-width: 100%; min-height: 44px; padding: 10px 22px;
+  font: 700 .85rem var(--font-body); letter-spacing: .06em;
+  background: var(--purple-card); color: #c8e8c2;
+  border: 1px solid #58764b; border-radius: 10px; box-shadow: none;
+}
+#update-site:hover { background: #2d1242; transform: translateY(-1px); }
+#update-site:disabled { opacity: .6; cursor: wait; }
+.btn:focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
+#site-cache-status {
+  width: 100%; max-width: 440px; margin: 0; padding: 0 12px;
+  text-align: center; font-size: .8rem; line-height: 1.5; color: #b8a8c8;
+  overflow-wrap: break-word;
+}
+@media (max-width: 480px) {
+  .blunt-badge { position: relative; top: auto; right: auto; margin: 18px 0 8px; }
+  .content-wrapper { min-height: calc(100vh - 64px); }
+  #mascot-canvas { max-width: 80vw; max-height: 260px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .character-card, .blunt-badge, .blunt-smoke { animation: none; }
+}
 footer {
   width: 100%; text-align: center; background: #000;
   border: var(--border-thick); border-radius: 10px;
@@ -259,7 +281,7 @@ footer {
 
   <div class="btn-group">
     <a class="btn" id="run-jb" href="relapse.html">JAILBREAK NOW</a>
-    <button class="btn" id="update-site" type="button" style="font-size:1rem">CHECK SITE UPDATE</button>
+    <button class="btn" id="update-site" type="button">CHECK SITE UPDATE</button>
     <p id="site-cache-status" role="status" aria-live="polite"></p>
   </div>
 
@@ -353,40 +375,67 @@ function renderTransparentMascot(imgSrc) {
   };
 }
 
-// Background Particles
-var bgCanvas = document.getElementById('bg-canvas');
-var bgCtx = bgCanvas.getContext('2d');
-function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
-resizeBg();
-window.addEventListener('resize', resizeBg);
-
-var particles = [];
-for (var i = 0; i < 22; i++) {
-  particles.push({
-    x: Math.random() * bgCanvas.width,
-    y: Math.random() * bgCanvas.height,
-    size: Math.random() * 5 + 3,
-    speedY: Math.random() * -0.7 - 0.2
-  });
-}
-
-function drawBackground() {
-  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-  bgCtx.fillStyle = '#39ff14';
-  for (var i = 0; i < particles.length; i++) {
-    var p = particles[i];
-    p.y += p.speedY;
-    if (p.y < -10) { p.y = bgCanvas.height + 10; p.x = Math.random() * bgCanvas.width; }
-    bgCtx.beginPath();
-    bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    bgCtx.fill();
+// Same lightweight leaf artwork and motion as Manager.
+  function startLeafBackground() {
+    // Canvas vectors keep the background lightweight and independent of artwork downloads.
+    if (!document.body || !window.requestAnimationFrame) return;
+    const canvas = document.getElementById('bg-canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let width = 0, height = 0, frame = 0, last = 0, leaves = [];
+    const tips = [[-25,5],[-30,-14],[-18,-33],[0,-47],[18,-33],[30,-14],[25,5]];
+    function leaf() {
+      ctx.fillStyle = '#39ff14';
+      for (const [tx,ty] of tips) {
+        const dx = tx, dy = ty - 14, length = Math.hypot(dx,dy), nx = -dy/length, ny = dx/length;
+        const breadth = Math.abs(tx) > 24 ? 5 : 6;
+        ctx.beginPath(); ctx.moveTo(0,14);
+        for (let side = 1; side >= -1; side -= 2) {
+          for (let i = 1; i <= 12; i++) {
+            const t = side === 1 ? i/12 : 1-i/12;
+            const spread = Math.sin(Math.PI*t)*breadth*(i%2 ? 1 : .55)*side;
+            ctx.lineTo(dx*t+nx*spread,14+dy*t+ny*spread);
+          }
+        }
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillRect(-1,12,2,18);
+    }
+    function paint(time) {
+      const dt = last ? Math.min((time-last)/1000,.05) : 0; last = time;
+      ctx.clearRect(0,0,width,height);
+      for (const item of leaves) {
+        if (!reduced.matches) {
+          item.y -= item.speed*dt; item.angle += item.spin*dt;
+          if (item.y < -80) { item.y = height+80; item.x = Math.random()*width; }
+        }
+        ctx.save(); ctx.translate(item.x+Math.sin(item.y/140)*12,item.y); ctx.rotate(item.angle); ctx.scale(item.scale,item.scale);
+        ctx.globalAlpha = item.alpha; leaf(); ctx.restore();
+      }
+      frame = !reduced.matches && !document.hidden ? window.requestAnimationFrame(paint) : 0;
+    }
+    function resume() {
+      window.cancelAnimationFrame(frame); frame = 0; last = 0;
+      if (!document.hidden) paint(0);
+    }
+    function resize() {
+      width = window.innerWidth; height = window.innerHeight;
+      const ratio = Math.min(window.devicePixelRatio || 1,1.5);
+      canvas.width = Math.round(width*ratio); canvas.height = Math.round(height*ratio); ctx.setTransform(ratio,0,0,ratio,0,0);
+      leaves = Array.from({length:width<700?10:20},()=>({x:Math.random()*width,y:Math.random()*height,scale:.25+Math.random()*.45,angle:Math.random()*Math.PI*2,speed:10+Math.random()*16,spin:(Math.random()-.5)*.18,alpha:.22+Math.random()*.35}));
+      resume();
+    }
+    window.addEventListener('resize',resize); document.addEventListener('visibilitychange',resume);
+    window.addEventListener('pagehide',()=>window.cancelAnimationFrame(frame));
+    window.addEventListener('pageshow',resume);
+    if (reduced.addEventListener) reduced.addEventListener('change',resume); else reduced.addListener(resume);
+    resize();
   }
-  requestAnimationFrame(drawBackground);
-}
 
 window.onload = function() {
   renderTransparentMascot("mascot.png");
-  drawBackground();
+  startLeafBackground();
 };
 </script>
 
