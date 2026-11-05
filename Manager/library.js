@@ -207,11 +207,12 @@
       selectFirmware(state.reportedFirmware);
       $('manager-connection').textContent = data.preview ? 'Preview · no console' : 'Manager: connected';
       $('manager-connection').className = 'badge' + (data.preview ? '' : ' good');
+      $('connection-help').hidden = !data.preview;
       if (data.preview) {
         $('loader-connection').textContent = 'elfldr: preview only';
         $('connection-help').textContent = 'Browse and test controls here. Console installs and sends are disabled.';
       } else {
-        $('connection-help').textContent = 'Manager reachable at ' + location.host + '. elfldr is verified when a payload is sent.';
+        $('connection-help').textContent = '';
         if (typeof data.elfldr === 'boolean') setLoader(data.elfldr, data.elfldr ? 'ready' : 'not listening');
         else if (!$('loader-connection').dataset.checked) $('loader-connection').textContent = 'elfldr: checked on send';
       }
@@ -223,6 +224,7 @@
       $('manager-connection').textContent = 'Manager: unreachable'; $('manager-connection').className = 'badge bad';
       $('loader-connection').textContent = 'elfldr: unknown'; $('loader-connection').className = 'badge';
       delete $('loader-connection').dataset.checked;
+      $('connection-help').hidden = false;
       $('connection-help').textContent = 'Reconnect to the PS5 network and reopen http://<PS5-IP>:8085. ' + error.message;
     } finally { $('check-connection').disabled = false; }
   }
