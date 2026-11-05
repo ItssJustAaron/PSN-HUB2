@@ -12,7 +12,10 @@ function environment(mode){
     if(mode==='download-error'&&url.includes('?build='))return {ok:false,status:503};
     return {ok:true,arrayBuffer:async()=>Uint8Array.from(binary).buffer};
   }});
-  vm.runInContext(fs.readFileSync(path.join(root,'payload-fetch.js'),'utf8'),context);return {window,requests};
+  const main=fs.readFileSync(path.join(root,'main.js'),'utf8').replace(/\r\n/g,'\n');
+  const embedded=main.split('/* BEGIN EMBEDDED PAYLOAD FETCH: keep in sync with payload-fetch.js */\n')[1].split('/* END EMBEDDED PAYLOAD FETCH */')[0];
+  assert.equal(embedded,fs.readFileSync(path.join(root,'payload-fetch.js'),'utf8').replace(/\r\n/g,'\n'),'Embedded loader must match the standalone helper');
+  vm.runInContext(embedded,context);return {window,requests};
 }
 (async()=>{
   const online=environment('online');assert.equal((await online.window.fetchPayloadFile('PSN-HUB-Manager.elf')).byteLength,binary.length);
