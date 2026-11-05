@@ -1,0 +1,132 @@
+{
+  "firmwares": [
+    {
+      "version": "13.60",
+      "script": "13.60.js"
+    },
+    {
+      "version": "13.42",
+      "script": "13.42.js"
+    },
+    {
+      "version": "13.40",
+      "script": "13.40.js"
+    },
+    {
+      "version": "13.20",
+      "script": "13.20.js"
+    },
+    {
+      "version": "13.00",
+      "script": "13.00.js"
+    },
+    {
+      "version": "12.70",
+      "script": "12.70.js"
+    },
+    {
+      "version": "12.60",
+      "script": "12.60.js"
+    },
+    {
+      "version": "12.40",
+      "script": "12.40.js"
+    },
+    {
+      "version": "12.20",
+      "script": "12.20.js"
+    },
+    {
+      "version": "12.02",
+      "script": "12.02.js"
+    },
+    {
+      "version": "12.00",
+      "script": "12.00.js"
+    },
+    {
+      "version": "11.60",
+      "script": "11.60.js"
+    },
+    {
+      "version": "11.20",
+      "script": "11.20.js"
+    },
+    {
+      "version": "11.00",
+      "script": "11.00.js"
+    },
+    {
+      "version": "10.40",
+      "script": "10.40.js"
+    },
+    {
+      "version": "10.20",
+      "script": "10.20.js"
+    },
+    {
+      "version": "10.01",
+      "script": "10.01.js"
+    },
+    {
+      "version": "10.00",
+      "script": "10.00.js"
+    },
+    {
+      "version": "9.60",
+      "script": "9.60.js"
+    },
+    {
+      "version": "9.40",
+      "script": "9.40.js"
+    },
+    {
+      "version": "9.20",
+      "script": "9.20.js"
+    },
+    {
+      "version": "9.00",
+      "script": "9.00.js"
+    },
+    {
+      "version": "8.60",
+      "script": "8.60.js"
+    },
+    {
+      "version": "8.40",
+      "script": "8.40.js"
+    },
+    {
+      "version": "8.20",
+      "script": "8.20.js"
+    },
+    {
+      "version": "8.00",
+      "script": "8.00.js"
+    },
+    {
+      "version": "7.61",
+      "script": "7.61.js"
+    },
+    {
+      "version": "7.60",
+      "script": "7.60.js"
+    },
+    {
+      "version": "7.40",
+      "script": "7.40.js"
+    },
+    {
+      "version": "7.20",
+      "script": "7.20.js"
+    },
+    {
+      "version": "7.01",
+      "script": "7.01.js"
+    },
+    {
+      "version": "7.00",
+      "script": "7.00.js"
+    }
+  ]
+}

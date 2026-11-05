@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" manifest="cache.appcache">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -44,7 +44,7 @@
 <script src="rop.js"></script>
 <script src="payloads.js?v=4"></script>
 <script src="firmware.js?v=4"></script>
-<script src="main.js?v=6"></script>
+<script src="main.js?v=7"></script>
 
 <script>
 // main.js appends the offsets script for the detected firmware as its last act.
@@ -187,7 +187,8 @@ async function run() {
     const p = await establishUserlandPrimitive();
 
     await import("./exploit.js");
-    await main(p);
+    const senderOnly = new URLSearchParams(location.search).get("menu") === "1";
+    await main(p, senderOnly);
 
     if (!window.__elfldrUp || typeof window.__sendPayload !== "function") return;
 }
@@ -483,7 +484,7 @@ run().then(() => {
     if (window.__elfldrUp && typeof window.__sendPayload === "function") {
         try { sessionStorage.setItem("psn_jb_done", "true"); } catch (e) {}
         showPayloadMenu();
-        autoLoadManagerPayload();
+        if (new URLSearchParams(location.search).get("menu") !== "1") autoLoadManagerPayload();
     }
 }).catch(reportFailure);
 </script>

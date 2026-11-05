@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>PSN-HUB Manager</title>
+<style>
+:root{color-scheme:dark;--bg:#0d0216;--card:#1f0733;--line:#4a127a;--green:#39ff14;--yellow:#ffe600;--pink:#ff007f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#23063b,var(--bg) 70%);color:#fff;font:16px/1.45 Arial,sans-serif;min-height:100vh}
+main{width:min(900px,100%);margin:auto;padding:28px 18px 56px}h1{margin:0;color:var(--green);font-family:Impact,'Arial Black',sans-serif;font-size:clamp(2rem,6vw,3.4rem);letter-spacing:1px;text-shadow:3px 3px #000,-1px -1px var(--pink)}
+.sub{color:var(--yellow);margin:4px 0 22px}.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:18px;margin:14px 0;box-shadow:4px 4px #000}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.hint{color:#ddd;font-size:.92rem}.path{font:13px ui-monospace,Consolas,monospace;color:var(--green);overflow-wrap:anywhere}
+input[type=file]{max-width:100%;padding:10px;border:1px dashed var(--line);border-radius:10px;background:#130321;color:#fff;flex:1}
+button{border:2px solid #000;border-radius:10px;background:var(--green);color:#111;padding:10px 16px;font-weight:700;cursor:pointer;box-shadow:3px 3px #000}button:hover{filter:brightness(1.1)}button.secondary{background:#ffe600}button.danger{background:#ff007f;color:#fff}button:disabled{opacity:.5;cursor:wait}
+.status{min-height:1.5em;color:var(--yellow);margin-top:10px}.list{display:grid;gap:10px;margin-top:14px}.item{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#130321;border:1px solid var(--line);border-radius:10px;padding:12px}.item-name{font-weight:700;overflow-wrap:anywhere}.item-size{color:#bbb;font-size:.85rem}.actions{display:flex;gap:8px}.empty{color:#bbb;text-align:center;padding:20px}
+.list[hidden]{display:none}
+.tabs{display:flex;gap:8px;overflow-x:auto;margin:18px 0 16px;padding:2px 2px 8px;border-bottom:1px solid var(--line)}
+.tab{flex:0 0 auto;background:#130321;color:#fff;border:1px solid var(--line);box-shadow:none}
+.tab[aria-selected="true"]{background:var(--green);color:#111;border-color:#000}
+.tab-panel[hidden]{display:none}
+.feature-card{background:#130321;border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+.hen-card{padding:0;overflow:hidden}
+.hen-card summary{padding:15px 16px;cursor:pointer;font-weight:700;list-style:none}
+.hen-card summary::-webkit-details-marker{display:none}
+.hen-card summary::after{content:'＋';float:right;color:var(--green);font-size:1.1rem}
+.hen-card[open] summary::after{content:'−'}
+.hen-card-content{padding:0 16px 16px;border-top:1px solid var(--line)}
+.category-fields{display:grid;grid-template-columns:minmax(0,2fr) minmax(180px,1fr);gap:12px;margin:14px 0}
+.category-field{display:grid;gap:6px;color:#fff;font-weight:700}
+input[type=text],input[type=number],select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#130321;color:#fff}
+#category-payloads{min-height:160px}
+.category-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#130321;border:1px solid var(--line);border-radius:10px;padding:12px}
+.category-details{overflow-wrap:anywhere}.category-details small{display:block;color:#bbb;margin-top:4px}
+#category-sequence{margin:10px 0 14px}
+@media(max-width:560px){main{padding:20px 12px}.item{align-items:flex-start}.actions{width:100%}.actions button{flex:1}}
+@media(max-width:560px){.category-fields{grid-template-columns:1fr}.category-item{grid-template-columns:1fr}.category-item .actions button{flex:1}}
+
+button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin:20px 0}.filters label{display:grid;gap:6px;font-size:.85rem;color:#ddd}input[type=search]{width:100%;min-width:0;padding:11px;border:1px solid var(--line);border-radius:8px;background:#130321;color:white}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:.8rem;background:#130321;color:var(--yellow);margin:3px 4px 3px 0}.badge.good{color:var(--green)}.badge.bad{color:#ff8db5}.connection{margin:12px 0}.connection button{padding:6px 10px;font-size:.8rem}.game-card{padding:0;overflow:hidden}.game-card summary{padding:15px;cursor:pointer;font-weight:bold}.game-body{padding:0 14px 16px}.file-entry{padding:14px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}.file-entry h4{margin:5px 0}.file-entry .row{margin-top:10px}.file-entry p{margin:8px 0}.pager{justify-content:center;margin-top:18px}progress{display:block;width:100%;height:20px;accent-color:var(--green);margin:10px 0}#transfer-panel{position:relative}#transfer-report{max-height:240px;overflow:auto;font-size:.85rem}summary{min-height:44px}h2{margin-top:8px}.muted{color:#bbb}.favourite{background:#130321;color:var(--yellow);border:1px solid var(--line);box-shadow:none}.favourite[aria-pressed=true]{background:var(--yellow);color:#111}a{color:#b5a3ff}.actions{flex-wrap:wrap}
+@media(max-width:680px){.filters{grid-template-columns:1fr 1fr}.filters label:first-child{grid-column:1/-1}.row button{min-height:44px}.badge{overflow-wrap:anywhere}h1{font-size:2rem}.tab{padding:10px}.file-entry .row{gap:8px}}
+</style>
+</head>
+<body><main>
+<h1>PSN-HUB MANAGER</h1>
+<p class="sub">Manage payloads, HENs, cheats, and mod menus from your PS5.</p>
+<section class="connection"><div class="row"><span id="manager-connection" class="badge">Manager: checking…</span><span id="loader-connection" class="badge">elfldr: not checked</span><button id="check-connection" class="secondary">Check connection</button></div><p id="connection-help" class="hint">Open this dashboard at your PS5 address on port 8085.</p></section>
+<section class="card" id="transfer-panel" hidden><h2 id="transfer-title">Transfer</h2><label for="transfer-progress">Files completed</label><progress id="transfer-progress" value="0" max="1"></progress><p id="transfer-status" role="status" aria-live="polite"></p><div class="row"><button id="cancel-transfer" class="danger">Cancel</button><button id="retry-transfer" class="secondary" hidden>Retry remaining</button></div><details><summary>Transfer report</summary><div id="transfer-report"></div></details></section>
+<nav class="tabs" role="tablist" aria-label="Manager sections">
+  <button class="tab" id="tab-payloads" type="button" role="tab" aria-selected="true" aria-controls="panel-payloads">PAYLOADS</button>
+  <button class="tab" id="tab-cheats" type="button" role="tab" aria-selected="false" aria-controls="panel-cheats" tabindex="-1">CHEATS</button>
+  <button class="tab" id="tab-hens" type="button" role="tab" aria-selected="false" aria-controls="panel-hens" tabindex="-1">HENS</button>
+  <button class="tab" id="tab-mod-menus" type="button" role="tab" aria-selected="false" aria-controls="panel-mod-menus" tabindex="-1">MOD MENUS</button>
+  <button class="tab" id="tab-emulators" type="button" role="tab" aria-selected="false" aria-controls="panel-emulators" tabindex="-1">EMULATORS</button>
+  <button class="tab" id="tab-my-library" type="button" role="tab" aria-selected="false" aria-controls="panel-my-library" tabindex="-1">MY LIBRARY</button>
+</nav>
+<div class="tab-panel" id="panel-payloads" role="tabpanel" aria-labelledby="tab-payloads">
+<section class="card">
+  <strong>PS5 storage</strong>
+  <p class="path">/data/psn-hub/payloads</p>
+  <p class="hint">ELF and BIN files stay on the console between sessions. Uploads are kept in this folder until you remove them.</p>
+  <div class="row"><input id="files" type="file" accept=".elf,.bin" multiple><button id="upload">Upload selected</button></div>
+  <div id="status" class="status" role="status"></div>
+</section>
+<section class="card">
+  <div class="row"><strong>Home-screen shortcut</strong><button id="refresh-installer" class="secondary">Check status</button></div>
+  <div id="installer-status" class="status" role="status" aria-live="polite">Checking shortcut registration…</div>
+</section>
+<section class="card">
+  <strong>Autoload categories</strong>
+  <p class="hint">Create a category, add saved payloads in the order to send them, and set a delay between each payload. Categories are saved on the PS5.</p>
+  <div class="category-fields">
+    <label class="category-field">Category name<input id="category-name" type="text" maxlength="64" placeholder="My payload set"></label>
+    <label class="category-field">Delay between payloads (ms)<input id="category-delay" type="number" min="0" max="60000" step="100" value="0"></label>
+  </div>
+  <div class="row"><strong>Payloads to add</strong><button id="toggle-available-payloads" class="secondary" type="button" aria-expanded="false">SHOW</button></div>
+  <div id="available-payloads" class="list" hidden></div>
+  <strong>Send order</strong>
+  <p class="hint">Use the arrows to change the order; the delay is applied between sends.</p>
+  <div id="category-sequence" class="list"></div>
+  <div class="row" style="margin-top:12px"><button id="save-category">Save category</button></div>
+  <div id="category-status" class="status" role="status" aria-live="polite"></div>
+  <div id="categories" class="list"></div>
+</section>
+<section class="card"><div class="row"><strong>Saved payloads</strong><button id="refresh" class="secondary">Refresh list</button></div><div id="list" class="list"></div></section>
+</div>
+<div class="tab-panel" id="panel-cheats" role="tabpanel" aria-labelledby="tab-cheats" hidden>
+  <section class="card">
+    <div class="row"><div><h2>Cheat collection</h2><p class="hint">Choose your game, title ID and exact game version.</p></div><button id="download-all-cheats" type="button" disabled>DOWNLOAD ALL</button></div>
+    <p class="path" id="cheat-install-path">Installs to /data/etaHEN/cheats/{json,mc4,shn}</p>
+    <p class="hint">All and individual installs use the same folders. Matching files are replaced.</p>
+    <div class="filters">
+      <label>Search games, title IDs or creators<input id="cheat-search" type="search" placeholder="e.g. God of War or CUSA00002"></label>
+      <label>Platform<select id="cheat-platform"><option value="">All platforms</option>PS4</option><option>PS5</option></select></label>
+      <label>Format<select id="cheat-format"><option value="">All formats</option><option value="json">JSON</option><option value="mc4">MC4</option><option value="shn">SHN</option></select></label>
+      <label>Game version<input id="cheat-version" type="search" placeholder="e.g. 01.00"></label>
+    </div>
+    <p id="cheat-count" class="hint" role="status">Loading games…</p>
+    <div id="cheat-games" class="list"></div>
+    <div class="row pager"><button id="cheat-prev" class="secondary" disabled>Previous</button><span id="cheat-page"></span><button id="cheat-next" class="secondary" disabled>Next</button></div>
+    <p class="hint">Collection files retain their original creators’ credits. Inspired by <a href="https://hencheats.vercel.app" target="_blank" rel="noopener">HEN Cheats Collection</a>.</p>
+  </section>
+</div>
+<div class="tab-panel" id="panel-hens" role="tabpanel" aria-labelledby="tab-hens" hidden>
+  <section class="card">
+    <h2>HENs</h2><p class="hint">Expand an entry for its description, supported firmware, and send button. HEN support can differ from this site’s jailbreak firmware range.</p>
+    <div id="hen-catalog"></div>
+  </section>
+</div>
+<div class="tab-panel" id="panel-mod-menus" role="tabpanel" aria-labelledby="tab-mod-menus" hidden>
+  <section class="card">
+    <h2>Mod Menus</h2>
+    <div id="mod-menu-catalog"></div>
+  </section>
+</div>
+<div class="tab-panel" id="panel-emulators" role="tabpanel" aria-labelledby="tab-emulators" hidden><section class="card"><h2>Emulators</h2><p class="hint">Emulator installer payloads for your PS5.</p><div id="emulator-catalog"></div></section></div>
+<div class="tab-panel" id="panel-my-library" role="tabpanel" aria-labelledby="tab-my-library" hidden><section class="card"><h2>My library</h2><p class="hint">Favourites and recent items are saved in this browser.</p><h3>Favourites</h3><div id="favourites" class="list"></div><h3>Recently used</h3><div id="recent-items" class="list"></div></section></div>
+
+<div class="row"><button id="retry-library" class="secondary">Retry library</button></div><div id="catalog-status" class="status" role="status" aria-live="polite"></div></main>
+<script>
+const listEl=document.getElementById('list'),statusEl=document.getElementById('status'),filesEl=document.getElementById('files'),installerStatusEl=document.getElementById('installer-status');
+const cheatStatusEl=document.getElementById('cheat-status');
+const categoryNameEl=document.getElementById('category-name'),categoryDelayEl=document.getElementById('category-delay'),categoryStatusEl=document.getElementById('category-status'),categoriesEl=document.getElementById('categories'),availablePayloadsEl=document.getElementById('available-payloads'),categorySequenceEl=document.getElementById('category-sequence');
+let categoryPayloadSequence=[];
+const managerTabs=Array.from(document.querySelectorAll('[role="tab"]'));
+function selectTab(tab){managerTabs.forEach(item=>{const active=item===tab;item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!active;});}
+managerTabs.forEach((tab,index)=>{tab.addEventListener('click',()=>selectTab(tab));tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const step=event.key==='ArrowRight'?1:-1;const next=managerTabs[(index+step+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});});
+function requestHeaders(){return {'X-PSNHUB-Request':'1'};}
+function prettySize(n){if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(1)+' KB';return (n/1048576).toFixed(1)+' MB';}
+async function refreshInstallerStatus(){installerStatusEl.textContent='Checking shortcut registration…';try{const r=await fetch('/api/status',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d.preview){installerStatusEl.textContent='Preview — no console connected.';return;}const summary=(label,item)=>label+': '+(item.status==='success'?'registered':item.status==='failed'?'failed at '+item.stage+' (code '+item.code+')':'pending at '+item.stage);const note=d.notification==='sent'?'notification sent':d.notification==='failed'?'notification failed (code '+d.notificationCode+')':'notification pending';installerStatusEl.textContent=summary('Manager',d.manager)+'; '+summary('Jailbreak site',d.jailbreak)+'; '+note+'.';if(d.userServiceCode)installerStatusEl.textContent+=' User service code: '+d.userServiceCode+'.';}catch(e){installerStatusEl.textContent='Could not read shortcut status: '+e.message;}}
+
+const builtinCatalog = null;
+const managerBuild = __MANAGER_BUILD__;
+const repositoryBase='https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/';
+let catalogPromise;
+async function loadCatalog(){if(!catalogPromise)catalogPromise=(async()=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);try{const r=await fetch(repositoryBase+'Manager/catalog.json',{cache:'no-store',signal:c.signal});if(!r.ok)throw new Error('Catalogue HTTP '+r.status);return await r.json();}finally{clearTimeout(t);}})().catch(e=>{catalogPromise=null;throw e;});return catalogPromise;}
+function sourceURL(path){if(!/^Manager\/(?:Hens|Hen|ModMenus|Emulators|Cheats)\//.test(path)||path.split('/').some(x=>!x||x==='.'||x==='..'))throw new Error('Invalid library path');return repositoryBase+path.split('/').map(encodeURIComponent).join('/');}
+let libraryLoading=false;
+async function loadLibraryUI(){if(libraryLoading||window.PSNLibrary)return;libraryLoading=true;const status=document.getElementById('catalog-status');status.textContent='Loading library…';const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);try{const r=await fetch(repositoryBase+'Manager/library.js?v=__LIBRARY_VERSION__',{cache:'no-store',signal:controller.signal});if(!r.ok)throw new Error('Library HTTP '+r.status);const script=document.createElement('script');script.textContent=await r.text();document.body.append(script);if(!window.PSNLibrary)throw new Error('Library did not start');status.textContent='';}catch(e){status.textContent='Library unavailable. Check internet access and choose Retry library. '+e.message;}finally{clearTimeout(timer);libraryLoading=false;}}
+function selectedPayloads(){return categoryPayloadSequence.slice();}
+document.getElementById('toggle-available-payloads').addEventListener('click',function(){const show=availablePayloadsEl.hidden;availablePayloadsEl.hidden=!show;this.textContent=show?'HIDE':'SHOW';this.setAttribute('aria-expanded',String(show));});
+function fillPayloadChoices(items){availablePayloadsEl.textContent='';if(!items.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Upload payloads first to add them to a category.';availablePayloadsEl.append(empty);return;}items.forEach(item=>{const row=document.createElement('div');row.className='item';const info=document.createElement('div');const name=document.createElement('div');name.className='item-name';name.textContent=item.name;const size=document.createElement('div');size.className='item-size';size.textContent=prettySize(item.size);info.append(name,size);const add=document.createElement('button');add.textContent=categoryPayloadSequence.includes(item.name)?'Added':'Add';add.disabled=categoryPayloadSequence.includes(item.name);add.addEventListener('click',()=>addPayloadToCategory(item.name));row.append(info,add);availablePayloadsEl.append(row);});}
+function renderCategorySequence(){categorySequenceEl.textContent='';if(!categoryPayloadSequence.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='No payloads added yet.';categorySequenceEl.append(empty);return;}categoryPayloadSequence.forEach((name,index)=>{const row=document.createElement('div');row.className='category-item';const info=document.createElement('div');info.className='category-details';info.textContent=(index+1)+'. '+name;const actions=document.createElement('div');actions.className='actions';const up=document.createElement('button');up.className='secondary';up.textContent='↑';up.setAttribute('aria-label','Move '+name+' up');up.disabled=index===0;up.addEventListener('click',()=>movePayload(index,-1));const down=document.createElement('button');down.className='secondary';down.textContent='↓';down.setAttribute('aria-label','Move '+name+' down');down.disabled=index===categoryPayloadSequence.length-1;down.addEventListener('click',()=>movePayload(index,1));const remove=document.createElement('button');remove.className='danger';remove.textContent='Remove';remove.addEventListener('click',()=>removePayloadFromCategory(name));actions.append(up,down,remove);row.append(info,actions);categorySequenceEl.append(row);});}
+function addPayloadToCategory(name){if(!categoryPayloadSequence.includes(name))categoryPayloadSequence.push(name);fillPayloadChoices(currentPayloads);renderCategorySequence();}
+function movePayload(index,direction){const target=index+direction;if(target<0||target>=categoryPayloadSequence.length)return;[categoryPayloadSequence[index],categoryPayloadSequence[target]]=[categoryPayloadSequence[target],categoryPayloadSequence[index]];fillPayloadChoices(currentPayloads);renderCategorySequence();}
+function removePayloadFromCategory(name){categoryPayloadSequence=categoryPayloadSequence.filter(item=>item!==name);fillPayloadChoices(currentPayloads);renderCategorySequence();}
+function renderCategories(categories){categoriesEl.textContent='';if(!categories.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='No autoload categories yet.';categoriesEl.append(empty);return;}categories.forEach(category=>{const row=document.createElement('div');row.className='category-item';const info=document.createElement('div');info.className='category-details';const title=document.createElement('strong');title.textContent=category.name;const details=document.createElement('small');details.textContent=category.payloads.join(' → ')+' · '+category.delayMs+' ms between payloads';info.append(title,details);const actions=document.createElement('div');actions.className='actions';const run=document.createElement('button');run.textContent='Run';run.addEventListener('click',()=>runCategory(category,run));const edit=document.createElement('button');edit.className='secondary';edit.textContent='Edit';edit.addEventListener('click',()=>editCategory(category));const remove=document.createElement('button');remove.className='danger';remove.textContent='Delete';remove.addEventListener('click',()=>deleteCategory(category,remove));actions.append(run,edit,remove);row.append(info,actions);categoriesEl.append(row);});}
+async function refreshCategories(){try{const r=await fetch('/api/categories',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const data=await r.json();renderCategories(data.categories||[]);}catch(e){categoryStatusEl.textContent='Could not load categories: '+e.message;}}
+let currentPayloads=[];
+async function refresh(){statusEl.textContent='Loading saved payloads…';try{const r=await fetch('/api/list',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const data=await r.json();currentPayloads=data.items;fillPayloadChoices(data.items);renderCategorySequence();listEl.textContent='';if(!data.items.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='No custom payloads saved yet.';listEl.append(empty);}data.items.forEach(item=>{const row=document.createElement('div');row.className='item';const info=document.createElement('div');const name=document.createElement('div');name.className='item-name';name.textContent=item.name;const size=document.createElement('div');size.className='item-size';size.textContent=prettySize(item.size);info.append(name,size);const actions=document.createElement('div');actions.className='actions';const send=document.createElement('button');send.textContent='Send to PS5';if(window.PSNLibrary)actions.append(window.PSNLibrary.favourite({key:'saved:'+item.name,title:item.name,name:item.name,kind:'saved'}));send.addEventListener('click',()=>sendPayload(item.name,send));const del=document.createElement('button');del.className='danger';del.textContent='Delete';del.addEventListener('click',()=>deletePayload(item.name,del));actions.append(send,del);row.append(info,actions);listEl.append(row);});statusEl.textContent=data.items.length+' payload(s) saved on PS5.';await refreshCategories();}catch(e){statusEl.textContent='Could not load payloads: '+e.message;}}
+async function sendPayload(name,button){if(window.PSNLibrary&&!window.PSNLibrary.canSendName(name))return;button.disabled=true;statusEl.textContent='Sending '+name+' to elfldr…';try{const r=await fetch('/api/send?name='+encodeURIComponent(name),{method:'POST',headers:requestHeaders()});const body=await r.text();if(!r.ok)throw new Error(body||('HTTP '+r.status));if(window.PSNLibrary)window.PSNLibrary.record({key:'saved:'+name,title:name,name,kind:'saved'});statusEl.textContent=name.toLowerCase()==='psn-hub-manager.elf'?'Manager update sent; restarting the manager…':name+' sent to elfldr.';}catch(e){statusEl.textContent='Send failed: '+e.message;}finally{button.disabled=false;}}
+async function deletePayload(name,button){if(!confirm('Delete '+name+' from PS5 storage?'))return;button.disabled=true;try{const r=await fetch('/api/delete?name='+encodeURIComponent(name),{method:'POST',headers:requestHeaders()});if(!r.ok)throw new Error(await r.text());statusEl.textContent=name+' deleted.';await refresh();}catch(e){statusEl.textContent='Delete failed: '+e.message;}finally{button.disabled=false;}}
+async function saveCategory(){const name=categoryNameEl.value.trim(),delay=Number(categoryDelayEl.value),payloads=selectedPayloads();if(!name){categoryStatusEl.textContent='Enter a category name.';return;}if(!payloads.length){categoryStatusEl.textContent='Choose at least one saved payload.';return;}if(!Number.isInteger(delay)||delay<0||delay>60000){categoryStatusEl.textContent='Delay must be between 0 and 60000 ms.';return;}const params=new URLSearchParams({category:name,delay:String(delay),payloads:payloads.join(',')});categoryStatusEl.textContent='Saving '+name+'…';try{const r=await fetch('/api/category/save?'+params.toString(),{method:'POST',headers:requestHeaders()});if(!r.ok)throw new Error(await r.text());categoryStatusEl.textContent='Category saved on the PS5.';await refreshCategories();}catch(e){categoryStatusEl.textContent='Could not save category: '+e.message;}}
+function editCategory(category){categoryNameEl.value=category.name;categoryDelayEl.value=category.delayMs;categoryPayloadSequence=category.payloads.slice();fillPayloadChoices(currentPayloads);renderCategorySequence();availablePayloadsEl.hidden=false;const toggle=document.getElementById('toggle-available-payloads');toggle.textContent='HIDE';toggle.setAttribute('aria-expanded','true');categoryStatusEl.textContent='Editing '+category.name+'. Add more payloads below, then save.';categoryNameEl.focus();}
+async function runCategory(category,button){if(window.PSNLibrary&&!category.payloads.every(window.PSNLibrary.canSendName))return;button.disabled=true;categoryStatusEl.textContent='Running '+category.name+' ('+category.payloads.length+' payloads)…';try{const r=await fetch('/api/category/run?category='+encodeURIComponent(category.name),{method:'POST',headers:requestHeaders()});const body=await r.text();if(!r.ok)throw new Error(body||('HTTP '+r.status));const result=JSON.parse(body);categoryStatusEl.textContent='Sent '+result.sent+' payload(s) from '+category.name+'.';}catch(e){categoryStatusEl.textContent='Category run failed: '+e.message;}finally{button.disabled=false;}}
+async function deleteCategory(category,button){if(!confirm('Delete autoload category “'+category.name+'”?'))return;button.disabled=true;try{const r=await fetch('/api/category/delete?category='+encodeURIComponent(category.name),{method:'POST',headers:requestHeaders()});if(!r.ok)throw new Error(await r.text());categoryStatusEl.textContent='Category deleted.';await refreshCategories();}catch(e){categoryStatusEl.textContent='Could not delete category: '+e.message;}finally{button.disabled=false;}}
+document.getElementById('upload').addEventListener('click',async function(){const files=Array.from(filesEl.files||[]);if(!files.length){statusEl.textContent='Choose one or more .elf or .bin files first.';return;}this.disabled=true;try{for(const file of files){statusEl.textContent='Uploading '+file.name+'…';const r=await fetch('/api/upload?name='+encodeURIComponent(file.name),{method:'PUT',headers:requestHeaders(),body:file});if(!r.ok)throw new Error(file.name+': '+(await r.text()));}filesEl.value='';statusEl.textContent='Upload complete.';await refresh();}catch(e){statusEl.textContent='Upload failed: '+e.message;}finally{this.disabled=false;}});
+document.getElementById('save-category').addEventListener('click',saveCategory);document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('refresh-installer').addEventListener('click',refreshInstallerStatus);refresh();refreshInstallerStatus();
+
+
+document.getElementById('retry-library').addEventListener('click',loadLibraryUI);loadLibraryUI();
+</script></body></html>

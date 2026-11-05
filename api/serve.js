@@ -27,7 +27,7 @@ const MIME = {
     ".css": "text/css", ".png": "image/png", ".gif": "image/gif",
     ".jpg": "image/jpeg", ".json": "application/json",
     ".elf": "application/octet-stream", ".bin": "application/octet-stream",
-    ".txt": "text/plain; charset=utf-8"
+    ".txt": "text/plain; charset=utf-8", ".appcache": "text/cache-manifest"
 };
 
 function sendPayload(name, ip, cb) {

@@ -1,0 +1,57 @@
+html.library-wide main{width:min(1760px,100%)}
+#leaf-background{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.42}
+html.library-wide main{position:relative;z-index:1}
+#panel-payloads,#panel-hens,#panel-mod-menus,#panel-emulators,#panel-my-library{max-width:1040px;margin-inline:auto}
+.maintenance-panel{border:1px solid var(--line);border-radius:12px;background:#130321;margin:12px 0}
+.maintenance-panel>summary{padding:12px;cursor:pointer;font-weight:bold}.maintenance-body{padding:0 14px 16px}
+#build-details{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.7 ui-monospace,Consolas,monospace;margin-bottom:12px;color:#d9c5ea}
+.profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.profile-fields label,.maintenance-body>label{display:grid;gap:6px;font-size:.9rem}.backup-toggle{display:flex;align-items:center;gap:8px;margin:12px 0}.backup-toggle input{width:20px;height:20px;accent-color:var(--green)}#backup-list{width:auto;max-width:100%}
+@media(max-width:600px){.profile-fields{grid-template-columns:1fr}}
+.view-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:16px 0}
+.view-controls button{background:#130321;color:#ddd}
+.view-controls button[aria-pressed=true]{background:var(--green);color:#111}
+.firmware-settings{border:1px solid var(--line);padding:12px;border-radius:12px;margin:12px 0}
+.firmware-settings label{display:flex;align-items:center;gap:8px;font-size:.9rem}
+.firmware-settings input[type=text]{width:130px}
+.firmware-settings input[type=checkbox]{width:20px;height:20px;accent-color:var(--green)}
+.compatibility-note{margin:8px 0;font-size:.9rem;color:var(--yellow)}
+#cheat-games.game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+#cheat-games.game-list{display:grid;grid-template-columns:1fr;gap:12px}
+.cover-card{position:relative;min-width:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#130321;box-shadow:3px 3px #000}
+.cover-opener{display:block;width:100%;padding:0;text-align:left;border:0;border-radius:0;background:transparent;color:#fff;box-shadow:none;font:inherit}
+.cover-opener:hover{filter:none;background:#230b38}
+.cover-wrap{position:relative;display:block;aspect-ratio:1;background:linear-gradient(145deg,#401563,#12041d);overflow:hidden}
+.cover-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;text-align:center;color:#b98bdf;font-size:2.5rem;font-weight:bold}
+.cover-placeholder small{font-size:.7rem;letter-spacing:1px;margin-top:8px}
+.cover-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.cover-wrap:after{content:'';position:absolute;inset:55% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.8));z-index:2;pointer-events:none}
+.cover-platform,.cover-formats{position:absolute;z-index:3;left:10px}
+.cover-platform{top:10px;background:rgba(10,5,20,.8);padding:4px 8px;border-radius:5px;font-size:.75rem;letter-spacing:1px}
+.cover-formats{bottom:8px;display:flex;gap:5px;flex-wrap:wrap}
+.cover-format{background:#705909;color:#ffe787;padding:3px 6px;border-radius:5px;font-size:.65rem;font-weight:bold}
+.cover-meta{display:block;padding:12px}
+.cover-id{display:block;color:#ad98be;font-size:.7rem;letter-spacing:.5px;margin-bottom:6px}
+.cover-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.95rem;line-height:1.4;min-height:2.8em;margin-bottom:8px}
+.cover-count,.cover-creators{display:block;color:#b7a7c4;font-size:.75rem;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cover-card>.cover-favourite{position:absolute;top:8px;right:8px;z-index:4;width:38px;min-height:38px;padding:4px;background:rgba(10,5,20,.8);color:#fff;border:1px solid #8c799b;border-radius:9px;font-size:1.3rem;box-shadow:none}
+.cover-card>.cover-favourite[aria-pressed=true]{background:var(--yellow);color:#111}
+.cover-card[data-open=true]{grid-column:1/-1;border:2px solid var(--green)}
+.cover-card[data-open=true]>.cover-opener{display:grid;grid-template-columns:150px 1fr;align-items:center}
+.cover-card[data-open=true] .cover-wrap{width:150px}
+.cover-card[data-open=true] .cover-title{min-height:0;font-size:1.2rem}
+.cover-card[data-open=true]>.cover-favourite{top:12px;right:12px}
+.cover-card .game-body{padding:0 16px 16px}
+.cover-card .game-body[hidden]{display:none}
+.cover-opener:focus-visible,.cover-card:focus-within{outline:3px solid var(--yellow);outline-offset:3px}
+.game-list .cover-opener{display:grid;grid-template-columns:100px 1fr;align-items:center}
+.game-list .cover-wrap{width:100px}.game-list .cover-title{min-height:0}
+#cheat-games>.empty{grid-column:1/-1}
+@media(min-width:900px){#cheat-games.game-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}}
+@media(min-width:1500px){#cheat-games.game-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(min-width:1800px){#cheat-games.game-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media(hover:none) and (pointer:coarse) and (max-width:1100px){#cheat-games.game-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html[data-console=ps5] #cheat-games.game-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+html[data-console=ps5] .cover-title{font-size:1.15rem}
+html[data-console=ps5] .cover-opener:focus{outline:5px solid var(--yellow);outline-offset:-5px}
+@media(max-width:600px){.cover-meta{padding:10px}.cover-title{font-size:.84rem}.cover-id,.cover-count,.cover-creators{font-size:.66rem}.cover-platform{font-size:.65rem;left:7px;top:8px}.cover-formats{left:7px}.cover-format{font-size:.6rem}.cover-card>.cover-favourite{width:32px;min-height:32px;font-size:1.15rem;right:6px}.cover-card[data-open=true]>.cover-opener{grid-template-columns:100px 1fr}.cover-card[data-open=true] .cover-wrap{width:100px}.cover-card[data-open=true] .cover-title{font-size:1rem}.firmware-settings .row{align-items:flex-start}.firmware-settings input[type=text]{width:120px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}

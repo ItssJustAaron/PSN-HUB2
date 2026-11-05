@@ -889,15 +889,6 @@ async function main(userlandRW, wkOnly = false) {
 
   let is_elfldr_running = await probe_sb_elfldr();
   await log("is elfldr running: " + is_elfldr_running, LogLevel.INFO);
-  if (wkOnly && !is_elfldr_running) {
-    let res = confirm(
-      "elfldr doesnt seem to be running and in webkit only mode it wont be loaded, continue?",
-    );
-    if (!res) {
-      throw new Error("Aborted");
-    }
-  }
-
   // Re-entry: an existing elfldr owns 9021, so never run the kernel exploit again.
   if (is_elfldr_running) {
     await log(
@@ -949,7 +940,14 @@ async function main(userlandRW, wkOnly = false) {
 
   // Shared sender for both fresh and re-entry sessions.
   const sendAddr = p.malloc(0x10, 1);
-  window.__sendPayload = async function (filename) {
+  // Menu clicks share elf_store and the ROP chain. Serialize transfers.
+  let payloadSendTail = Promise.resolve();
+  window.__sendPayload = function (filename) {
+    const operation = payloadSendTail.then(() => sendLocalPayload(filename));
+    payloadSendTail = operation.catch(() => {});
+    return operation;
+  };
+  async function sendLocalPayload(filename) {
     const size = await load_payload_into_elf_store_from_local_file(filename);
     if (!size) throw new Error("payload is empty: " + filename);
 
@@ -1981,4 +1979,4 @@ async function main(userlandRW, wkOnly = false) {
 let fwScript = document.createElement("script");
 document.body.appendChild(fwScript);
 
-fwScript.setAttribute("src", `offsets/${window.fw_str}.js?v=` + Date.now());
+fwScript.setAttribute("src", `offsets/${window.fw_str}.js`);

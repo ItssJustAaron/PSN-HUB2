@@ -1,0 +1,50 @@
+{
+  "Hens/cragson-PS5Hen/ps5-hen.elf": {
+    "title": "cragson-PS5Hen",
+    "description": "Defeats the Hypervisor on firmware <= 4.51 and enables support for homebrew and PS4 FPKGs.",
+    "project": "https://github.com/cragson/ps5-hen",
+    "author": "cragson",
+    "release": "Bundled build; version not declared",
+    "changelog": "https://github.com/cragson/ps5-hen/blob/master/CHANGELOG.md",
+    "instructions": "Start elfldr using a compatible exploit, close the exploit application, then send the HEN and wait for its notification.",
+    "firmware": {
+      "1.xx": ["1.00", "1.01", "1.02", "1.05", "1.10", "1.11", "1.12", "1.13", "1.14"],
+      "2.xx": ["2.00", "2.20", "2.25", "2.26", "2.30", "2.50", "2.70"],
+      "3.xx": ["3.00", "3.10", "3.20", "3.21"],
+      "4.xx": ["4.00", "4.02", "4.03", "4.50", "4.51"]
+    }
+  },
+  "Hens/etaHEN-LightneingMods/etaHEN-2.5B.bin": {
+    "title": "etaHEN",
+    "author": "LightningMods / etaHEN team",
+    "release": "2.5B",
+    "description": "All-in-one PS5 homebrew enabler with Toolbox settings and cheat support. Release 2.5B adds a choice of cheat repositories, fan settings, a beta game/app dumper, and WebMAN Games fixes.",
+    "project": "https://github.com/etaHEN/etaHEN",
+    "changelog": "https://github.com/etaHEN/etaHEN/releases/tag/2.5B",
+    "instructions": "Start a compatible jailbreak and elfldr, then send etaHEN-2.5B.bin. This BIN contains an ELF payload and is sent unchanged.",
+    "compatibilityNote": "The linked 2.5B release does not state a complete firmware support list. Compatibility is shown as unknown rather than inferred from newer releases."
+  },
+  "Hens/onionHEN-aydencharles/OnionHEN.elf": {
+    "title": "onionHEN",
+    "author": "aydencharles",
+    "release": "v0.9.0",
+    "description": "PS5 homebrew enabler and Toolbox built on etaHEN, with cheats, an overlay, payload management, and background services. This release adds 13.xx firmware support and improves empty cheat menus.",
+    "project": "https://github.com/aydencharles/onionHEN",
+    "changelog": "https://github.com/aydencharles/onionHEN/releases/tag/v0.9.0",
+    "instructions": "After a cold boot, jailbreak and start external elfldr on port 9021. Send OnionHEN.elf once and wait for startup. Do not load it alongside etaHEN or other hotkey injectors. OnionHEN uses /data/OnionHEN/cheats; this site's cheat installer continues to target /data/etaHEN/cheats.",
+    "firmwareRanges": [{"min":"4.03","max":"13.60"}],
+    "firmwareConditional": ["5.50"],
+    "compatibilityNote": "Upstream adds 13.00–13.60 to the earlier 4.03–12.70 support range; support on 5.50 is conditional. The local ELF matches the SHA-256 published for v0.9.0."
+  },
+  "ModMenus/RaringM/gtav-menu-daemon.elf": {
+    "title": "RaringM — GTA V",
+    "author": "RaringM",
+    "release": "Bundled build; version not declared",
+    "project": "https://github.com/RaringM/ps5-gtav-menu",
+    "changelog": "https://github.com/RaringM/ps5-gtav-menu/releases",
+    "gameCompatibility": ["PPSA04264 · 01.005.000 (US; selection untested upstream)", "PPSA04264 · 01.010.002 (US)", "PPSA04263 · 01.010.002 (EU)"],
+    "compatibilityNote": "Targets documented by the project; confirm the bundled build matches your game. Story Mode only.",
+    "description": "A GTA V mod-menu daemon. Send the ELF before starting GTA V, then press R1 + D-pad Left to open the menu.",
+    "instructions": "The daemon includes its workers; no separate worker upload is needed."
+  }
+}
