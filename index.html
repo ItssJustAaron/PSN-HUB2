@@ -279,7 +279,8 @@ footer {
 // Route directly if already executed, or prompt with modal if not executed yet
 function handlePayloadsNav(e) {
   e.preventDefault();
-  const jbDone = sessionStorage.getItem("psn_jb_done") === "true";
+  let jbDone = false;
+  try { jbDone = sessionStorage.getItem("psn_jb_done") === "true"; } catch (e) {}
   if (jbDone) {
     window.location.href = "relapse.html?menu=1";
   } else {
