@@ -62,6 +62,8 @@ for directory, section in [("Hens", "hens"), ("Hen", "hens"), ("ModMenus", "modM
                  **metadata.get(relative, {}),
                  "path": file.relative_to(ROOT).as_posix(), "name": file.name, "size": file.stat().st_size,
                  "sha256": hashlib.sha256(file.read_bytes()).hexdigest()}
+        if entry.get("expectedSha256") and entry["expectedSha256"] != entry["sha256"]:
+            raise SystemExit("Payload differs from the documented release: " + relative)
         catalog[section].append(entry)
 
 # Encrypted MC4 files carry no readable metadata. Use a matching title ID/version
@@ -81,8 +83,8 @@ updated_at = old_metadata.get("updatedAt") if old_metadata.get("version") == cat
 updated_at = updated_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
 ui_source = (manager / "library.js").read_text(encoding="utf-8")
 ui_release = re.search(r"const UI_RELEASE = '([^']+)'", ui_source)[1]
-ui_hash = hashlib.sha256((manager / "library.js").read_bytes()).hexdigest()
-css_hash = hashlib.sha256((manager / "library.css").read_bytes()).hexdigest()
+ui_hash = hashlib.sha256(ui_source.encode()).hexdigest()
+css_hash = hashlib.sha256((manager / "library.css").read_text(encoding="utf-8").encode()).hexdigest()
 template = (manager / "dashboard.html").read_text(encoding="utf-8")
 build_id = hashlib.sha256((template + ui_hash + css_hash + catalogue_version).encode()).hexdigest()[:12]
 build = {"buildId": build_id, "uiRelease": ui_release, "uiSha256": ui_hash, "cssSha256": css_hash, "catalogueVersion": catalogue_version, "catalogueUpdatedAt": updated_at}
@@ -90,7 +92,7 @@ catalog["metadata"] = {"version": catalogue_version, "updatedAt": updated_at, "b
 html = "\n".join(line.strip() for line in template.splitlines())
 embedded_build = {key: build[key] for key in ("buildId", "uiRelease", "catalogueVersion", "catalogueUpdatedAt")}
 html = html.replace("__MANAGER_BUILD__", json.dumps(embedded_build, separators=(",", ":")))
-library_version = hashlib.sha256((manager / "library.js").read_bytes()).hexdigest()[:12]
+library_version = ui_hash[:12]
 html = html.replace("__LIBRARY_VERSION__", library_version)
 # Library entries live in the catalogue, keeping the native HTML slot independent
 # of how many payloads are added. Never embed a stale compatibility snapshot.
@@ -109,6 +111,7 @@ assert updated[:start] == binary[:start] and updated[start + capacity:] == binar
 (manager / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=True, separators=(",", ":")) + "\n", encoding="utf-8")
 payload.write_bytes(updated)
 build["elfSha256"] = hashlib.sha256(updated).hexdigest()
+build["elfBytes"] = len(updated)
 (manager / "build.json").write_text(json.dumps(build, indent=2) + "\n", encoding="utf-8")
 
 # Cache exact request URLs, including query strings used by scripts and modules.
@@ -131,9 +134,10 @@ for file in [ROOT / "relapse.html", *ROOT.glob("*.js")]:
 digest = hashlib.sha256()
 for entry in sorted(entries):
     digest.update(entry.encode())
-    digest.update((ROOT / entry.split("?")[0]).read_bytes())
+    cached_file = ROOT / entry.split("?")[0]
+    digest.update(cached_file.read_text(encoding="utf-8").encode() if cached_file.suffix in (".js", ".html", ".json", ".css") else cached_file.read_bytes())
 manifest = "CACHE MANIFEST\n# PSN-HUB Cache " + digest.hexdigest()[:16] + "\n\nCACHE:\n" + "\n".join(sorted(entries)) + "\n\nNETWORK:\n*\n"
 (ROOT / "cache.appcache").write_text(manifest, encoding="utf-8")
 print(f"Embedded dashboard: {len(html)}/{capacity} bytes; ELF offsets preserved.")
-print(f"Catalogue: {len(catalog['hens'])} HENs, {len(catalog['modMenus'])} mod menus, {len(catalog['cheats'])} cheats.")
+print(f"Catalogue: {len(catalog['hens'])} HENs, {len(catalog['modMenus'])} mod menus, {len(catalog['emulators'])} emulators, {len(catalog['cheats'])} cheats.")
 print(f"Cache: {len(entries)} URLs; version {digest.hexdigest()[:16]}.")

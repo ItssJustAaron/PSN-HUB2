@@ -1,0 +1,95 @@
+name: Build and validate Manager
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Manager/**'
+      - 'tools/**'
+      - 'payloads/PSN-HUB-Manager.elf'
+      - '*.js'
+      - '*.html'
+      - '*.appcache'
+      - 'offsets/**'
+      - '.gitattributes'
+      - '.github/workflows/build-manager.yml'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      draft_release:
+        description: Prepare a draft GitHub release after successful checks
+        type: boolean
+        default: false
+      tag:
+        description: Optional release tag, starting with manager-
+        type: string
+        required: false
+
+concurrency:
+  group: manager-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Build matching dashboard, catalogue and cache
+        run: python tools/build-manager.py
+      - name: Validate site, loader and library behaviour
+        run: node tools/check-site.cjs
+      - name: Commit generated assets on main
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          git add -- Manager/catalog.json Manager/build.json cache.appcache payloads/PSN-HUB-Manager.elf offsets/offsets.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          remote_head=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            echo 'Main advanced during the build. Run the workflow on the newest commit.' >&2
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Build matching Manager assets'
+          git push origin HEAD:main
+      - name: Package release bundle and checksums
+        id: package
+        run: python tools/package-update.py
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: manager-update-${{ github.run_number }}
+          path: |
+            ${{ steps.package.outputs.zip }}
+            ${{ steps.package.outputs.checksum }}
+            releases/RELEASE-NOTES.md
+            payloads/PSN-HUB-Manager.elf
+            Manager/build.json
+          retention-days: 30
+      - name: Prepare draft release
+        if: github.event_name == 'workflow_dispatch' && inputs.draft_release && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          build_id=$(python -c 'import json;print(json.load(open("Manager/build.json"))["buildId"])')
+          release_tag=${RELEASE_TAG:-manager-$build_id}
+          if [[ ! "$release_tag" =~ ^manager-[A-Za-z0-9._-]+$ ]]; then
+            echo 'Release tag must start with manager- and contain letters, numbers, dots, underscores or hyphens.' >&2
+            exit 1
+          fi
+          gh release create "$release_tag" --draft --target "$(git rev-parse HEAD)" --title "PSN-HUB Manager $build_id" --notes-file releases/RELEASE-NOTES.md "releases/PSN-HUB-Manager-Update-$build_id.zip" "releases/PSN-HUB-Manager-Update-$build_id.zip.sha256" payloads/PSN-HUB-Manager.elf Manager/build.json

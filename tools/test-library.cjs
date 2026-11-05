@@ -19,7 +19,8 @@ class Element {
   emit(event) { for (const fn of this.events[event] || []) fn(); }
 }
 const nodes = new Map(), all = [];
-const document = {head: new Element('head'), documentElement: {classList:{add(){}}, dataset:{}}, createElement: tag => { const el = new Element(tag); all.push(el); return el; },
+const cssClasses=new Set();
+const document = {head: new Element('head'), documentElement: {classList:{add(name){cssClasses.add(name);},contains(name){return cssClasses.has(name);},toggle(name,on){if(on)cssClasses.add(name);else cssClasses.delete(name);}}, dataset:{}}, createElement: tag => { const el = new Element(tag); all.push(el); return el; },
   getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Element('div')); return nodes.get(id); },
   querySelectorAll: selector => all.filter(el => selector === '[data-transfer]' ? el.dataset.transfer : el.dataset.favourite)};
 const storage = new Map(), requests = [];
@@ -146,6 +147,13 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   document.getElementById('backup-before-install').checked=false;backupFails=false;
   document.getElementById('profile-address').value='other-console:8085';api.saveProfile();requests.length=0;await api.startTransfer([catalog.cheats[0]],'Wrong console');assert.equal(requests.length,0);
   document.getElementById('profile-address').value='test-console:8085';api.saveProfile();
+  const emulator=full.emulators.find(item=>item.name==='PS5SX2Installer.elf');assert(emulator);assert.equal(emulator.sha256,'efdec4f8d968ef4a7c1880e75d26b96d212a042a6c208de46f0a859609f6224c');
+  requests.length=0;await api.startTransfer([emulator],'PS5SX2 installer test');assert(requests.some(req=>req.url==='/api/send?name=PS5SX2Installer.elf'));
+  api.state.backend={};document.getElementById('setup-firmware').value='13.60';document.getElementById('setup-hen').value='onionhen';assert.equal(api.saveSetup(),true);
+  assert.equal(JSON.parse(storage.get('psnhub.setup:test-console:8085')),true);assert.equal(api.state.firmware,'13.60');
+  assert(document.getElementById('maintenance-status').textContent.includes('cannot yet install OnionHEN cheats'));
+  api.setControllerMode(true);assert(cssClasses.has('controller-mode'));assert.equal(JSON.parse(storage.get('psnhub.controllerMode')),true);api.setControllerMode(false);
   console.log('PASS: search/filters, cover cards, firmware sources and compatibility guards, favourites/history, integrity checks, PS5 paths, retries, cancellation, sends and connection badges.');
   console.log('PASS: profiles, diagnostic redaction, capability gates, update comparison, destination routing, backup/restore contracts and backup-before-write failure handling.');
+  console.log('PASS: PS5SX2 installer metadata and send path, first-run setup and controller-mode persistence.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

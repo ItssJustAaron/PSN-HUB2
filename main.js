@@ -906,14 +906,8 @@ async function main(userlandRW, wkOnly = false) {
 
   var load_payload_into_elf_store_from_local_file = async function (filename) {
     await log("Loading ELF file: " + filename + " ...", LogLevel.LOG);
-    const response = await fetch("payloads/" + filename);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch the binary file. Status: ${response.status}`,
-      );
-    }
-
-    const data = await response.arrayBuffer();
+    const data = await window.fetchPayloadFile(filename);
+    if (data.byteLength > elf_store_size) throw new Error("Payload exceeds the sender buffer");
 
     let byteArray;
     if (elf_store.backing.BYTES_PER_ELEMENT == 1) {

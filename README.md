@@ -22,6 +22,10 @@ kernel exploit or automatically restart Manager. This works on static hosts.
 
 See [Manager library instructions](Manager/README.md) for adding files,
 descriptions, rebuilding the Manager ELF, and refreshing the offline cache.
+PS5SX2 installer details are included under EMULATORS. The first-run console
+setup and optional TV/controller mode are in Manager. The homepage update button
+refreshes the offline cache; online Manager loads check the published ELF version.
+The GitHub build workflow packages matching releases and can prepare drafts.
 The jailbreak and bundled payload menu can work offline after a successful cache
 installation in a browser that supports Application Cache. Manager library
 downloads require internet access.

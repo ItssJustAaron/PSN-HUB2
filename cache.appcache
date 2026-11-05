@@ -1,7 +1,8 @@
 CACHE MANIFEST
-# PSN-HUB Cache 98e11e1e9009a2ee
+# PSN-HUB Cache af2c9f796fef2067
 
 CACHE:
+cache-status.js
 core.js
 core.js?v=132
 db.js
@@ -13,7 +14,7 @@ index.html
 int64.js
 kexp.js
 main.js
-main.js?v=7
+main.js?v=8
 mascot.png
 mem.js
 mem.js?v=131
@@ -50,6 +51,7 @@ offsets/9.20.js
 offsets/9.40.js
 offsets/9.60.js
 offsets/offsets.json
+payload-fetch.js
 payloads.js
 payloads.js?v=4
 payloads/CheatRunner_v0.17.1.elf

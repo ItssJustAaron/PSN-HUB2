@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.05.2';
+  const UI_RELEASE = '2026.11.05.3';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -351,6 +351,30 @@
     $('maintenance-status').textContent='This profile belongs to '+activeProfile.address+'. Open that console’s Manager before installing.'; return false;
   }
   function saveProfiles() { storeWrite('profiles',profiles); }
+  function saveSetup() {
+    const entered=$('setup-firmware').value.trim(),version=firmwareValue(entered),hen=$('setup-hen').value;
+    if(entered&&!version){$('setup-status').textContent='Use the exact firmware version, for example 10.01 or 13.60.';return false;}
+    if(!['etahen','onionhen','cragson','other'].includes(hen))return false;
+    if(!state.reportedFirmware&&!ps5Version){manualFirmware=version;storeWrite(consoleKey,version);activeProfile.firmware=version;selectFirmware('');$('console-firmware').value=version;}
+    activeProfile.hen=hen;saveProfiles();$('profile-hen').value=hen;
+    storeWrite('setup:'+location.host,true);$('setup-panel').hidden=true;
+    $('maintenance-status').textContent='Console setup saved. '+(hen==='onionhen'&&!destinationAllowed('onionhen')?'This native Manager cannot yet install OnionHEN cheats.':'Cheat destination: '+destinationPath(state.destination));
+    updateMaintenance();return true;
+  }
+  function setupControls() {
+    const panel=element('section',undefined,'setup-panel');panel.id='setup-panel';panel.setAttribute('aria-labelledby','setup-heading');
+    const heading=element('h2','Set up this console');heading.id='setup-heading';
+    panel.append(heading,element('p','Save the PS5 firmware and active HEN. These are console settings, even when you are using your phone.','hint'));
+    const fields=element('div',undefined,'profile-fields');fields.append(inputField('1. Exact console firmware','setup-firmware',state.firmware),selectField('2. Active HEN','setup-hen',[['etahen','etaHEN'],['onionhen','onionHEN'],['cragson','cragson PS5-HEN'],['other','Other / unknown']],activeProfile.hen));panel.append(fields);
+    panel.append(element('h3','3. Review the cheat destination'),element('p','etaHEN: /data/etaHEN/cheats · OnionHEN: /data/OnionHEN/cheats','path'),element('p','This native Manager currently supports etaHEN cheat installs only. Selecting OnionHEN saves your profile; it does not redirect uploads to OnionHEN. Unsupported destination actions remain disabled.','hint'));
+    const actions=element('div',undefined,'row');actions.append(action('Save setup',saveSetup),action('Set up later',()=>{storeWrite('setup:'+location.host,true);panel.hidden=true;},'secondary'));panel.append(actions);
+    const status=element('p','','status');status.id='setup-status';status.setAttribute('role','status');panel.append(status);panel.hidden=!!storeRead('setup:'+location.host,false);$('connection-help').after(panel);
+    if(state.reportedFirmware||ps5Version)$('setup-firmware').disabled=true;
+  }
+  function setControllerMode(enabled) {
+    document.documentElement.classList.toggle('controller-mode',enabled);storeWrite('controllerMode',enabled);
+    const toggle=$('controller-mode');if(toggle){toggle.textContent=enabled?'TV / controller mode: ON':'TV / controller mode: OFF';toggle.setAttribute('aria-pressed',String(enabled));}
+  }
   function inputField(label,id,value='') {
     const wrapper=element('label',label), input=element('input'); input.type='text'; input.id=id; input.value=value; wrapper.append(input); return wrapper;
   }
@@ -363,7 +387,9 @@
     const panel=element('details',undefined,'maintenance-panel'), summary=element('summary','Versions, console profiles & maintenance');
     const body=element('div',undefined,'maintenance-body');
     const versions=element('div'); versions.id='build-details'; body.append(element('h3','Versions'),versions);
-    body.append(action('Export diagnostics',()=>downloadJSON('PSN-HUB-diagnostics.json',diagnostics()),'secondary'));
+    const preferences=element('div',undefined,'row');
+    const controller=action('TV / controller mode',()=>setControllerMode(!document.documentElement.classList.contains('controller-mode')),'secondary');controller.id='controller-mode';
+    preferences.append(action('Export diagnostics',()=>downloadJSON('PSN-HUB-diagnostics.json',diagnostics()),'secondary'),action('Run console setup',()=>{$('setup-panel').hidden=false;$('setup-panel').scrollIntoView({block:'nearest'});},'secondary'),controller);body.append(preferences);
     const settings=element('div',undefined,'profile-fields');
     settings.append(selectField('Saved console profile','profile-select',profiles.map(profile=>[profile.id,profile.name]),activeProfile.id),inputField('Profile name','profile-name',activeProfile.name),inputField('Console address (including port)','profile-address',activeProfile.address),selectField('Active HEN (selected manually)','profile-hen',[['etahen','etaHEN'],['onionhen','onionHEN'],['cragson','cragson PS5-HEN'],['other','Other / unknown']],activeProfile.hen));
     body.append(element('h3','Console profiles'),settings);
@@ -521,6 +547,8 @@
       } else content.append(badge('Console firmware: check project documentation'));
       if (item.gameCompatibility) { content.append(element('h3', 'Game compatibility')); const list = element('ul'); item.gameCompatibility.forEach(line => list.append(element('li', line))); content.append(list); }
       if (item.compatibilityNote) content.append(element('p', item.compatibilityNote, 'hint'));
+      if(item.requirements){ content.append(element('h3','Requirements'));const requirements=element('ul');item.requirements.forEach(text=>requirements.append(element('li',text)));content.append(requirements); }
+      for(const [key,label] of [['installLocation','Installs to'],['bios','BIOS'],['games','Game files'],['controls','Controls'],['uninstall','Uninstall']]) if(item[key])content.append(element('h3',label),element('p',item[key],key==='installLocation'?'path':'hint'));
       content.append(element('h3', 'Instructions'), element('p', item.instructions || 'Start a compatible HEN and elfldr, then send this payload.', 'hint'));
       const links = element('div', undefined, 'row'); links.append(safeLink('Project & documentation', item.project), safeLink('Releases / changelog', item.changelog)); content.append(links);
       content.append(element('p', item.name, 'path'));
@@ -574,6 +602,7 @@
     if (!items.length) return;
     if (items.some(item => !item.target && !canSendName(item.name))) return;
     if (!profileMatchesConsole()) return;
+    if(!resume&&items.some(item=>item.target)&&activeProfile.hen==='onionhen'&&state.destination!=='onionhen'&&!confirm('Your profile uses OnionHEN, but this install targets '+destinationPath(state.destination)+'. This native build cannot redirect it to OnionHEN. Continue to the displayed etaHEN directory?'))return;
     if(!resume&&items.length<=12&&items.some(item=>item.target&&activeProfile.games&&activeProfile.games[item.id]&&activeProfile.games[item.id]!==item.version)&&!confirm('Some selected cheats differ from the game versions saved in your profile. Install them anyway?'))return;
     const destination = resume ? state.transfer.destination : state.destination;
     if (items.some(item => item.target)) { try { targetURL(items.find(item=>item.target),destination); } catch(error) { $('catalog-status').textContent=error.message; return; } }
@@ -655,9 +684,10 @@
   $('cancel-transfer').addEventListener('click', cancelTransfer); $('retry-transfer').addEventListener('click', retryTransfer);
   $('check-connection').addEventListener('click', checkConnection);
   $('retry-library').addEventListener('click', () => { catalogPromise = null; init(); checkConnection(); loadStyle().catch(error => { $('catalog-status').textContent = error.message; }); });
-  window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, state};
+  window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, saveSetup, setControllerMode, state};
   firmwareControls();
   maintenanceControls();
+  setupControls();setControllerMode(!!storeRead('controllerMode',!!ps5Version));
   startLeafBackground();
   viewControls(); loadStyle().catch(error => { $('catalog-status').textContent = 'Cover layout unavailable. Retry library. ' + error.message; });
   renderPersonal(); checkConnection(); init();

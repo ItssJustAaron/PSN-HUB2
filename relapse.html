@@ -44,7 +44,8 @@
 <script src="rop.js"></script>
 <script src="payloads.js?v=4"></script>
 <script src="firmware.js?v=4"></script>
-<script src="main.js?v=7"></script>
+<script src="payload-fetch.js"></script>
+<script src="main.js?v=8"></script>
 
 <script>
 // main.js appends the offsets script for the detected firmware as its last act.
@@ -427,7 +428,7 @@ function buildPayloadMenu() {
                 a.classList.remove("sending", "failed");
                 a.classList.add("sent");
                 status.dataset.state = "success";
-                status.textContent = t.title + ": sent " + n + " bytes to elfldr.";
+                status.textContent = t.title + ": sent " + n + " bytes to elfldr." + (t.name === "PSN-HUB-Manager.elf" && window.__managerPayloadSource ? " " + window.__managerPayloadSource : "");
                 print(t.title + ": sent " + n + " bytes to port 9021", "LOG-SUCCESS");
             } catch (err) {
                 a.classList.remove("sending", "sent");

@@ -36,6 +36,24 @@
     "firmwareConditional": ["5.50"],
     "compatibilityNote": "Upstream adds 13.00–13.60 to the earlier 4.03–12.70 support range; support on 5.50 is conditional. The local ELF matches the SHA-256 published for v0.9.0."
   },
+  "Emulators/PS5SX2/PS5SX2Installer.elf": {
+    "title": "PS5SX2 — PS2 Emulator Installer",
+    "author": "Swordpdf / PCSX2 contributors",
+    "release": "Installer 1.5 · PS5SX2 2.40 (vk-285-190)",
+    "description": "A native PS2 emulator for jailbroken PS5 consoles, based on PCSX2 with Vulkan graphics. This installer downloads the app from GitHub; later updates can be started inside PS5SX2.",
+    "project": "https://github.com/Swordpdf/PS5SX2",
+    "changelog": "https://github.com/Swordpdf/PS5SX2/releases/tag/vk-285-190",
+    "expectedSha256": "efdec4f8d968ef4a7c1880e75d26b96d212a042a6c208de46f0a859609f6224c",
+    "firmwareRanges": [{"min":"1.00","max":"13.60"}],
+    "compatibilityNote": "Upstream reports testing through 13.60. USB keyboard/mouse support has limitations on 11.x and 12.00; this does not describe controller compatibility.",
+    "requirements": ["Jailbroken PS5 with kstuff and ShadowMountPlus.","Load the PS5SX2 helper appropriate to your ShadowMountPlus version.","Internet access for the installer download."],
+    "installLocation": "/data/homebrew/PPSA99203/",
+    "bios": "Use your own dumped PS2 BIOS in /data/PCSX2/bios. The bundled OpenPS2BIOS is experimental.",
+    "games": "Place your game backups in /data/PCSX2/games (.iso, .chd, .cso or .zso).",
+    "controls": "D-pad/stick: browse; Cross/OPTIONS: play; Square: settings. Hold L2 + D-pad Down for one second for the in-game menu.",
+    "uninstall": "No uninstall procedure is specified in the linked release. Consult upstream and back up personal emulator data before removal.",
+    "instructions": "Load the required helper and kstuff/ShadowMountPlus, then send this installer. The helper is not included in this Manager entry. The installer can fetch a newer app build than the release linked here."
+  },
   "ModMenus/RaringM/gtav-menu-daemon.elf": {
     "title": "RaringM — GTA V",
     "author": "RaringM",

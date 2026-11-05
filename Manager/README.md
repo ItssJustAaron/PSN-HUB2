@@ -14,6 +14,15 @@ Customize its title, description, instructions, project URL, and firmware groups
 in `descriptions.json`, keyed by its exact path relative to `Manager`.
 HEN firmware compatibility is separate from the launcher's supported firmware.
 
+New browsers show a first-run console setup panel for exact firmware and active
+HEN. Save it or choose Set up later; Run console setup reopens it from maintenance.
+Saving an OnionHEN profile does not claim the current ELF supports its cheat root.
+An etaHEN-targeted install while that profile is active asks you to acknowledge
+the destination rather than silently treating it as an OnionHEN install.
+TV/controller mode is enabled by default in the PS5 browser and can be toggled
+in maintenance. It enlarges text, controls and focus highlights and uses four
+cards per row. Card arrows/Home/End, Enter and Escape remain available.
+
 The firmware filter uses `/api/status`'s `firmware` (or `systemFirmware` or
 `console.firmware`) when a future native build supplies an exact version string
 such as `13.60`. In the PS5 browser it can also detect the PS5 user-agent version.
@@ -90,6 +99,26 @@ failed images show the title placeholder. Upload these files to GitHub too.
 the original PlayStation CDN URLs. Artwork rights remain with publishers.
 To refresh/add local thumbnails, run `python tools/sync-artwork.py` with internet
 access, followed by the normal build and validation commands.
+
+## Releases and updating the loaded Manager
+
+`payload-fetch.js` checks a fresh `Manager/build.json` and requests the Manager
+ELF with its published SHA-256 in the URL, avoiding the unversioned cached file
+when online. It validates size/signature and SHA-256 where Web Crypto is present.
+If the build cannot be checked offline, the fallback is explicitly labelled as
+unverified and potentially older. A failed published size/hash check does not
+silently fall back to an old ELF. The homepage's CHECK SITE UPDATE refreshes the
+legacy offline cache and offers a reload when ready. It never reloads an active
+jailbreak. Restart an already-running native Manager to load a different build.
+
+The GitHub workflow builds, checks and packages matching assets on main pushes,
+PRs and manual runs. Main builds can commit only the generated files using the
+Actions token; protected-branch/token restrictions can block that step. It will
+not merge a concurrent main change. Pull generated bot commits before editing.
+Artifacts include the ZIP, checksum, ELF and build manifest. Manual runs can
+prepare a draft release; publication remains a separate action. No workflow
+run or live release is created merely by saving this workflow locally.
+The native engine is not compiled: its C/C++ source remains missing.
 
 Publish the generated files together with the updated ELF and library folders.
 Manager library downloads use this project's GitHub `main` branch and require

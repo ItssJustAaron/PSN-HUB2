@@ -3,6 +3,8 @@ html.library-wide main{width:min(1760px,100%)}
 html.library-wide main{position:relative;z-index:1}
 #panel-payloads,#panel-hens,#panel-mod-menus,#panel-emulators,#panel-my-library{max-width:1040px;margin-inline:auto}
 .maintenance-panel{border:1px solid var(--line);border-radius:12px;background:#130321;margin:12px 0}
+.setup-panel{border:2px solid var(--green);border-radius:14px;padding:16px;background:#130321;margin:14px 0}.setup-panel[hidden]{display:none}
+html.controller-mode{font-size:20px}html.controller-mode button,html.controller-mode summary,html.controller-mode input,html.controller-mode select{min-height:54px}html.controller-mode .tab{padding:12px 18px}html.controller-mode .cover-title{font-size:1.15rem}html.controller-mode #cheat-games.game-grid{grid-template-columns:repeat(4,minmax(0,1fr))}html.controller-mode :focus{outline:5px solid var(--yellow);outline-offset:3px}html.controller-mode .cover-card>.cover-favourite{min-height:46px;width:46px}
 .maintenance-panel>summary{padding:12px;cursor:pointer;font-weight:bold}.maintenance-body{padding:0 14px 16px}
 #build-details{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.7 ui-monospace,Consolas,monospace;margin-bottom:12px;color:#d9c5ea}
 .profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.profile-fields label,.maintenance-body>label{display:grid;gap:6px;font-size:.9rem}.backup-toggle{display:flex;align-items:center;gap:8px;margin:12px 0}.backup-toggle input{width:20px;height:20px;accent-color:var(--green)}#backup-list{width:auto;max-width:100%}

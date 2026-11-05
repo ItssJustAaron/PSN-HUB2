@@ -14,7 +14,7 @@ assert(!dashboard.includes('RaringM-GTAV/gtav-menu-daemon.elf'));
 const fallbackFields = new Set(['title','description','path','name','size','firmware','author']);
 const embedded = {hens:[],modMenus:[]};
 const embeddedJSON = JSON.stringify(embedded).replace(/</g, '\\u003c').replace(/[^\x00-\x7f]/g, ch => '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0'));
-const version = require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(root,'Manager/library.js'))).digest('hex').slice(0,12);
+const version = require('node:crypto').createHash('sha256').update(read('Manager/library.js')).digest('hex').slice(0,12);
 const build=JSON.parse(read('Manager/build.json'));
 const embeddedBuild=Object.fromEntries(['buildId','uiRelease','catalogueVersion','catalogueUpdatedAt'].map(key=>[key,build[key]]));
 const expected = read('Manager/dashboard.html').split(/\r?\n/).map(line => line.trim()).join('\n').trimEnd().replace('__MANAGER_BUILD__',JSON.stringify(embeddedBuild)).replace('__LIBRARY_VERSION__',version).replace('const builtinCatalog = null;', 'const builtinCatalog = ' + embeddedJSON + ';');
@@ -40,7 +40,7 @@ for (const section of ['hens', 'modMenus', 'emulators', 'cheats']) {
 }
 const cached = read('cache.appcache').split('CACHE:\n')[1].split('\nNETWORK:')[0].trim().split('\n');
 for (const entry of cached) assert(fs.statSync(path.join(root, entry.split('?')[0])).isFile(), entry);
-for (const entry of ['core.js?v=132', 'mem.js?v=131', 'main.js?v=7', 'kexp.js', 'int64.js', 'payloads/elfldr-ps5-1360.elf', 'payloads/kexp_2026_05_25.bin']) assert(cached.includes(entry), entry);
+for (const entry of ['core.js?v=132', 'mem.js?v=131', 'main.js?v=8', 'payload-fetch.js', 'cache-status.js', 'kexp.js', 'int64.js', 'payloads/elfldr-ps5-1360.elf', 'payloads/kexp_2026_05_25.bin']) assert(cached.includes(entry), entry);
 for (const version of JSON.parse(read('offsets/offsets.json')).firmwares) assert(cached.includes('offsets/' + version.script));
 for (const [name, html] of [['index.html', read('index.html')], ['relapse.html', read('relapse.html')], ['dashboard', dashboard]]) {
   for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
@@ -50,3 +50,4 @@ for (const [name, html] of [['index.html', read('index.html')], ['relapse.html',
 }
 console.log('PASS: catalogue paths, duplicate destinations, ELF embedding, cache dependencies and inline syntax.');
 require('./test-library.cjs');
+require('./test-payload-fetch.cjs');
