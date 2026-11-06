@@ -145,8 +145,8 @@ for file in (ROOT / "offsets").glob("*.js"):
 for file in (ROOT / "payloads").iterdir():
     if file.suffix.lower() in (".elf", ".bin"):
         entries.add(file.relative_to(ROOT).as_posix())
-for file in [ROOT / "relapse.html", *ROOT.glob("*.js")]:
-    for match in re.findall(r'''["'](?:\./)?([^"'\s]+\.(?:js|elf|bin)\?v=\d+)["']''', file.read_text(encoding="utf-8")):
+for file in [ROOT / "index.html", ROOT / "relapse.html", *ROOT.glob("*.js")]:
+    for match in re.findall(r'''["'](?:\./)?([^"'\s]+\.(?:js|elf|bin|png)\?v=\d+)["']''', file.read_text(encoding="utf-8")):
         if not (ROOT / match.split("?")[0]).is_file():
             raise SystemExit("Missing cached dependency: " + match)
         entries.add(match)

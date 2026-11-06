@@ -2,7 +2,7 @@ name: Build read-only Store inspector
 on:
   push:
     branches: [main]
-    paths: ['native/shortcut/**', 'native/src/**', 'native/tests/test_posix.c', 'tools/build-shortcut-icon.py', 'tools/build-shortcut-background.py', 'Manager/assets/jailbreak-background.png', 'tools/prepare-store-plan.py', '.github/workflows/build-store-inspector.yml']
+    paths: ['native/shortcut/**', 'native/src/**', 'native/tests/test_posix.c', 'tools/build-shortcut-icon.py', 'tools/build-icon-header.py', 'tools/build-shortcut-background.py', 'Manager/assets/**', 'tools/prepare-store-plan.py', '.github/workflows/build-store-inspector.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +22,9 @@ jobs:
           python -m pip install Pillow==13.0.0
           python tools/build-shortcut-icon.py
           python tools/build-shortcut-background.py
+          python tools/build-icon-header.py
+          gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src -Inative/build native/shortcut/icons.c native/src/storage.c native/src/sha256.c native/src/posix.c -lsqlite3 -o native/build/icons-host
+          ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 python native/shortcut/test_icons.py native/build/icons-host
           gcc -std=c11 -Wall -Wextra -Werror -DHUB_HOST_TEST -Inative/src native/tests/test_posix.c native/src/posix.c -o native/build/posix-test
           native/build/posix-test
           gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src native/shortcut/inspect.c native/src/storage.c native/src/sha256.c native/src/posix.c -lsqlite3 -o native/build/store-inspector-host
@@ -55,6 +58,8 @@ jobs:
           "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_BACKGROUND_RESTORE -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/background.c native/src/storage.c native/src/sha256.c native/src/posix.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Background-Restore.elf
           sha256sum native/build/PSN-HUB-Store-Background.elf > native/build/PSN-HUB-Store-Background.elf.sha256
           sha256sum native/build/PSN-HUB-Store-Background-Restore.elf > native/build/PSN-HUB-Store-Background-Restore.elf.sha256
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/icons.c native/src/storage.c native/src/sha256.c native/src/posix.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-HD-Icons.elf
+          sha256sum native/build/PSN-HUB-HD-Icons.elf > native/build/PSN-HUB-HD-Icons.elf.sha256
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: read-only-store-inspector
@@ -89,4 +94,13 @@ jobs:
             native/build/PSN-HUB-Store-Background-Restore.elf.sha256
             Manager/assets/jailbreak-background.png
             native/COPYING
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: hd-home-icons
+          path: |
+            native/build/PSN-HUB-HD-Icons.elf
+            native/build/PSN-HUB-HD-Icons.elf.sha256
+            Manager/assets/home-icon.png
           retention-days: 30
