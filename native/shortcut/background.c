@@ -116,7 +116,14 @@ static int art_directory(const char *path){
 }
 static int asset(int folder){
     int file=openat(folder,BACKGROUND_FILE,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);char hash[65];struct stat st;
-    if(file>=0){int ok=fstat(file,&st)==0&&S_ISREG(st.st_mode)&&hub_hash(file,hash)==0&&!strcmp(hash,BACKGROUND_SHA256);if(ok&&fchmod(file,0644)<0)ok=0;close(file);return ok?0:fail("Existing artwork file does not match this build or cannot be made readable");}
+    if(file>=0){
+      if(fstat(file,&st)<0){close(file);return fail_io("Cannot stat the staged background");}
+      if(!S_ISREG(st.st_mode)){close(file);return fail("Staged background is not a regular file");}
+      if(hub_hash(file,hash)<0){close(file);return fail_io("Cannot hash the staged background");}
+      if(strcmp(hash,BACKGROUND_SHA256)){close(file);snprintf(problem,sizeof(problem),"Staged background checksum differs: %.64s, size %lld",hash,(long long)st.st_size);return -1;}
+      if(fchmod(file,0644)<0){int saved=errno;close(file);errno=saved;return fail_io("Cannot set staged background read permissions");}
+      close(file);return 0;
+    }
     if(errno!=ENOENT)return fail_io("Cannot read the background destination");
     if(hub_atomic(folder,BACKGROUND_FILE,-1,sizeof(background_png),background_png,sizeof(background_png))<0)return fail_io("Cannot write and sync the background PNG");
     file=openat(folder,BACKGROUND_FILE,O_RDONLY|O_NOFOLLOW);int ok=file>=0&&hub_hash(file,hash)==0&&!strcmp(hash,BACKGROUND_SHA256);if(ok&&(fchmod(file,0644)<0||fsync(file)<0))ok=0;if(file>=0)close(file);return ok?0:fail_io("Cannot verify readable background PNG");
