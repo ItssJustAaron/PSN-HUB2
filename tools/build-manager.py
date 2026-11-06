@@ -102,9 +102,11 @@ ui_source = (manager / "library.js").read_text(encoding="utf-8")
 ui_release = re.search(r"const UI_RELEASE = '([^']+)'", ui_source)[1]
 ui_hash = hashlib.sha256(ui_source.encode()).hexdigest()
 css_hash = hashlib.sha256((manager / "library.css").read_text(encoding="utf-8").encode()).hexdigest()
+save_tools_hash = hashlib.sha256((manager / "save-tools.js").read_text(encoding="utf-8").encode()).hexdigest()
+zip_library_hash = hashlib.sha256((manager / "vendor/fflate-0.8.2.js").read_bytes()).hexdigest()
 template = (manager / "dashboard.html").read_text(encoding="utf-8")
-build_id = hashlib.sha256((template + ui_hash + css_hash + catalogue_version).encode()).hexdigest()[:12]
-build = {"buildId": build_id, "uiRelease": ui_release, "uiSha256": ui_hash, "cssSha256": css_hash, "catalogueVersion": catalogue_version, "catalogueUpdatedAt": updated_at}
+build_id = hashlib.sha256((template + ui_hash + css_hash + save_tools_hash + zip_library_hash + catalogue_version).encode()).hexdigest()[:12]
+build = {"buildId": build_id, "uiRelease": ui_release, "uiSha256": ui_hash, "cssSha256": css_hash, "saveToolsSha256": save_tools_hash, "zipLibrarySha256": zip_library_hash, "catalogueVersion": catalogue_version, "catalogueUpdatedAt": updated_at}
 catalog["metadata"] = {"version": catalogue_version, "updatedAt": updated_at, "buildId": build_id}
 html = "\n".join(line.strip() for line in template.splitlines())
 embedded_build = {key: build[key] for key in ("buildId", "uiRelease", "catalogueVersion", "catalogueUpdatedAt")}

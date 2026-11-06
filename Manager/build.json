@@ -1,10 +1,12 @@
 {
-  "buildId": "1c78a5bcaa87",
+  "buildId": "ec83a64594e7",
   "uiRelease": "2026.11.06.4",
   "uiSha256": "14008ee6b284878247fa82d80e0d48f399f431add98471a5a81d6593e58934c3",
   "cssSha256": "c40c921568c66cd2718a4aad47174c67b796caae563c0565f649a2db68b7356b",
+  "saveToolsSha256": "965da0f9db1a905d4de3171bc7b075fbfd332f293968ae14a32627f577210f53",
+  "zipLibrarySha256": "c3b34f2e9f5e74d4d7d64e01cac7a0c01954c6c406414d42185c7b53d6875ddf",
   "catalogueVersion": "76fc6fda8442",
   "catalogueUpdatedAt": "2026-11-06T17:45:24+00:00",
-  "elfSha256": "4c8b1315e98f9f81a9684a1fa7d491d70e543782b740d2f5bebc93004bc7bd2d",
+  "elfSha256": "3049bdfd065b4eb84cf1b981062860ac28e8dc5834ee5e01dc98be24c3f5d105",
   "elfBytes": 508784
 }
