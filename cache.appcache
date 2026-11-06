@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# PSN-HUB Cache 0b66cdaaf2d8d3e2
+# PSN-HUB Cache 620cf8588a5c1919
 
 CACHE:
 cache-status.js
@@ -62,6 +62,7 @@ payloads/OnionHEN.elf
 payloads/PKG-Manager_v1.4.1.elf
 payloads/PSN-HUB-HD-Icons.elf
 payloads/PSN-HUB-Manager.elf
+payloads/PSN-HUB-Save-Service.elf
 payloads/PSN-HUB-Store-Background-Restore.elf
 payloads/PSN-HUB-Store-Background.elf
 payloads/ShadowMountPlus_1.7beta2.elf
