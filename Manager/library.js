@@ -773,6 +773,7 @@
       state.catalog = data;
       renderPayloads($('hen-catalog'), data.hens); renderPayloads($('mod-menu-catalog'), data.modMenus); renderPayloads($('emulator-catalog'), data.emulators || []);
       $('download-all-cheats').disabled = false; applyFilters(false); renderPersonal(); restoreTab();
+      if(typeof location!=='undefined'&&location.hash==='#console-saves')selectTab($('tab-save-manager'));
       updateMaintenance();
       updateSaveControls();
     } catch (error) { $('cheat-count').textContent = 'Catalogue unavailable. Check internet access and retry.'; $('catalog-status').textContent = error.message; }
@@ -793,7 +794,7 @@
   let saveControls=null;
   function consoleSaveURL() {
     const host=location.hostname.replace(/^\[|\]$/g,'');
-    return 'http://'+(host.includes(':')?'['+host+']':host)+':8087/#console-saves';
+    return 'http://'+(host.includes(':')?'['+host+']':host)+':8088/#console-saves';
   }
   async function openConsoleSaves() {
     if(!saveControls||!state.manager||state.preview)return;
@@ -807,7 +808,7 @@
     saveControls.refresh.hidden=!available;
     saveControls.bridge.hidden=available||!state.manager||state.preview;
     saveControls.usb.hidden=!available;
-    saveControls.usbStatus.textContent=supports('saveUSB')?'Choose a connected USB drive. Automatic backup runs on the PS5 while this save service is running.':'USB backups require save service 0.3.3. After reboot, start the updated service from the main Manager Saves tab.';
+    saveControls.usbStatus.textContent=supports('saveUSB')?'Choose a connected USB drive. Automatic backup runs on the PS5 while this save service is running.':'USB backups require save service 0.3.3. Start the updated service from the main Manager Saves tab.';
     saveControls.usbButtons.forEach(button=>button.disabled=!available||!supports('saveUSB'));
     saveControls.status.textContent=available?'Your console game saves. Close games before downloading or backing up.':'Your console saves open below through the local save service. If it is not running, use Start save service, then Reload save browser.';
     if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();}
@@ -824,6 +825,7 @@
     const data=await saveJSON('/api/saves/files?'+query);saveControls.files.replaceChildren(element('h3',label));
     if(!data.items.length)saveControls.files.append(element('p','No raw files found.','hint'));
     for(const file of data.items){const link=element('a','Download '+file.name+' ('+file.size+' bytes)');link.href='/api/saves/download?'+query+'&name='+encodeURIComponent(file.name);link.download=file.name;const row=element('p');row.append(link);saveControls.files.append(row);}
+    if(typeof saveControls.files.scrollIntoView==='function')saveControls.files.scrollIntoView({block:'start',behavior:'smooth'});
   }
   async function refreshSaves() {
     saveControls.status.textContent='Reading save folders…';saveControls.files.replaceChildren();

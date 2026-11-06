@@ -134,8 +134,8 @@
     "title": "PSN-HUB console save service",
     "name": "PSN-HUB-Save-Service.elf",
     "key": "psn-hub-save-service",
-    "description": "Start the local console save browser on port 8087. Lists PS4/PS5 save folders and downloads raw save files. Use the Saves tab after startup. Experimental native engine 0.3.2.",
+    "description": "Start the local console save browser. Lists PS4/PS5 game saves, downloads raw files, and supports per-game USB exports and optional automatic USB backups. Version 0.3.3, dedicated service on port 8088.",
     "info": "PSN-HUB-Save-Service.elf - PSN-HUB",
-    "expectedSha256": "83aa6f56b5e2f4c700eb7c666c91d07815d99f437ce55b14786177b548cfdc34"
+    "expectedSha256": "9982f52ecc3cda1a606518bb0879c5fff69f20280c7e48e25ae4fa6cdd7d4d6a"
   }
 ]

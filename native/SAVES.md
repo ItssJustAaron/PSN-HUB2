@@ -72,10 +72,10 @@ distributed under its existing GPL-3.0-or-later license.
 
 ## Console save browser and USB backups
 
-The stable Manager Saves tab embeds the local save service on port 8087 and automatically lists console PS4/PS5 save folders. The service can be started from that tab. Download links return raw encrypted files; keep PS4 companion keys.
+The stable Manager Saves tab embeds the dedicated local save service on port 8088 and automatically lists console PS4/PS5 save folders. The service can be started from that tab. Download links return raw encrypted files; keep PS4 companion keys.
 
 Version 0.3.3 adds per-game USB export, backup of all changed saves, and optional automatic backups every 15–1440 minutes. Automatic backup is disabled by default and its settings persist on the console. It runs only while this service is active; it does not run while the PS5 is powered off. Close games to ensure their latest save data has been flushed to disk.
 
 Destinations are existing mounted USB0–USB7 volumes only, under /PSN-HUB/Saves/<user>/<platform>/<title>/<snapshot>. Original saves are never overwritten or deleted. Each copy is verified before it becomes a completed snapshot; unchanged saves are skipped based on their recorded file inventory. No automatic retention deletion is performed.
 
-A service already running an older version must be restarted by rebooting the PS5 before starting the new ELF. USB writes still need hardware validation with a connected drive.
+The dedicated PSN-HUB-Save-Service.elf runs on port 8088 with private settings under /data/psn-hub-save-service. It can run alongside the older experimental service on 8087. USB writes still need hardware validation with a connected drive.

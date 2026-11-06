@@ -3,7 +3,7 @@ html.library-wide main{width:min(1760px,100%)}
 #panel-payloads #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 #panel-payloads #list>.item{min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between}
 #panel-payloads #list>.empty{grid-column:1/-1}
-html.saves-only main>*:not(#panel-save-manager){display:none!important}
+html.saves-only main>*:not(#panel-save-manager):not(#transfer-panel){display:none!important}
 html.saves-only main{width:100%;padding:0}
 html.saves-only #panel-save-manager>.card{margin:0;border:0;box-shadow:none}
 #leaf-background{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.42}

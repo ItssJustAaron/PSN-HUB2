@@ -29,7 +29,7 @@ vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.i
   const controls=context.controls,tab=nodes.get('tab-save-manager');
   assert.equal(managerTabs.length,2);assert.equal(controls.refresh.disabled,true);
   await controls.refresh.events.click();assert.equal(calls.length,0,'Unsupported stable engine must receive no save calls');
-  await tab.events.click();assert.equal(controls.frame.src,'http://console:8087/#console-saves');assert.equal(calls.length,0,'Stable page embeds the local native save browser instead of calling nonexistent stable APIs');
+  await tab.events.click();assert.equal(controls.frame.src,'http://console:8088/#console-saves');assert.equal(calls.length,0,'Stable page embeds the local native save browser instead of calling nonexistent stable APIs');
   state.backend={saveRead:true,saveBackup:true};vm.runInContext('updateSaveControls()',context);
   await new Promise(setImmediate);
   assert.equal(controls.refresh.disabled,false);await controls.refresh.events.click();
