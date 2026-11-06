@@ -32,6 +32,10 @@ static int owned(sqlite3 *db,const char *id){
     sqlite3_finalize(s);return ok;
 }
 static int collect(const char *directory,const char *name){
+    /* Use the carry-aware *at wrapper for optional directories. The SDK's
+     * realpath fallback does not reliably preserve ENOENT on this console. */
+    struct stat parent;if(fstatat(AT_FDCWD,directory,&parent,0)<0)return errno==ENOENT?0:-1;
+    if(!S_ISDIR(parent.st_mode))return -1;
     char resolved[PATH_MAX];if(!realpath(directory,resolved))return errno==ENOENT?0:-1;
     int dir=hub_open_path(resolved,0);if(dir<0)return -1;
     int fd=openat(dir,name,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(fd<0){close(dir);return errno==ENOENT?0:-1;}

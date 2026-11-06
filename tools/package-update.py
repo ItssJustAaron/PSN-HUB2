@@ -18,7 +18,7 @@ files.update(file for file in (root / "Manager" / "covers").rglob("*") if file.i
 files.update(root.glob("*.js"))
 files.update(root / item["path"] for item in json.loads((root / "Manager/catalog.json").read_text(encoding="utf-8")).get("payloads", []))
 files.update([root / ".gitattributes", root / ".gitignore"])
-for relative in ("payloads/PSN-HUB-Manager.elf", "cache.appcache", "index.html", "relapse.html", "main.js", "README.md", "document/en/ps5/index.html", "offsets/offsets.json"):
+for relative in ("payloads/PSN-HUB-Manager.elf", "cache.appcache", "index.html", "mascot.png", "relapse.html", "main.js", "README.md", "document/en/ps5/index.html", "offsets/offsets.json"):
     files.add(root / relative)
 notes = "PSN-HUB Manager UI " + build["uiRelease"] + " — build " + build["buildId"] + "\n" + """
 

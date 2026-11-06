@@ -32,6 +32,10 @@ class Icons(unittest.TestCase):
   with sqlite3.connect(self.db) as db:db.execute("UPDATE tbl_contentinfo SET titleName='Other app'")
   self.run_engine(False)
   for path in self.paths:self.assertEqual(path.read_bytes(),ASSET+b'old')
+ def test_missing_media_cache_directories_are_optional(self):
+  for path in [self.paths[1],self.paths[3]]:path.unlink();path.parent.rmdir()
+  self.assertEqual(self.run_engine()['icons'],3)
+  for path in [self.paths[0],self.paths[2],self.paths[4]]:self.assertEqual(path.read_bytes(),ASSET)
  def test_invalid_icon_prevents_all_writes(self):
   self.paths[-1].write_bytes(b'invalid icon');self.run_engine(False)
   for path in self.paths[:-1]:self.assertEqual(path.read_bytes(),ASSET+b'old')
