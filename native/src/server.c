@@ -1,10 +1,11 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  * Experimental, single-request-at-a-time LAN server. No public Internet binding/auth.
  */
-#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE
 #include "hub.h"
 #include "dashboard.h"
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -170,8 +171,11 @@ int main(int argc,char **argv) {
 #else
     parents[0]=hub_open_path("/data/etaHEN",1);parents[1]=hub_open_path("/data/OnionHEN",1);
 #endif
-    for(int i=0;i<2;i++){if(parents[i]<0||hub_recover(parents[i],"cheats")<0){fprintf(stderr,"Cannot recover cheat storage\n");return 1;}int dir=hub_child(parents[i],"cheats",1);if(dir<0)return 1;close(dir);}
-    if(payloads<0||backups<0||categories<0)return 1;
+    for(int i=0;i<2;i++){if(parents[i]<0||hub_recover(parents[i],"cheats")<0){fprintf(stderr,"Cannot recover cheat storage\n");return 1;}int dir=hub_child(parents[i],"cheats",1);if(dir<0)return 1;
+      const char *formats[]={"json","mc4","shn"};
+      for(int j=0;j<3;j++){int format=hub_child(dir,formats[j],0);if(format<0){if(errno!=ENOENT)return 1;}else{int result=hub_clean_uploads(format);close(format);if(result<0)return 1;}}
+      close(dir);}
+    if(payloads<0||backups<0||categories<0||hub_clean_uploads(payloads)<0||hub_clean_uploads(categories)<0)return 1;
     signal(SIGPIPE,SIG_IGN);int server=socket(AF_INET,SOCK_STREAM,0);if(server<0)return 1;int yes=1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
     struct sockaddr_in address;memset(&address,0,sizeof(address));address.sin_family=AF_INET;address.sin_port=htons((uint16_t)port);
 #ifdef HUB_HOST_TEST

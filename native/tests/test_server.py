@@ -124,6 +124,21 @@ class ServerTests(unittest.TestCase):
         self.assertEqual((self.root/'etaHEN/cheats/json/CUSA00001_01.00.json').read_bytes(),b'original')
         self.assertFalse(list((self.root/'etaHEN/cheats/json').glob('.upload-*')))
 
+    def test_crashed_upload_cleanup(self):
+        self.upload(b'original')
+        with socket.create_connection(('127.0.0.1',self.port),timeout=5) as sock:
+            sock.sendall(b'POST /api/cheat-upload?path=json/CUSA00001_01.00.json HTTP/1.1\r\nHost: local\r\nX-PSNHUB-Request: 1\r\nContent-Length: 100000\r\n\r\npartial')
+            directory=self.root/'etaHEN/cheats/json'
+            for _ in range(100):
+                if list(directory.glob('.upload-*')): break
+                time.sleep(.01)
+            self.assertTrue(list(directory.glob('.upload-*')))
+            self.stop()
+        self.start()
+        self.assertFalse(list(directory.glob('.upload-*')))
+        self.assertEqual((directory/'CUSA00001_01.00.json').read_bytes(),b'original')
+        self.api('/api/cheats/backup?destination=etahen','POST')
+
     def test_symlinks_do_not_escape(self):
         outside = self.root/'outside'
         outside.mkdir()

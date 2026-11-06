@@ -21,5 +21,6 @@ int hub_inventory(int, Buffer *, const char *, int *);
 int hub_copy_tree(int, int, int, size_t *);
 int hub_remove_tree(int, const char *);
 int hub_recover(int, const char *);
+int hub_clean_uploads(int);
 int hub_restore(int, const char *, int);
 #endif

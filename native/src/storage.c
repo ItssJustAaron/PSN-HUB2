@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
-#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE
 #include "hub.h"
 #include <dirent.h>
 #include <errno.h>
@@ -108,6 +108,17 @@ int hub_remove_tree(int parent,const char *name) {
       if(S_ISDIR(st.st_mode)){if(hub_remove_tree(fd,entry->d_name)<0){result=-1;break;}}
       else if(unlinkat(fd,entry->d_name,0)<0){result=-1;break;}}
     closedir(d);close(fd);if(result==0)result=unlinkat(parent,name,AT_REMOVEDIR);return result;
+}
+int hub_clean_uploads(int dir) {
+    int scan=openat(dir,".",O_RDONLY|O_DIRECTORY);if(scan<0)return -1;
+    DIR *d=fdopendir(scan);if(!d){close(scan);return -1;}
+    struct dirent *entry;int result=0;
+    while((entry=readdir(d))){
+      if(strncmp(entry->d_name,".upload-",8))continue;
+      struct stat st;
+      if(fstatat(dir,entry->d_name,&st,AT_SYMLINK_NOFOLLOW)<0||!S_ISREG(st.st_mode)||unlinkat(dir,entry->d_name,0)<0){result=-1;break;}
+    }
+    closedir(d);return result<0?-1:fsync(dir);
 }
 static int directory_exists(int parent,const char *name){struct stat st;if(fstatat(parent,name,&st,AT_SYMLINK_NOFOLLOW)<0)return errno==ENOENT?0:-1;return S_ISDIR(st.st_mode)?1:-1;}
 int hub_recover(int parent,const char *name) {
