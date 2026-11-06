@@ -21,7 +21,7 @@ It handles both flat AppInfoJson and legacy ConceptInfoJson field_list records,
 records each old/new cell and preserves unrelated metadata, including display
 locations, concept bitmasks, categories, title IDs, launch-handler URIs and DRM.
 
-The supported operation changes Store titles to PSN-HUB, deeplink URLs to
+The supported operation changes Store titles to PSN-HUB JAILBREAK, deeplink URLs to
 `https://itssjustaaron.github.io/PSN-HUB2/`, and icon references to a separately
 staged `/user/appmeta/NPXS40047/psn-hub-icon.png?psnhub=1`. The existing icon file
 is not overwritten.
@@ -72,3 +72,12 @@ Reboot/refresh the shell manually after a successful result. Check the tile's
 name and artwork, its website destination, and persistence after reboot. The
 existing Store shell may override database shortcut fields; successful database
 updates alone do not establish that the tile opens the intended browser URL.
+
+## Rename an earlier PSN-HUB test
+
+PSN-HUB-Store-Rename.elf updates only name fields and corresponding JSON string
+sizes to **PSN-HUB JAILBREAK**. It requires `rename-<current-plan-sha256>.txt`
+containing `RENAME NPXS40047`, a newline, `PSN-HUB JAILBREAK`, and a newline.
+It creates separate rename backups, keeps the original backup directory and old
+values, and atomically updates the recovery plan with the new expected name.
+The updated Restore ELF can then undo the complete test to the original Store.

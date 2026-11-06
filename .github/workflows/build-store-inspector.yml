@@ -42,6 +42,8 @@ jobs:
           sha256sum native/build/PSN-HUB-Store-Inspector.elf > native/build/PSN-HUB-Store-Inspector.elf.sha256
           "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Apply.elf
           "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_SHORTCUT_RESTORE -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Restore.elf
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_SHORTCUT_RENAME -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Rename.elf
+          sha256sum native/build/PSN-HUB-Store-Rename.elf > native/build/PSN-HUB-Store-Rename.elf.sha256
           sha256sum native/build/PSN-HUB-Store-Apply.elf > native/build/PSN-HUB-Store-Apply.elf.sha256
           sha256sum native/build/PSN-HUB-Store-Restore.elf > native/build/PSN-HUB-Store-Restore.elf.sha256
       - uses: actions/upload-artifact@v7.0.2
@@ -57,6 +59,8 @@ jobs:
         with:
           name: store-shortcut-test
           path: |
+            native/build/PSN-HUB-Store-Rename.elf
+            native/build/PSN-HUB-Store-Rename.elf.sha256
             native/build/PSN-HUB-Store-Apply.elf
             native/build/PSN-HUB-Store-Apply.elf.sha256
             native/build/PSN-HUB-Store-Restore.elf

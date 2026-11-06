@@ -56,6 +56,31 @@ class PatchTests(unittest.TestCase):
   self.run_engine()
   with sqlite3.connect(self.root/'plan.db') as db:db.execute("UPDATE meta SET val='previous-icon-build' WHERE key='iconSha256'")
   self.run_engine('restore');self.assertEqual(self.snapshot(),self.before)
+ def legacy_install(self):
+  (self.root/'plan.db').unlink();planner.build_plan(self.root/'app.db',self.root/'appinfo.db',self.root/'psn-hub-icon.png',self.root/'plan.db',name='PSN-HUB');self.approve();self.run_engine()
+ def approve_rename(self):
+  digest=hashlib.sha256((self.root/'plan.db').read_bytes()).hexdigest();(self.root/('rename-'+digest+'.txt')).write_text('RENAME NPXS40047\nPSN-HUB JAILBREAK\n',encoding='ascii',newline='')
+ def test_rename_legacy_install_preserves_original_recovery(self):
+  self.legacy_install()
+  with sqlite3.connect(self.root/'plan.db') as db:
+   original_backup=db.execute("SELECT val FROM meta WHERE key='backupDirectory'").fetchone()[0];db.execute("UPDATE meta SET val='previous-icon-build' WHERE key='iconSha256'")
+  self.approve_rename();self.run_engine('rename')
+  with sqlite3.connect(self.root/'app.db') as db:self.assertEqual(db.execute('SELECT titleName FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0],'PSN-HUB JAILBREAK')
+  with sqlite3.connect(self.root/'plan.db') as db:
+   self.assertEqual(db.execute("SELECT val FROM meta WHERE key='backupDirectory'").fetchone()[0],original_backup);self.assertEqual(db.execute("SELECT val FROM meta WHERE key='name'").fetchone()[0],'PSN-HUB JAILBREAK');self.assertTrue(db.execute("SELECT val FROM meta WHERE key='renameBackupDirectory'").fetchone()[0])
+  self.run_engine('restore');self.assertEqual(self.snapshot(),self.before)
+ def test_rename_preserves_access_metadata(self):
+  self.legacy_install()
+  with sqlite3.connect(self.root/'app.db') as db:
+   value=json.loads(db.execute('SELECT AppInfoJson FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0]);value['#_last_access_time']='New access timestamp';db.execute('UPDATE tbl_contentinfo SET AppInfoJson=? WHERE titleId=?',(json.dumps(value),planner.TITLE))
+  self.approve_rename();self.run_engine('rename')
+  with sqlite3.connect(self.root/'app.db') as db:value=json.loads(db.execute('SELECT AppInfoJson FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0])
+  self.assertEqual(value['TITLE'],'PSN-HUB JAILBREAK');self.assertEqual(value['#_last_access_time'],'New access timestamp')
+  self.run_engine('restore')
+  with sqlite3.connect(self.root/'app.db') as db:value=json.loads(db.execute('SELECT AppInfoJson FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0])
+  self.assertEqual(value['TITLE'],'Jailbreak Store');self.assertEqual(value['#_last_access_time'],'New access timestamp')
+ def test_rename_requires_its_own_approval(self):
+  self.legacy_install();before=self.snapshot();self.run_engine('rename',success=False);self.assertEqual(self.snapshot(),before)
  def test_missing_approval(self):
   for p in self.root.glob('approve-*'):p.unlink()
   self.run_engine(success=False);self.assertEqual(self.snapshot(),self.before)

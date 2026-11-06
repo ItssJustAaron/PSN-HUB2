@@ -75,17 +75,17 @@ static void describe_database(Buffer *out,const char *path,const char *title) {
     }buf_add(out,"]");
     if(!strcmp(title,"app.db")){
         buf_add(out,",\"systemTitles\":");rows(db,out,"SELECT titleId,titleName,localConceptId FROM tbl_contentinfo WHERE titleId GLOB 'NPXS*' ORDER BY titleId LIMIT 128;",NULL);
-        buf_add(out,",\"storeCandidates\":");rows(db,out,"SELECT * FROM tbl_contentinfo WHERE titleId GLOB 'NPXS*' AND (titleName LIKE '%Store%' OR titleName='PSN-HUB') ORDER BY titleId LIMIT 8;",NULL);
+        buf_add(out,",\"storeCandidates\":");rows(db,out,"SELECT * FROM tbl_contentinfo WHERE titleId GLOB 'NPXS*' AND (titleName LIKE '%Store%' OR titleName IN('PSN-HUB','PSN-HUB JAILBREAK')) ORDER BY titleId LIMIT 8;",NULL);
     }
     buf_add(out,"}");sqlite3_close(db);
 }
 static Buffer report(void){
     store_count=0;sqlite3 *source=NULL;sqlite3_stmt *find=NULL;
-    if(sqlite3_open_v2(app_path,&source,SQLITE_OPEN_READONLY|SQLITE_OPEN_NOFOLLOW,NULL)==SQLITE_OK&&sqlite3_prepare_v2(source,"SELECT titleId,localConceptId FROM tbl_contentinfo WHERE titleId GLOB 'NPXS*' AND (titleName LIKE '%Store%' OR titleName='PSN-HUB') ORDER BY titleId LIMIT 8;",-1,&find,NULL)==SQLITE_OK){
+    if(sqlite3_open_v2(app_path,&source,SQLITE_OPEN_READONLY|SQLITE_OPEN_NOFOLLOW,NULL)==SQLITE_OK&&sqlite3_prepare_v2(source,"SELECT titleId,localConceptId FROM tbl_contentinfo WHERE titleId GLOB 'NPXS*' AND (titleName LIKE '%Store%' OR titleName IN('PSN-HUB','PSN-HUB JAILBREAK')) ORDER BY titleId LIMIT 8;",-1,&find,NULL)==SQLITE_OK){
         while(sqlite3_step(find)==SQLITE_ROW&&store_count<8){const char *id=(const char *)sqlite3_column_text(find,0),*concept=(const char *)sqlite3_column_text(find,1);snprintf(store_ids[store_count],32,"%s",id?id:"");snprintf(store_concepts[store_count],128,"%s",concept?concept:"");store_count++;}
     }
     if(find)sqlite3_finalize(find);if(source)sqlite3_close(source);
-    Buffer out={0};buf_add(&out,"{\"readOnlyInspector\":true,\"version\":\"0.1.0\",\"plannedName\":\"PSN-HUB\",\"plannedURL\":\"https://itssjustaaron.github.io/PSN-HUB2/\",\"databaseEditsPerformed\":false,\"databases\":[");describe_database(&out,app_path,"app.db");buf_add(&out,",");describe_database(&out,info_path,"appinfo.db");buf_add(&out,"]}");return out;}
+    Buffer out={0};buf_add(&out,"{\"readOnlyInspector\":true,\"version\":\"0.1.0\",\"plannedName\":\"PSN-HUB JAILBREAK\",\"plannedURL\":\"https://itssjustaaron.github.io/PSN-HUB2/\",\"databaseEditsPerformed\":false,\"databases\":[");describe_database(&out,app_path,"app.db");buf_add(&out,",");describe_database(&out,info_path,"appinfo.db");buf_add(&out,"]}");return out;}
 static void response(int fd,int code,const char *type,const char *body,size_t length){char header[512];int n=snprintf(header,sizeof(header),"HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %zu\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n",code,code==200?"OK":"Error",type,length);if(n>0&&(size_t)n<sizeof(header)&&hub_write(fd,header,(size_t)n)==0)hub_write(fd,body,length);}
 static const char page[]="<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>PSN-HUB Store Inspector</title><style>body{background:#160622;color:white;font:16px/1.5 Arial;margin:24px}h1{color:#39ff14}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d0216;padding:18px;border-radius:12px}a{color:#39ff14}</style><h1>PSN-HUB Store Inspector</h1><p>Read-only inspection. This ELF cannot edit either system database or restart the PS5 interface.</p><p>Planned shortcut: <b>PSN-HUB</b> &rarr; https://itssjustaaron.github.io/PSN-HUB2/</p><p><a href=/report>View database report</a></p><pre id=report>Reading database schema...</pre><script>fetch('/report').then(r=>r.json()).then(d=>document.getElementById('report').textContent=JSON.stringify(d,null,2)).catch(e=>document.getElementById('report').textContent=e.message)</script>";
 int main(int argc,char **argv){
