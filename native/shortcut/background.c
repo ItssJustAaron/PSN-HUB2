@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@
 static char problem[400]="Background update failed";
 static int changed;
 static int fail(const char *why){snprintf(problem,sizeof(problem),"%s",why);return -1;}
+static int fail_io(const char *why){int saved=errno;snprintf(problem,sizeof(problem),"%s (errno %d: %s)",why,saved,strerror(saved));return -1;}
 static int sql(sqlite3 *db,const char *text){return sqlite3_exec(db,text,NULL,NULL,NULL)==SQLITE_OK?0:fail(sqlite3_errmsg(db));}
 static int equals(sqlite3 *db,const char *text,const char *value){sqlite3_stmt *s=NULL;int ok=sqlite3_prepare_v2(db,text,-1,&s,NULL)==SQLITE_OK&&sqlite3_step(s)==SQLITE_ROW;const char *got=ok?(const char *)sqlite3_column_text(s,0):NULL;ok=got&&!strcmp(got,value);sqlite3_finalize(s);return ok;}
 static int attach(sqlite3 *db,const char *path,const char *statement){sqlite3_stmt *s=NULL;int code=sqlite3_prepare_v2(db,statement,-1,&s,NULL);if(code==SQLITE_OK){char *uri=sqlite3_mprintf("file:%s?mode=rw",path);if(!uri){sqlite3_finalize(s);return -1;}sqlite3_bind_text(s,1,uri,-1,SQLITE_TRANSIENT);sqlite3_free(uri);code=sqlite3_step(s);}sqlite3_finalize(s);return code==SQLITE_DONE?0:fail("Cannot attach existing database");}
@@ -94,7 +96,31 @@ static int backup(const char *source,const char *destination){
     copy=sqlite3_backup_init(to,"main",from,"main");if(!copy)goto done;int code=sqlite3_backup_step(copy,-1),finish=sqlite3_backup_finish(copy);copy=NULL;ok=code==SQLITE_DONE&&finish==SQLITE_OK&&equals(to,"PRAGMA quick_check;","ok");
 done:if(copy)sqlite3_backup_finish(copy);if(from)sqlite3_close(from);if(to&&sqlite3_close(to)!=SQLITE_OK)ok=0;if(!ok)return fail("Cannot create consistent database backup");int fd=open(destination,O_RDONLY|O_NOFOLLOW);if(fd<0)return -1;int result=fsync(fd);close(fd);return result;
 }
-static int asset(int folder){int file=openat(folder,BACKGROUND_FILE,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);char hash[65];struct stat st;if(file>=0){int ok=fstat(file,&st)==0&&S_ISREG(st.st_mode)&&hub_hash(file,hash)==0&&!strcmp(hash,BACKGROUND_SHA256);close(file);return ok?0:fail("Existing artwork file does not match this build");}if(errno!=ENOENT)return -1;if(hub_atomic(folder,BACKGROUND_FILE,-1,sizeof(background_png),background_png,sizeof(background_png))<0)return -1;file=openat(folder,BACKGROUND_FILE,O_RDONLY|O_NOFOLLOW);int ok=file>=0&&hub_hash(file,hash)==0&&!strcmp(hash,BACKGROUND_SHA256);if(file>=0)close(file);return ok?0:-1;}
+static int art_directory(const char *path){
+    char resolved[PATH_MAX];
+    if(!realpath(path,resolved)){
+      if(errno!=ENOENT)return fail_io("Cannot resolve the Store artwork directory");
+      char parent[PATH_MAX];if(strlen(path)>=sizeof(parent))return fail("Artwork path is too long");strcpy(parent,path);char *slash=strrchr(parent,'/');if(!slash||!slash[1])return -1;char leaf[128];if(strlen(slash+1)>=sizeof(leaf))return -1;strcpy(leaf,slash+1);*slash=0;
+      if(!realpath(parent,resolved))return fail_io("Cannot resolve the artwork parent");
+#ifndef HUB_HOST_TEST
+      if(strcmp(resolved,"/user/appmeta")&&strcmp(resolved,"/system_data/priv/appmeta")&&strcmp(resolved,"/system_data/priv/mms/appmeta")){snprintf(problem,sizeof(problem),"Unsupported artwork parent mapping: %.260s",resolved);return -1;}
+#endif
+      int parent_fd=hub_open_path(resolved,0);if(parent_fd<0)return fail_io("Cannot open the resolved artwork parent");
+      if(mkdirat(parent_fd,leaf,0755)<0&&errno!=EEXIST){close(parent_fd);return fail_io("Cannot create the Store artwork directory");}
+      int folder=hub_child(parent_fd,leaf,0);close(parent_fd);return folder<0?fail_io("Cannot open the Store artwork directory"):folder;
+    }
+#ifndef HUB_HOST_TEST
+    if(strcmp(resolved,"/user/appmeta/NPXS40047")&&strcmp(resolved,"/system_data/priv/appmeta/NPXS40047")&&strcmp(resolved,"/system_data/priv/mms/appmeta/NPXS40047")){snprintf(problem,sizeof(problem),"Unsupported Store artwork mapping: %.260s",resolved);return -1;}
+#endif
+    int folder=hub_open_path(resolved,0);return folder<0?fail_io("Cannot open the resolved Store artwork directory"):folder;
+}
+static int asset(int folder){
+    int file=openat(folder,BACKGROUND_FILE,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);char hash[65];struct stat st;
+    if(file>=0){int ok=fstat(file,&st)==0&&S_ISREG(st.st_mode)&&hub_hash(file,hash)==0&&!strcmp(hash,BACKGROUND_SHA256);if(ok&&fchmod(file,0644)<0)ok=0;close(file);return ok?0:fail("Existing artwork file does not match this build or cannot be made readable");}
+    if(errno!=ENOENT)return fail_io("Cannot read the background destination");
+    if(hub_atomic(folder,BACKGROUND_FILE,-1,sizeof(background_png),background_png,sizeof(background_png))<0)return fail_io("Cannot write and sync the background PNG");
+    file=openat(folder,BACKGROUND_FILE,O_RDONLY|O_NOFOLLOW);int ok=file>=0&&hub_hash(file,hash)==0&&!strcmp(hash,BACKGROUND_SHA256);if(ok&&(fchmod(file,0644)<0||fsync(file)<0))ok=0;if(file>=0)close(file);return ok?0:fail_io("Cannot verify readable background PNG");
+}
 static int operate(const char *root_path,const char *app,const char *info,const char *art_path,int restore){
     int root=hub_open_path(root_path,1),art=-1,lock=-1,in_tx=0,result=-1;sqlite3 *db=NULL,*ledger=NULL;char plan[1200];struct stat st;
     if(root<0)return fail("Cannot open private recovery directory");lock=openat(root,"lock",O_CREAT|O_RDWR|O_NOFOLLOW,0600);if(lock<0||flock(lock,LOCK_EX|LOCK_NB)<0){fail("Artwork updater is already running");goto done;}
@@ -109,7 +135,7 @@ static int operate(const char *root_path,const char *app,const char *info,const 
     if(restore){if(!equals(db,"SELECT val FROM plan.meta WHERE key='state';","applied")||!equals(db,"SELECT val FROM plan.meta WHERE key='sha256';",BACKGROUND_SHA256)||replay(db,1)<0)goto done;}
     else{
       if(!equals(db,"SELECT pprDeeplinkUri FROM main.tbl_contentinfo WHERE titleId='NPXS40047';",SITE)){fail("Store tile does not point to PSN-HUB; install its shortcut first");goto done;}
-      art=hub_open_path(art_path,0);if(art<0||asset(art)<0){fail("Cannot stage and verify the reviewed background PNG");goto done;}
+      art=art_directory(art_path);if(art<0||asset(art)<0)goto done;
       if(equals(db,"SELECT val FROM plan.meta WHERE key='state';","applied")){if(!equals(db,"SELECT val FROM plan.meta WHERE key='sha256';",BACKGROUND_SHA256)||replay(db,0)<0)goto done;if(sql(db,"COMMIT;")<0)goto done;in_tx=0;result=0;goto done;}
       struct timespec now;if(clock_gettime(CLOCK_REALTIME,&now)<0)goto done;char name[80],directory[1400],a[1500],b[1500];snprintf(name,sizeof(name),"backup-%lld-%09ld",(long long)now.tv_sec,now.tv_nsec);if(mkdirat(root,name,0700)<0)goto done;snprintf(directory,sizeof(directory),"%s/%s",root_path,name);snprintf(a,sizeof(a),"%s/app.db",directory);snprintf(b,sizeof(b),"%s/appinfo.db",directory);
       if(backup(app,a)<0||backup(info,b)<0)goto done;int folder=hub_child(root,name,0);if(folder<0||fsync(folder)<0||fsync(root)<0){if(folder>=0)close(folder);goto done;}close(folder);

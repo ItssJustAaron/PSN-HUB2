@@ -45,6 +45,10 @@ class BackgroundTests(unittest.TestCase):
   self.run_engine('restore');self.assertEqual(self.snapshot(),self.before)
  def test_apply_is_idempotent(self):
   self.run_engine();before=self.snapshot();self.run_engine();self.assertEqual(self.snapshot(),before);self.assertEqual(len(list(self.root.glob('backup-*'))),1)
+ def test_missing_title_artwork_directory_is_created(self):
+  (self.root/'appmeta').rmdir();self.run_engine();self.assertEqual((self.root/'appmeta'/FILE).read_bytes(),ASSET);self.assertEqual((self.root/'appmeta'/FILE).stat().st_mode&0o777,0o644)
+ def test_host_artwork_alias_is_resolved_before_strict_open(self):
+  folder=self.root/'real-artwork';folder.mkdir();(self.root/'appmeta').rmdir();(self.root/'appmeta').symlink_to(folder,target_is_directory=True);self.run_engine();self.assertEqual((folder/FILE).read_bytes(),ASSET)
  def test_restore_preserves_unrelated_shell_json_updates(self):
   self.run_engine()
   with sqlite3.connect(self.root/'app.db') as db:
