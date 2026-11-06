@@ -4,6 +4,8 @@ root = Path(__file__).resolve().parents[1]
 binary = (root / 'payloads/PSN-HUB-Manager.elf').read_bytes()
 start = binary.index(b'<!doctype html>')
 html = binary[start:start + 28046].rstrip()
+html = html.replace(b'<h1>PSN-HUB MANAGER</h1>', b'<h1>PSN-HUB MANAGER</h1><p class=hint><strong>EXPERIMENTAL native engine - port 8087.</strong> Hardware validation pending.</p>')
+html = html.replace(b'/data/psn-hub/payloads', b'/data/psn-hub-native/payloads')
 # The experimental engine does not register console shortcuts.
 html = html.replace(b"const d=await r.json();if(d.preview)", b"const d=await r.json();if(d.capabilities&&d.capabilities.shortcuts===false){installerStatusEl.textContent='Experimental engine: console shortcut registration is unavailable.';return;}if(d.preview)")
 out = root / 'native/build'

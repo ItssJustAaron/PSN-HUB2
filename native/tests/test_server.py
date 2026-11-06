@@ -85,6 +85,8 @@ class ServerTests(unittest.TestCase):
         code, body = self.request('/')
         self.assertEqual(code, 200)
         self.assertIn(b'PSN-HUB MANAGER', body)
+        self.assertIn(b'EXPERIMENTAL native engine', body)
+        self.assertIn(b'/data/psn-hub-native/payloads', body)
 
     def test_sha256_vectors_and_destinations(self):
         for index, data in enumerate([b'', b'abc', b'a'*55, b'a'*56, b'a'*64, bytes(range(256))*4096]):
