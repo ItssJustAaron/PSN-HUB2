@@ -50,7 +50,7 @@ int hub_usb_config(int on,const char *id,unsigned minutes){
 }
 int hub_usb_status(Buffer *b){
  buf_add(b,"{\"supported\":true,\"enabled\":%s,\"usb\":\"%s\",\"minutes\":%u,\"lastRun\":%lld,\"lastSuccess\":%s,\"exported\":%d,\"skipped\":%d,\"volumes\":[",enabled?"true":"false",selected,interval,(long long)last_run,last_result==0?"true":"false",exported,skipped);
- int count=0;for(int i=0;i<8;i++){char id[8];snprintf(id,sizeof(id),"usb%d",i);int fd=volume(id);if(fd>=0){close(fd);buf_add(b,"%s\"%s\"",count++?",":"",id);}}buf_add(b,"]}");return b->failed?-1:0;
+ int count=0;for(int i=0;i<8;i++){char id[]="usb0";id[3]=(char)('0'+i);int fd=volume(id);if(fd>=0){close(fd);buf_add(b,"%s\"%s\"",count++?",":"",id);}}buf_add(b,"]}");return b->failed?-1:0;
 }
 static int same_inventory(int dir,Buffer *b){
  int fd=openat(dir,"latest-inventory.json",O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(fd<0)return 0;
@@ -81,4 +81,4 @@ int hub_usb_all(const char *usb,Buffer *b){
  }closedir(users);last_run=time(NULL);last_result=result;
  if(b)buf_add(b,"{\"saved\":%s,\"exported\":%d,\"unchanged\":%d}",result==0?"true":"false",exported,skipped);return result;
 }
-void hub_usb_tick(void){if(!enabled||time(NULL)<next_run)return;hub_usb_all(selected,NULL);next_run=due();}
+void hub_usb_tick(void){if(!enabled||time(NULL)<next_run)return;exported=skipped=0;last_result=hub_usb_all(selected,NULL);last_run=time(NULL);next_run=due();}
