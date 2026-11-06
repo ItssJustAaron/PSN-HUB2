@@ -14,3 +14,8 @@
 *.jpg binary
 *.webp binary
 *.zip binary
+
+*.c text eol=lf
+*.h text eol=lf
+Makefile text eol=lf
+COPYING text eol=lf

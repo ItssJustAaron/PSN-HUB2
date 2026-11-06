@@ -483,8 +483,9 @@
     updateMaintenance(); refreshPublishedBuild();
   }
   async function refreshPublishedBuild() {
+    $('update-badge').textContent='Checking published build…';state.buildError='';
     try { state.publishedBuild=JSON.parse(await (await response(repositoryBase+'Manager/build.json',{cache:'no-store'})).text()); updateMaintenance(); }
-    catch(error) { state.buildError=error.message; updateMaintenance(); }
+    catch(error) { state.publishedBuild=null;state.buildError=error.message; updateMaintenance(); }
   }
   function updateMaintenance() {
     if (!$('build-details')) return;

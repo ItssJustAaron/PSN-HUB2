@@ -36,6 +36,19 @@ gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation \
 ASAN_OPTIONS=detect_leaks=0 python native/tests/test_server.py native/build/manager-host
 ```
 
+## Verification status
+
+The GitHub runner has compiled this source into a PS5 ELF with SDK v0.45. All 12
+host integration tests pass with AddressSanitizer and UndefinedBehaviorSanitizer,
+including standard SHA-256 vectors, real binary uploads, interrupted/crashed
+uploads, symlink/traversal rejection, cross-origin rejection, backup persistence,
+destination isolation, payload forwarding, categories and restore crash recovery.
+These results do not establish runtime compatibility with PS5 firmware/filesystems.
+
+Download the ELF and checksum from the **experimental-native-manager** artifact
+of the latest successful native workflow run. The artifact is separate from the
+stable update ZIP. GitHub retains it for 30 days; rerun the workflow to rebuild.
+
 ## Console validation
 
 A successful cross-build is not console validation. Load this ELF manually only

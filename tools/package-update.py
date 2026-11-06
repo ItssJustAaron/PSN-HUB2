@@ -13,7 +13,7 @@ files = set()
 for folder in ("Manager", "tools", "api", ".github", "native"):
     files.update(file for file in (root / folder).rglob("*") if file.is_file())
 # Include cover PNGs too, but omit development screenshots and Python caches.
-files = {file for file in files if "__pycache__" not in file.parts and not file.name.startswith("preview-")}
+files = {file for file in files if "__pycache__" not in file.parts and not file.name.startswith("preview-") and not file.relative_to(root).as_posix().startswith("native/build/")}
 files.update(file for file in (root / "Manager" / "covers").rglob("*") if file.is_file())
 files.update(root.glob("*.js"))
 files.update([root / ".gitattributes", root / ".gitignore"])
@@ -38,8 +38,15 @@ The online loader checks the published build before sending Manager, while an
 offline fallback is explicitly labelled. Use CHECK SITE UPDATE on the home page.
 Versions, saved profiles and diagnostics are available in the maintenance panel.
 The current native ELF only installs cheats to /data/etaHEN/cheats.
-Console inventory, OnionHEN destinations and console backups/restores require
-native source changes. Those controls are disabled until the API reports support.
+The new experimental native service is built separately from native/ and uses
+port 8087. It implements inventory, OnionHEN destinations and backup/restore.
+It is not auto-loaded or substituted for the stable Manager on port 8085.
+Console hardware validation is still required before promoting it to stable.
+See native/README.md and the experimental-native-manager Actions artifact.
+
+This UI release adds dismissible release notes, visible build status, detailed
+install reviews, saved cheat filters/pages/tabs and a compact mobile setup.
+Unsupported firmware is labelled and blocked; unconfirmed support stays labelled.
 """
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=5) as archive:
     for file in sorted(files):
