@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+int hub_media_hide(sqlite3 *);
+int hub_media_restore(sqlite3 *);
 #define TITLE "NPXS40047"
 #define CONCEPT "cid:local:NPXS40047"
 #define FULL_NAME "PSN-HUB JAILBREAK"
@@ -192,6 +194,7 @@ static int operate(const char *root_path,const char *app,const char *info,const 
     for(int i=0;i<count;i++)if(cell(db,&changes[i],restore||rename,0)<0)goto done;
     if(rename){if(rename_cells(db,changes,count)<0)goto done;}
     else for(int i=0;i<count;i++)if(cell(db,&changes[i],restore,1)<0)goto done;
+    if((restore?hub_media_restore(db):hub_media_hide(db))<0){fail("Media jailbreak visibility update failed; transaction canceled");goto done;}
     if(text_equals(db,"PRAGMA main.quick_check;","ok")<0||text_equals(db,"PRAGMA info.quick_check;","ok")<0){fail("Database integrity check failed before commit");goto done;}
     if(run(db,restore?"UPDATE plan.meta SET val='restored' WHERE key='state';":"UPDATE plan.meta SET val='applied' WHERE key='state';")<0||run(db,"COMMIT;")<0)goto done;in_transaction=0;if(rename)snprintf(target_name,sizeof(target_name),"%s",FULL_NAME);result=0;
 done:

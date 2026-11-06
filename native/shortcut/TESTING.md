@@ -81,3 +81,20 @@ containing `RENAME NPXS40047`, a newline, `PSN-HUB JAILBREAK`, and a newline.
 It creates separate rename backups, keeps the original backup directory and old
 values, and atomically updates the recovery plan with the new expected name.
 The updated Restore ELF can then undo the complete test to the original Store.
+
+## Duplicate Media shortcut policy
+
+A successful Store replacement also hides this project's Media jailbreak title
+`PSNH00002`. The separate Manager title `PSNH00001` stays available in Media.
+The target is checked against the exact PSN-HUB jailbreak URL before changing it.
+Visibility, display-location metadata and per-profile shell flags are recorded in
+the same private recovery plan and committed with the Store replacement. A failed
+Store replacement leaves the Media shortcut untouched. Restore brings back the
+previous Media visibility while preserving unrelated JSON access updates and
+SQLite value types. App records, application files and the Manager shortcut are
+not deleted.
+
+The supplied stable Manager calls AppInstallTitleDir on startup. Whether that
+platform call preserves these hidden/deleted shell flags must still be checked
+on a real PS5 after another Manager launch; startup persistence is not claimed
+from host tests alone.

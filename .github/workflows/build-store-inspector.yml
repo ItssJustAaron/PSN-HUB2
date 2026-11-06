@@ -23,7 +23,7 @@ jobs:
           python tools/build-shortcut-icon.py
           gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src native/shortcut/inspect.c native/src/storage.c native/src/sha256.c -lsqlite3 -o native/build/store-inspector-host
           ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 python native/shortcut/test_inspector.py native/build/store-inspector-host
-          gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src -Inative/build native/shortcut/patch.c native/src/storage.c native/src/sha256.c -lsqlite3 -o native/build/store-patch-host
+          gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src -Inative/build native/shortcut/patch.c native/shortcut/media.c native/src/storage.c native/src/sha256.c -lsqlite3 -o native/build/store-patch-host
           ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 python native/shortcut/test_patch.py native/build/store-patch-host
       - name: Fetch pinned SDK and SQLite source
         run: |
@@ -40,9 +40,9 @@ jobs:
           "$PS5_PAYLOAD_SDK/bin/prospero-clang" -O2 -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION=1 -DSQLITE_MAX_MMAP_SIZE=0 -Inative/build/sqlite -c native/build/sqlite/sqlite3.c -o native/build/sqlite3.o
           "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Inative/src -Inative/build/sqlite native/shortcut/inspect.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Inspector.elf
           sha256sum native/build/PSN-HUB-Store-Inspector.elf > native/build/PSN-HUB-Store-Inspector.elf.sha256
-          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Apply.elf
-          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_SHORTCUT_RESTORE -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Restore.elf
-          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_SHORTCUT_RENAME -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Rename.elf
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/shortcut/media.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Apply.elf
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_SHORTCUT_RESTORE -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/shortcut/media.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Restore.elf
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -DHUB_SHORTCUT_RENAME -Inative/src -Inative/build -Inative/build/sqlite native/shortcut/patch.c native/shortcut/media.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Rename.elf
           sha256sum native/build/PSN-HUB-Store-Rename.elf > native/build/PSN-HUB-Store-Rename.elf.sha256
           sha256sum native/build/PSN-HUB-Store-Apply.elf > native/build/PSN-HUB-Store-Apply.elf.sha256
           sha256sum native/build/PSN-HUB-Store-Restore.elf > native/build/PSN-HUB-Store-Restore.elf.sha256
