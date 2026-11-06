@@ -1,6 +1,6 @@
 # Save Manager — experimental
 
-Native version `0.3.1-experimental` runs on port **8087**. The jailbreak continues
+Native version `0.3.2-experimental` runs on port **8087**. The jailbreak continues
 to start the stable Manager on **8085**. Its original native engine has no save
 API. Raw browsing/snapshots and backed-up imports require port 8087; advanced
 transforms use the separately launched Garlic engine on port 8082. The dashboard

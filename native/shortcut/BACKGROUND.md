@@ -51,7 +51,7 @@ contain console database copies, recovery ledgers or private backups.
 
 `python tools/build-shortcut-background.py` embeds the PNG unchanged and records
 its hash, filename and URI. The Store workflow builds apply and restore ELFs and
-runs nine synthetic-database tests with sanitizers, in addition to the existing
+runs synthetic-database tests with sanitizers, in addition to the existing
 inspector and shortcut tests. Tests cover exact restoration, metadata-preserving
 restore, backups, idempotence, rollback, drift, ledger scope, wrong target,
 corrupt assets and unsupported journal modes.
@@ -59,3 +59,12 @@ corrupt assets and unsupported journal modes.
 Artwork was generated with the built-in image tool using the existing mascot as
 a reference. The exact [prompt](../../Manager/assets/jailbreak-background.prompt.txt)
 is included alongside the PNG. No original mascot asset was edited.
+
+## PS5 verification
+
+The corrected updater was run successfully on-console: it verified and installed
+the reviewed PNG, backed up both metadata databases, and committed six artwork
+references. A manual home-screen refresh is still required for visual confirmation.
+The fix normalizes carry/errno results from SDK v0.45 fallback filesystem calls;
+missing files are no longer mistaken for valid file descriptors. The same
+compatibility layer is included in the experimental Manager.

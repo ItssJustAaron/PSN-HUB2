@@ -4,7 +4,7 @@ A new, source-built implementation. It is separate from the supplied compiled
 Manager and is not automatically loaded by the jailbreak page.
 
 - Experimental listener: **8087**. Stable Manager remains on **8085**.
-- Native version: `0.3.1-experimental`.
+- Native version: `0.3.2-experimental`.
 - Payload/category/backup storage: `/data/psn-hub-native`.
 - Fixed cheat destinations: `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`.
 - HTTP: payload upload/list/delete/send, saved category CRUD/run, SHA-256 cheat
@@ -86,3 +86,7 @@ https://github.com/ps5-payload-dev/sdk/tree/v0.45
 ## Experimental Save Manager
 
 Raw PS4/PS5 title discovery, raw file downloads and manual snapshots are implemented in source. The updated dashboard adds advanced save tools backed by the separately launched local Garlic SaveMgr engine. See [SAVES.md](SAVES.md) for routes, limits, testing and installation. Hardware validation is pending.
+
+PS5 filesystem compatibility uses explicit carry/errno conversion for the SDK’s
+fallback openat/mkdirat/fstatat/renameat/unlinkat calls. Host tests exercise the
+error decoder, and the layer was validated by the live Store artwork update.
