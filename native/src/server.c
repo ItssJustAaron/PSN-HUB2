@@ -31,6 +31,7 @@
 static int parents[2],payloads,backups,categories;
 static const char *destinations[]={"etahen","onionhen"};
 static int loader_port=9021;
+static int restart_socket=-1,restart_file=-1;
 static const char *integrated_root="/data/psn-hub";
 static void preflight_trace(const char *text){
 #if defined(HUB_UNIFIED_PREVIEW) && !defined(HUB_HOST_TEST)
@@ -91,6 +92,16 @@ static int internal_payload(const char *name){return !strcmp(name,"PSN-HUB-Manag
 static int start_save_engine(void){
  int sock=socket(AF_INET,SOCK_STREAM,0);if(sock<0)return -1;struct timeval timeout={10,0};setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons((uint16_t)loader_port);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
  int result=connect(sock,(struct sockaddr *)&a,sizeof(a));if(result==0)result=hub_write(sock,save_engine,sizeof(save_engine));close(sock);return result;
+}
+static int prepare_restart(void){
+ int file=openat(payloads,"PSN-HUB-Manager.elf",O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(file<0)return -1;struct stat st;unsigned char magic[4];
+ if(fstat(file,&st)<0||!S_ISREG(st.st_mode)||st.st_size<4||(uint64_t)st.st_size>HUB_LIMIT||read(file,magic,4)!=4||memcmp(magic,"\177ELF",4)||lseek(file,0,SEEK_SET)<0){close(file);return -1;}
+ int sock=socket(AF_INET,SOCK_STREAM,0);if(sock<0){close(file);return -1;}struct timeval timeout={10,0};setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons((uint16_t)loader_port);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
+ if(connect(sock,(struct sockaddr *)&a,sizeof(a))<0){close(file);close(sock);return -1;}restart_file=file;restart_socket=sock;return 0;
+}
+static int finish_restart(void){
+ unsigned char bytes[65536];ssize_t n;int result=0;while((n=read(restart_file,bytes,sizeof(bytes)))!=0){if(n<0){if(errno==EINTR)continue;result=-1;break;}if(hub_write(restart_socket,bytes,(size_t)n)<0){result=-1;break;}}
+ close(restart_file);close(restart_socket);return result;
 }
 static int send_payload(const char *name) {
     if(!is_payload(name))return -1;int file=openat(payloads,name,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(file<0)return -1;
@@ -198,7 +209,7 @@ static void handle(int fd,Request *r) {
     }else if(post&&!strcmp(path,"/api/delete")){
       char name[128];if(query(r,"name",name,sizeof(name))!=1||!is_payload(name)){error_reply(fd,400,"Invalid payload name");return;}result=unlinkat(payloads,name,0);if(result==0)result=fsync(payloads);buf_add(&b,"{\"deleted\":true}");
     }else if(post&&!strcmp(path,"/api/send")){
-      char name[128];if(query(r,"name",name,sizeof(name))!=1||!is_payload(name)){error_reply(fd,400,"Invalid payload name");return;}result=send_payload(name);buf_add(&b,"{\"sent\":1}");
+      char name[128];if(query(r,"name",name,sizeof(name))!=1||!is_payload(name)){error_reply(fd,400,"Invalid payload name");return;}result=!strcmp(name,"PSN-HUB-Manager.elf")?prepare_restart():send_payload(name);buf_add(&b,"{\"sent\":1,\"restarting\":%s}",restart_socket>=0?"true":"false");
     }else if((get&&!strcmp(path,"/api/cheats"))||(get&&!strcmp(path,"/api/cheats/backups"))||(post&&(!strcmp(path,"/api/cheats/backup")||!strcmp(path,"/api/cheats/restore")||!strcmp(path,"/api/cheat-upload")))){
       int dest=destination(r);if(dest<0){error_reply(fd,400,"Unknown cheat destination");return;}
       if(get&&!strcmp(path,"/api/cheats/backups"))result=backup_list(dest,&b);
@@ -269,6 +280,6 @@ int main(int argc,char **argv) {
     preflight_trace("listener ready");
     hub_shortcuts_init();
     printf("PSN-HUB unified %s listening on %d\n",HUB_VERSION,port);fflush(stdout);
-    for(;;){hub_usb_tick();fd_set ready;FD_ZERO(&ready);FD_SET(server,&ready);struct timeval poll={1,0};int available=select(server+1,&ready,NULL,NULL,&poll);if(available<0){if(errno==EINTR)continue;break;}if(!available)continue;int client=accept(server,NULL,NULL);if(client<0){if(errno==EINTR)continue;break;}struct timeval timeout={30,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));Request request;int code=parse_request(client,&request);if(code)error_reply(client,code,"Invalid request, size, origin or mutation header");else handle(client,&request);close(client);}
-    close(server);close(lock);close(base);return 1;
+    for(;;){hub_usb_tick();fd_set ready;FD_ZERO(&ready);FD_SET(server,&ready);struct timeval poll={1,0};int available=select(server+1,&ready,NULL,NULL,&poll);if(available<0){if(errno==EINTR)continue;break;}if(!available)continue;int client=accept(server,NULL,NULL);if(client<0){if(errno==EINTR)continue;break;}struct timeval timeout={30,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));Request request;int code=parse_request(client,&request);if(code)error_reply(client,code,"Invalid request, size, origin or mutation header");else handle(client,&request);close(client);if(restart_socket>=0)break;}
+    close(server);close(lock);close(base);if(restart_socket>=0)return finish_restart()<0?1:0;return 1;
 }

@@ -312,6 +312,26 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request('/api/artwork?action=anything','POST')[0],400)
         self.assertEqual(self.request('/api/artwork?action=icons','POST',headers={'X-PSNHUB-Request':'0'})[0],403)
 
+    def test_manager_self_update_releases_listener_before_new_elf(self):
+        data=b'\x7fELF'+b'new-manager-test'*100
+        self.api('/api/upload?name=PSN-HUB-Manager.elf','PUT',data)
+        received=[]
+        with socket.socket() as listener:
+            listener.bind(('127.0.0.1',self.loader_port));listener.listen();listener.settimeout(5)
+            def receive():
+                with listener.accept()[0] as client:
+                    chunks=[]
+                    while True:
+                        chunk=client.recv(65536)
+                        if not chunk:break
+                        chunks.append(chunk)
+                    received.append(b''.join(chunks))
+            worker=threading.Thread(target=receive);worker.start()
+            self.assertTrue(self.api('/api/send?name=PSN-HUB-Manager.elf','POST')['restarting'])
+            worker.join(timeout=5)
+        self.process.wait(timeout=5);self.assertEqual(self.process.returncode,0);self.assertEqual(received,[data])
+        with socket.socket() as check:self.assertNotEqual(check.connect_ex(('127.0.0.1',self.port)),0)
+
     def test_legacy_categories_settings_and_snapshots_are_preserved(self):
         legacy=self.root/'autoload-categories.txt';text='Daily Use|250|first.elf,second.elf\n';legacy.write_text(text)
         old=self.root/'legacy-save-service';old.mkdir();(old/'save-usb.conf').write_text('0 usb2 60\n')
