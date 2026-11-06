@@ -13,7 +13,7 @@ const image=new Blob([new Uint8Array(100)]),key=new Blob([new Uint8Array(96)]);
 function mock({backup=async()=>({id:'save-backup'}),override=()=>undefined}={}){
   const calls=[];let mounted=false;
   const fetcher=async(url,options)=>{const p=new URL(url);calls.push({path:p.pathname,query:p.searchParams,options});const special=await override(p,options);if(special instanceof Error)throw special;let data=special;
-    if(data===undefined){if(p.pathname==='/api/status')data={mounted};else if(p.pathname==='/api/users')data={users:[{id:'00000001',name:'Aaron'}]};else if(p.pathname==='/api/import_check')data={title_id:'PPSA00001',dir_name:'slot',exists:true};else if(p.pathname==='/api/import_encrypted'){mounted=true;data={ok:true,title_id:'PPSA00001',dir_name:'slot',save_aid:'0000000000000001',user_aid:'0000000000000002'};}else{if(['/api/create_pfs','/api/decrypt_upload'].includes(p.pathname))mounted=true;if(['/api/unmount','/api/encrypt_upload','/api/resign','/api/import_finish'].includes(p.pathname))mounted=false;data={ok:true};}}
+    if(data===undefined){if(p.pathname==='/api/status')data={mounted};else if(p.pathname==='/api/users')data={users:[{id:'00000001',name:'Aaron'}]};else if(p.pathname==='/api/upload_file')data={ok:true,size:options.body.size};else if(p.pathname==='/api/import_check')data={title_id:'PPSA00001',dir_name:'slot',exists:true};else if(p.pathname==='/api/import_encrypted'){mounted=true;data={ok:true,title_id:'PPSA00001',dir_name:'slot',save_aid:'0000000000000001',user_aid:'0000000000000002'};}else{if(['/api/create_pfs','/api/decrypt_upload'].includes(p.pathname))mounted=true;if(['/api/unmount','/api/encrypt_upload','/api/resign','/api/import_finish'].includes(p.pathname))mounted=false;data={ok:true};}}
     return {ok:true,status:200,json:async()=>data};
   };
   return {client:new Client({base:'http://console:8082',fetch:fetcher,fflate,backup}),calls};
@@ -41,6 +41,9 @@ function mock({backup=async()=>({id:'save-backup'}),override=()=>undefined}={}){
   }
   {
     const {client,calls}=mock();const result=await client.encrypt({type:'ps4',zip:zip('ps4'),aid:'0000000000000001'});assert(result.url.includes('/api/download_new'));assert.equal(calls.find(call=>call.path==='/api/create_pfs').query.get('ps4'),'1');assert.equal(calls.filter(call=>call.path==='/api/upload_file').length,2);await client.release();
+  }
+  {
+    const {client,calls}=mock({override:p=>p.pathname==='/api/upload_file'?{ok:true,size:1}:undefined});await assert.rejects(client.encrypt({type:'ps4',zip:zip('ps4')}),/incomplete/);assert(!calls.some(call=>call.path==='/api/import_finish'));await client.release();
   }
   {
     const backups=[];const {client,calls}=mock({backup:async selection=>{backups.push(selection);return {id:'save-original'};}});await assert.rejects(client.finishImport(),/Prepare/);
