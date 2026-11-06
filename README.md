@@ -102,7 +102,7 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
 | `Manager/` | Manager dashboard, library catalogue, cheats, HENs, mod menus, emulators, and artwork |
 | `native/` | Native shortcut payload source |
 | `api/`, `offsets/` | Supporting server tools and firmware data |
-| `.github/workflows/` | Pages and release automation |
+| `.github/workflows/` | Pages and release automation | 
 
 ## Important notes
 
@@ -111,3 +111,7 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
 - The Manager is intended for a trusted local network. It has no user accounts or transport encryption; do not expose port `8085` directly to the public internet.
 - Manager library downloads require internet. A cached jailbreak page does not make remote library files available offline.
 - Credits for the original exploit chain and payload authors are retained in the site and project files.
+
+  <img width="1280" height="720" alt="PSNHUB-JB" src="https://github.com/user-attachments/assets/100f14d6-91f1-4e2b-9274-5da3466783dc" />
+
+
