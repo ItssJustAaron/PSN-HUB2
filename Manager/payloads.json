@@ -129,5 +129,13 @@
     "description": "Refresh existing PSN-HUB Manager and jailbreak icons with the HD mascot. Backs up original PNGs; preserves names, links, backgrounds and visibility. Refresh the console home screen afterwards.",
     "info": "PSN-HUB-HD-Icons.elf - PSN-HUB",
     "expectedSha256": "aaf02823a67c8499dbb4138865e5d56ef10d24ab3bca5f8488111e009ca62a33"
+  },
+  {
+    "title": "PSN-HUB console save service",
+    "name": "PSN-HUB-Save-Service.elf",
+    "key": "psn-hub-save-service",
+    "description": "Start the local console save browser on port 8087. Lists PS4/PS5 save folders and downloads raw save files. Use the Saves tab after startup. Experimental native engine 0.3.2.",
+    "info": "PSN-HUB-Save-Service.elf - PSN-HUB",
+    "expectedSha256": "83aa6f56b5e2f4c700eb7c666c91d07815d99f437ce55b14786177b548cfdc34"
   }
 ]

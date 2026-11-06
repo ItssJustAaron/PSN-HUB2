@@ -1,6 +1,6 @@
 # Save Manager — experimental
 
-Native version `0.3.2-experimental` runs on port **8087**. The jailbreak continues
+Native version `0.3.3-experimental` runs on port **8087**. The jailbreak continues
 to start the stable Manager on **8085**. Its original native engine has no save
 API. Raw browsing/snapshots and backed-up imports require port 8087; advanced
 transforms use the separately launched Garlic engine on port 8082. The dashboard
@@ -69,3 +69,13 @@ PSN-HUB code. The advanced tools separately bundle an unmodified Garlic SaveMgr
 ELF; see the provenance guide linked above. No Garlic Worker code or binary is
 bundled. The native project is
 distributed under its existing GPL-3.0-or-later license.
+
+## Console save browser and USB backups
+
+The stable Manager Saves tab embeds the local save service on port 8087 and automatically lists console PS4/PS5 save folders. The service can be started from that tab. Download links return raw encrypted files; keep PS4 companion keys.
+
+Version 0.3.3 adds per-game USB export, backup of all changed saves, and optional automatic backups every 15–1440 minutes. Automatic backup is disabled by default and its settings persist on the console. It runs only while this service is active; it does not run while the PS5 is powered off. Close games to ensure their latest save data has been flushed to disk.
+
+Destinations are existing mounted USB0–USB7 volumes only, under /PSN-HUB/Saves/<user>/<platform>/<title>/<snapshot>. Original saves are never overwritten or deleted. Each copy is verified before it becomes a completed snapshot; unchanged saves are skipped based on their recorded file inventory. No automatic retention deletion is performed.
+
+A service already running an older version must be restarted by rebooting the PS5 before starting the new ELF. USB writes still need hardware validation with a connected drive.

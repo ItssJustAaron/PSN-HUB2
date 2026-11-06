@@ -31,6 +31,8 @@ class ServerTests(unittest.TestCase):
 
     def start(self, crash=False):
         env = os.environ.copy()
+        if getattr(self, 'auto_seconds', None):
+            env['HUB_TEST_AUTO_SECONDS'] = str(self.auto_seconds)
         if crash:
             env['HUB_TEST_CRASH_AFTER_RENAME'] = '1'
         self.process = subprocess.Popen([BINARY, str(self.root), str(self.port), str(self.loader_port)], env=env, stdout=self.log, stderr=self.log)
@@ -285,6 +287,47 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request('/api/saves/backup?'+urlencode({'id':'save-any'}),'POST')[0],400)
         self.assertEqual(self.request('/api/saves/files?'+urlencode({'user':'../bad','platform':'ps5','title':'PPSA00001'}))[0],400)
         self.assertEqual(self.request('/api/saves/backup?'+query,'POST',headers={'X-PSNHUB-Request':'0'})[0],403)
+
+    def test_usb_export_all_and_unchanged_detection(self):
+        path, query = self.save_fixture()
+        usb = self.root / 'usb' / 'usb0'; usb.mkdir()
+        self.assertEqual(self.api('/api/saves/usb')['volumes'], ['usb0'])
+        result = self.api('/api/saves/usb/export?usb=usb0&'+query, 'POST')
+        saved = usb / result['path'].split('/mnt/usb0/')[1]
+        self.assertEqual((saved/'sdimg_slot').read_bytes(), (path/'sdimg_slot').read_bytes())
+        self.assertEqual(self.api('/api/saves/usb/all?usb=usb0','POST')['unchanged'], 1)
+        (path/'sdimg_slot').write_bytes(b'changed save')
+        self.assertEqual(self.api('/api/saves/usb/all?usb=usb0','POST')['exported'], 1)
+        self.assertEqual(len(list(saved.parent.glob('save-*'))), 2)
+        self.assertEqual(self.request('/api/saves/usb/export?usb=../bad&'+query,'POST')[0],500)
+        self.assertEqual(self.request('/api/saves/usb/export?usb=usb1&'+query,'POST')[0],500)
+        self.assertFalse((self.root/'usb'/'usb1').exists())
+
+    def test_usb_symlink_and_incomplete_snapshot_rejected(self):
+        path, query = self.save_fixture()
+        outside=self.root/'outside';outside.mkdir()
+        (self.root/'usb'/'usb0').symlink_to(outside)
+        self.assertEqual(self.request('/api/saves/usb/export?usb=usb0&'+query,'POST')[0],500)
+        (self.root/'usb'/'usb0').unlink();(self.root/'usb'/'usb0').mkdir()
+        (path/'nested').mkdir()
+        self.assertEqual(self.request('/api/saves/usb/export?usb=usb0&'+query,'POST')[0],500)
+        self.assertEqual(list((self.root/'usb').rglob('save-*')), [])
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_usb_auto_settings_persist_and_timer_runs(self):
+        path, query = self.save_fixture();usb=self.root/'usb'/'usb0';usb.mkdir()
+        self.assertFalse(self.api('/api/saves/usb')['enabled'])
+        self.assertEqual(self.request('/api/saves/usb/config?enabled=1&usb=usb0&minutes=1','POST')[0],400)
+        self.api('/api/saves/usb/config?enabled=1&usb=usb0&minutes=15','POST')
+        self.process.terminate();self.process.wait(timeout=5);self.auto_seconds=1;self.start()
+        self.assertTrue(self.api('/api/saves/usb')['enabled'])
+        for _ in range(80):
+            if list(usb.rglob('save-*')):break
+            time.sleep(.05)
+        copies=list(usb.rglob('save-*'));self.assertEqual(len(copies),1)
+        self.assertEqual((copies[0]/'sdimg_slot').read_bytes(),(path/'sdimg_slot').read_bytes())
+        self.api('/api/saves/usb/config?enabled=0&usb=usb0&minutes=15','POST')
+        self.assertFalse(self.api('/api/saves/usb')['enabled'])
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

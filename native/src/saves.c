@@ -52,13 +52,13 @@ int hub_save_list(Buffer *b){
     }closedir(users);buf_add(b,"]}");return result<0||b->failed?-1:0;
 }
 int hub_save_snapshot(const char *id){if(strncmp(id,"save-",5)||!hub_name(id))return -1;return hub_child(save_backups,id,0);}
-int hub_save_backup(int source,const char *label,char id[80]){
+int hub_save_backup_into(int destination,int source,const char *label,char id[80]){
     if(!hub_name(label)||strlen(label)>24)return -1;
     Buffer before={0},after={0};int result=hub_save_files(source,&before);if(result<0){buf_free(&before);return -1;}
     static unsigned seq;struct timespec now;if(clock_gettime(CLOCK_REALTIME,&now)<0){buf_free(&before);return -1;}
     snprintf(id,80,"save-%s-%lld-%09ld-%u",label,(long long)now.tv_sec,now.tv_nsec,++seq);char temp[96];snprintf(temp,sizeof(temp),".%s",id);
-    if(mkdirat(save_backups,temp,0700)<0){buf_free(&before);return -1;}
-    int target=openat(save_backups,temp,O_RDONLY|O_DIRECTORY|O_NOFOLLOW),scan=openat(source,".",O_RDONLY|O_DIRECTORY);DIR *d=scan<0?NULL:fdopendir(scan);
+    if(mkdirat(destination,temp,0700)<0){buf_free(&before);return -1;}
+    int target=openat(destination,temp,O_RDONLY|O_DIRECTORY|O_NOFOLLOW),scan=openat(source,".",O_RDONLY|O_DIRECTORY);DIR *d=scan<0?NULL:fdopendir(scan);
     if(target<0||!d){if(scan>=0&&!d)close(scan);result=-1;}
     struct dirent *e;uint64_t total=0;
     while(result==0&&(e=readdir(d))){if(!strcmp(e->d_name,".")||!strcmp(e->d_name,".."))continue;
@@ -73,9 +73,10 @@ int hub_save_backup(int source,const char *label,char id[80]){
     if(d)closedir(d);
     if(result==0&&(hub_save_files(source,&after)<0||before.len!=after.len||memcmp(before.data,after.data,before.len)))result=-1;
     if(result==0&&fsync(target)<0)result=-1;if(target>=0)close(target);buf_free(&before);buf_free(&after);
-    if(result==0)result=renameat(save_backups,temp,save_backups,id);if(result==0)result=fsync(save_backups);
-    if(result<0)hub_remove_tree(save_backups,temp);return result;
+    if(result==0)result=renameat(destination,temp,destination,id);if(result==0)result=fsync(destination);
+    if(result<0)hub_remove_tree(destination,temp);return result;
 }
+int hub_save_backup(int source,const char *label,char id[80]){return hub_save_backup_into(save_backups,source,label,id);}
 int hub_save_backups(Buffer *b){
     int scan=openat(save_backups,".",O_RDONLY|O_DIRECTORY);DIR *d=scan<0?NULL:fdopendir(scan);if(!d){if(scan>=0)close(scan);return -1;}struct dirent *e;int count=0,result=0;buf_add(b,"{\"items\":[");
     while((e=readdir(d))){if(strncmp(e->d_name,"save-",5)||!hub_name(e->d_name))continue;if(++count>4096){result=-1;break;}int dir=hub_save_snapshot(e->d_name);if(dir<0){result=-1;break;}close(dir);buf_add(b,"%s{\"id\":\"%s\"}",count>1?",":"",e->d_name);}closedir(d);buf_add(b,"]}");return result<0||b->failed?-1:0;

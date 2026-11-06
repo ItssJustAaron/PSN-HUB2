@@ -1,4 +1,11 @@
 html.library-wide main{width:min(1760px,100%)}
+.console-save-browser{display:block;width:100%;height:72vh;min-height:520px;margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+#panel-payloads #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#panel-payloads #list>.item{min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between}
+#panel-payloads #list>.empty{grid-column:1/-1}
+html.saves-only main>*:not(#panel-save-manager){display:none!important}
+html.saves-only main{width:100%;padding:0}
+html.saves-only #panel-save-manager>.card{margin:0;border:0;box-shadow:none}
 #leaf-background{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.42}
 html.library-wide main{position:relative;z-index:1}
 #panel-payloads,#panel-hens,#panel-mod-menus,#panel-emulators,#panel-my-library{max-width:1040px;margin-inline:auto}

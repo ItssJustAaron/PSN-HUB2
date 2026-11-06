@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/select.h>
 #include <time.h>
 #include <unistd.h>
 #ifndef HUB_HOST_TEST
@@ -121,7 +122,16 @@ static void handle(int fd,Request *r) {
 #ifndef HUB_HOST_TEST
       uint32_t version=kernel_get_fw_version();if(version)snprintf(firmware,sizeof(firmware),"%x.%02x",version>>24,(version>>16)&255);
 #endif
-      buf_add(&b,"{\"version\":\"%s\",\"experimental\":true,\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"saveRead\":true,\"saveBackup\":true,\"shortcuts\":false},\"manager\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0},\"jailbreak\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0}}",HUB_VERSION,firmware);
+      buf_add(&b,"{\"version\":\"%s\",\"experimental\":true,\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"saveRead\":true,\"saveBackup\":true,\"saveUSB\":true,\"shortcuts\":false},\"manager\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0},\"jailbreak\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0}}",HUB_VERSION,firmware);
+    }else if(get&&!strcmp(path,"/api/saves/usb"))result=hub_usb_status(&b);
+    else if(post&&(!strcmp(path,"/api/saves/usb/export")||!strcmp(path,"/api/saves/usb/all")||!strcmp(path,"/api/saves/usb/config"))){
+      char usb[16];if(query(r,"usb",usb,sizeof(usb))!=1){error_reply(fd,400,"Choose a USB device");return;}
+      if(!strcmp(path,"/api/saves/usb/config")){
+        char on[8],minutes[16],*end=NULL;if(query(r,"enabled",on,sizeof(on))!=1||query(r,"minutes",minutes,sizeof(minutes))!=1||(strcmp(on,"0")&&strcmp(on,"1"))){error_reply(fd,400,"Invalid automatic backup settings");return;}
+        unsigned long value=strtoul(minutes,&end,10);if(!minutes[0]||*end||value<15||value>1440){error_reply(fd,400,"Backup interval must be 15 to 1440 minutes");return;}
+        result=hub_usb_config(!strcmp(on,"1"),usb,(unsigned)value);if(result==0)result=hub_usb_status(&b);
+      }else if(!strcmp(path,"/api/saves/usb/all"))result=hub_usb_all(usb,&b);
+      else {char user[32],platform[16],title[32];if(query(r,"user",user,sizeof(user))!=1||query(r,"platform",platform,sizeof(platform))!=1||query(r,"title",title,sizeof(title))!=1){error_reply(fd,400,"Invalid save selection");return;}result=hub_usb_export(usb,user,platform,title,&b);}
     }else if((get&&(!strcmp(path,"/api/saves")||!strcmp(path,"/api/saves/files")||!strcmp(path,"/api/saves/download")||!strcmp(path,"/api/saves/backups")))||(post&&!strcmp(path,"/api/saves/backup"))){
       if(get&&!strcmp(path,"/api/saves"))result=hub_save_list(&b);
       else if(get&&!strcmp(path,"/api/saves/backups"))result=hub_save_backups(&b);
@@ -186,7 +196,7 @@ int main(int argc,char **argv) {
 #endif
     if(base<0){perror("Manager storage");return 1;}
     int lock=openat(base,"lock",O_CREAT|O_RDWR|O_NOFOLLOW,0600);if(lock<0||flock(lock,LOCK_EX|LOCK_NB)<0){fprintf(stderr,"Manager already running or lock unavailable\n");return 1;}
-    hub_saves_init(base);
+    hub_saves_init(base);hub_usb_init(base);
     payloads=hub_child(base,"payloads",1);backups=hub_child(base,"backups",1);categories=hub_child(base,"categories",1);
 #ifdef HUB_HOST_TEST
     parents[0]=hub_child(base,"etaHEN",1);parents[1]=hub_child(base,"OnionHEN",1);
@@ -207,6 +217,6 @@ int main(int argc,char **argv) {
 #endif
     if(port<1||port>65535||bind(server,(struct sockaddr *)&address,sizeof(address))<0||listen(server,16)<0){perror("Manager listener");return 1;}
     printf("PSN-HUB native %s listening on %d\n",HUB_VERSION,port);fflush(stdout);
-    for(;;){int client=accept(server,NULL,NULL);if(client<0){if(errno==EINTR)continue;break;}struct timeval timeout={30,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));Request request;int code=parse_request(client,&request);if(code)error_reply(client,code,"Invalid request, size, origin or mutation header");else handle(client,&request);close(client);}
+    for(;;){hub_usb_tick();fd_set ready;FD_ZERO(&ready);FD_SET(server,&ready);struct timeval poll={1,0};int available=select(server+1,&ready,NULL,NULL,&poll);if(available<0){if(errno==EINTR)continue;break;}if(!available)continue;int client=accept(server,NULL,NULL);if(client<0){if(errno==EINTR)continue;break;}struct timeval timeout={30,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));Request request;int code=parse_request(client,&request);if(code)error_reply(client,code,"Invalid request, size, origin or mutation header");else handle(client,&request);close(client);}
     close(server);close(lock);close(base);return 1;
 }

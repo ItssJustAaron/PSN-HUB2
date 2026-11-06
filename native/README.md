@@ -4,7 +4,7 @@ A new, source-built implementation. It is separate from the supplied compiled
 Manager and is not automatically loaded by the jailbreak page.
 
 - Experimental listener: **8087**. Stable Manager remains on **8085**.
-- Native version: `0.3.2-experimental`.
+- Native version: `0.3.3-experimental`.
 - Payload/category/backup storage: `/data/psn-hub-native`.
 - Fixed cheat destinations: `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`.
 - HTTP: payload upload/list/delete/send, saved category CRUD/run, SHA-256 cheat
