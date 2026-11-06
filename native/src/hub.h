@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
-#define HUB_VERSION "0.3.1-experimental"
+#define HUB_VERSION "0.3.2-experimental"
 #define HUB_LIMIT (64u*1024u*1024u)
 #define HUB_JSON_LIMIT (8u*1024u*1024u)
 typedef struct { char *data; size_t len, cap; int failed; } Buffer;
@@ -30,4 +30,21 @@ int hub_save_files(int, Buffer *);
 int hub_save_snapshot(const char *);
 int hub_save_backup(int, const char *, char [80]);
 int hub_save_backups(Buffer *);
+long hub_sys_result(long, int);
+#ifndef HUB_HOST_TEST
+/* SDK v0.45's fallback *at stubs expose raw FreeBSD carry/errno results. */
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+int hub_ps5_openat(int, const char *, int, ...);
+int hub_ps5_mkdirat(int, const char *, mode_t);
+int hub_ps5_fstatat(int, const char *, struct stat *, int);
+int hub_ps5_renameat(int, const char *, int, const char *);
+int hub_ps5_unlinkat(int, const char *, int);
+#define openat hub_ps5_openat
+#define mkdirat hub_ps5_mkdirat
+#define fstatat hub_ps5_fstatat
+#define renameat hub_ps5_renameat
+#define unlinkat hub_ps5_unlinkat
+#endif
 #endif

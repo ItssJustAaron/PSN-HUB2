@@ -22,6 +22,10 @@ jobs:
           python tools/build-native.py
       - name: Compile portable server with sanitizers
         run: gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -DHUB_HOST_TEST -Inative/build native/src/*.c -o native/build/manager-host
+      - name: Test raw syscall error translation
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -DHUB_HOST_TEST -Inative/src native/tests/test_posix.c native/src/posix.c -o native/build/posix-test
+          native/build/posix-test
       - name: Test real HTTP and storage operations
         env:
           ASAN_OPTIONS: detect_leaks=0:abort_on_error=1
