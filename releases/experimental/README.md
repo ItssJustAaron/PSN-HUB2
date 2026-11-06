@@ -1,28 +1,30 @@
-# Experimental Save Manager 0.3.0
+# Experimental Save Manager 0.3.2
 
-[Download the latest experimental ELF](PSN-HUB-Manager-native-0.3.0.elf).
-[Read the advanced save-tools guide](../../Manager/SAVE-TOOLS.md).
+[Download the latest experimental Manager ELF](PSN-HUB-Manager-native-0.3.2.elf).
+[Read the save-tools guide](../../Manager/SAVE-TOOLS.md).
 
-This ELF was built by [GitHub Actions run 42266124428](https://github.com/ItssJustAaron/PSN-HUB2/actions/runs/42266124428)
-from source commit `a782669bd72a31be68602aae3134c23a0595a2e5`.
-SHA-256: `f021c7fa6697d93d03c036ed2d64bd678764cf01d2819bf5138957ae08c19ed8`.
-Manager UI release: `2026.11.06.4`; matching UI build: `ec83a64594e7`.
+Built by [GitHub Actions run 42280923990](https://github.com/ItssJustAaron/PSN-HUB2/actions/runs/42280923990)
+from source `b84eca06488d2295cfe3b164613e84aa9c961ae0`.
+SHA-256: `83aa6f56b5e2f4c700eb7c666c91d07815d99f437ce55b14786177b548cfdc34`.
+UI release: `2026.11.06.5`; matching build: `232a0e643482`.
 
-1. Upload and send this ELF through the stable Manager.
-2. Open `http://<PS5-IP>:8087` and select **Save Manager (WIP)**.
-3. Choose **Open advanced save tools**, then **Start save engine**.
-4. Approve the payload send review. When Garlic SaveMgr starts, choose **Check engine**.
-5. Select decrypt, encrypt, resign or import/restore. Imports have a backup and review step.
+This version fixes PS5 fallback filesystem syscall error handling. The service
+was started successfully on a real PS5 and read-only save discovery was verified.
+The separate background updater was also verified on-console, with database
+backups and six committed artwork references. Advanced save transformations and
+imports still require on-console validation before promotion to stable.
 
-PSN-HUB provides raw save access, snapshots and integration controls. The
-separately launched, unmodified Garlic SaveMgr engine by earthonion performs PFS
-and account operations on port 8082. Its pinned binary is included in this repo.
-The normal jailbreak continues to start the stable Manager on port 8085.
+1. Send this ELF through the stable Manager after jailbreaking.
+2. Open `http://<PS5-IP>:8087` and select **SAVES (WIP)**.
+3. For advanced operations choose **Open advanced save tools → Start save engine**.
+4. Review the payload send, wait for Garlic SaveMgr, then choose **Check engine**.
+5. Imports stage the save, back up existing title data and require a review.
 
-Raw save access was confirmed working by the user. All 14 native tests, UI/
-protocol tests and the PS5 build passed; advanced on-console testing is pending.
-Close games before importing and keep independent verified backups.
-Automatic backups, unattended bulk restores and database-wide rollback are not
-provided. Limits and backup scope are described in the guide.
+Garlic SaveMgr by earthonion performs the local PFS/account operations on 8082.
+The normal jailbreak still starts the stable Manager on 8085. Close games before
+imports and keep independent verified backups. Automatic backups, unattended
+bulk restores and database-wide rollback are not provided.
 
-Version 0.2.0 remains available for reproducing the earlier raw-access build.
+The Payloads tab includes a weed-themed jailbreak background preview and guarded
+Apply/Restore controls. See [the background guide](../../native/shortcut/BACKGROUND.md).
+Earlier versioned ELFs are retained for reproducing their respective builds.
