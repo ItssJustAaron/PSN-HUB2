@@ -52,6 +52,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,s
   <button class="tab" id="tab-mod-menus" type="button" role="tab" aria-selected="false" aria-controls="panel-mod-menus" tabindex="-1">MOD MENUS</button>
   <button class="tab" id="tab-emulators" type="button" role="tab" aria-selected="false" aria-controls="panel-emulators" tabindex="-1">EMULATORS</button>
   <button class="tab" id="tab-my-library" type="button" role="tab" aria-selected="false" aria-controls="panel-my-library" tabindex="-1">MY LIBRARY</button>
+  <button class="tab" id="tab-save-manager" type="button" role="tab" aria-selected="false" aria-controls="panel-save-manager" tabindex="-1">SAVE MANAGER (WIP)</button>
 </nav>
 <div class="tab-panel" id="panel-payloads" role="tabpanel" aria-labelledby="tab-payloads">
 <section class="card">
@@ -115,6 +116,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,s
 <div class="tab-panel" id="panel-emulators" role="tabpanel" aria-labelledby="tab-emulators" hidden><section class="card"><h2>Emulators</h2><p class="hint">Emulator installer payloads for your PS5.</p><div id="emulator-catalog"></div></section></div>
 <div class="tab-panel" id="panel-my-library" role="tabpanel" aria-labelledby="tab-my-library" hidden><section class="card"><h2>My library</h2><p class="hint">Favourites and recent items are saved in this browser.</p><h3>Favourites</h3><div id="favourites" class="list"></div><h3>Recently used</h3><div id="recent-items" class="list"></div></section></div>
 
+<div class="tab-panel" id="panel-save-manager" role="tabpanel" aria-labelledby="tab-save-manager" hidden><section class="card"><h2>Save Manager (WIP)</h2><p class="hint"><strong>Use at your own risk.</strong> Save management is not implemented in this GitHub build. This tab does not list, back up, decrypt, encrypt, resign, import, restore, or export saves.</p><p class="hint">Do not rely on this Manager for save backups. Keep separate backups until save operations are implemented and verified on a PS5.</p><p class="hint">Research credit: Garlic SaveMgr and Garlic Worker by earthonion.</p></section></div>
 <div class="row"><button id="retry-library" class="secondary">Retry library</button></div><div id="catalog-status" class="status" role="status" aria-live="polite"></div></main>
 <script>
 const listEl=document.getElementById('list'),statusEl=document.getElementById('status'),filesEl=document.getElementById('files'),installerStatusEl=document.getElementById('installer-status');
