@@ -1,0 +1,46 @@
+name: Build read-only Store inspector
+on:
+  push:
+    branches: [main]
+    paths: ['native/shortcut/**', '.github/workflows/build-store-inspector.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspector:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Test read-only inspector with sanitizers
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libsqlite3-dev clang-18 lld-18
+          mkdir -p native/build
+          gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src native/shortcut/inspect.c native/src/storage.c native/src/sha256.c -lsqlite3 -o native/build/store-inspector-host
+          ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 python native/shortcut/test_inspector.py native/build/store-inspector-host
+      - name: Fetch pinned SDK and SQLite source
+        run: |
+          curl --fail --location --retry 3 -o "$RUNNER_TEMP/sdk.zip" https://github.com/ps5-payload-dev/sdk/releases/download/v0.45/ps5-payload-sdk.zip
+          echo "5fac64093d0e3e69f2584ce7935f24f703f622d9681f1495c85b9f00d1291a2c  $RUNNER_TEMP/sdk.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/sdk.zip" -d "$RUNNER_TEMP/sdk"
+          curl --fail --location --retry 3 -o "$RUNNER_TEMP/sqlite.zip" https://www.sqlite.org/2024/sqlite-amalgamation-3460100.zip
+          sha256sum "$RUNNER_TEMP/sqlite.zip"
+          unzip -q -j "$RUNNER_TEMP/sqlite.zip" '*/sqlite3.c' '*/sqlite3.h' -d native/build/sqlite
+      - name: Compile PS5 read-only inspector
+        env:
+          PS5_PAYLOAD_SDK: ${{ runner.temp }}/sdk/ps5-payload-sdk
+        run: |
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -O2 -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION=1 -DSQLITE_MAX_MMAP_SIZE=0 -Inative/build/sqlite -c native/build/sqlite/sqlite3.c -o native/build/sqlite3.o
+          "$PS5_PAYLOAD_SDK/bin/prospero-clang" -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Inative/src -Inative/build/sqlite native/shortcut/inspect.c native/src/storage.c native/src/sha256.c native/build/sqlite3.o -lkernel_sys -o native/build/PSN-HUB-Store-Inspector.elf
+          sha256sum native/build/PSN-HUB-Store-Inspector.elf > native/build/PSN-HUB-Store-Inspector.elf.sha256
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: read-only-store-inspector
+          path: |
+            native/build/PSN-HUB-Store-Inspector.elf
+            native/build/PSN-HUB-Store-Inspector.elf.sha256
+            native/shortcut/README.md
+          retention-days: 30
