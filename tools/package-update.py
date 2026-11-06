@@ -16,6 +16,7 @@ for folder in ("Manager", "tools", "api", ".github", "native"):
 files = {file for file in files if "__pycache__" not in file.parts and not file.name.startswith("preview-") and not file.relative_to(root).as_posix().startswith("native/build/")}
 files.update(file for file in (root / "Manager" / "covers").rglob("*") if file.is_file())
 files.update(root.glob("*.js"))
+files.update(root / item["path"] for item in json.loads((root / "Manager/catalog.json").read_text(encoding="utf-8")).get("payloads", []))
 files.update([root / ".gitattributes", root / ".gitignore"])
 for relative in ("payloads/PSN-HUB-Manager.elf", "cache.appcache", "index.html", "relapse.html", "main.js", "README.md", "document/en/ps5/index.html", "offsets/offsets.json"):
     files.add(root / relative)
@@ -43,6 +44,10 @@ port 8087. It implements inventory, OnionHEN destinations and backup/restore.
 It is not auto-loaded or substituted for the stable Manager on port 8085.
 Console hardware validation is still required before promoting it to stable.
 See native/README.md and the experimental-native-manager Actions artifact.
+
+The homepage now offers jailbreak only. After jailbreak, Manager is sent once,
+its listener is checked, then its dashboard opens. Other bundled payloads are
+available in Manager. An explicit retry/open fallback remains on the launch page.
 
 This UI release adds dismissible release notes, visible build status, detailed
 install reviews, saved cheat filters/pages/tabs and a compact mobile setup.

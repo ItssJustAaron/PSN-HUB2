@@ -43,6 +43,39 @@
 })();
 /* END EMBEDDED PAYLOAD FETCH */
 
+/* BEGIN EMBEDDED MANAGER LAUNCH */
+/* Manager-only post-jailbreak handoff. No exploit code or automatic retries. */
+(function () {
+  'use strict';
+  let pending;
+  window.startManagerFlow = function (options) {
+    if (pending) return pending;
+    pending = (async function () {
+      options.status('Starting PSN-HUB Manager?');
+      // One send per attempt; readiness polling never sends the ELF again.
+      const bytes = await options.send('PSN-HUB-Manager.elf');
+      options.status('Manager sent. Waiting for its dashboard?');
+      const pause = options.pause || (ms => new Promise(resolve => setTimeout(resolve, ms)));
+      const address = options.address;
+      if (!/^http:\/\/(?:\d{1,3}\.){3}\d{1,3}:8085\/$/.test(address || '')) throw new Error('Manager address unavailable. Open your PS5 address on port 8085.');
+      for (let attempt=0; attempt<40; attempt++) {
+        let ready=false;
+        try { ready=typeof options.ready==='function' && await options.ready(); } catch (_) {}
+        if (ready) {
+          options.status('Manager is ready. Opening dashboard?');
+          try { options.navigate(address); return {bytes, opened:true}; }
+          catch (_) { options.status('Manager is ready. Use Open Manager to open its dashboard.'); return {bytes, opened:false}; }
+        }
+        if(attempt<39)await pause(500);
+      }
+      options.status('Manager was sent, but its dashboard is not ready yet. Wait, then use Open Manager. Retry starting Manager only if needed.');
+      return {bytes, opened:false};
+    })().finally(()=>{pending=null;});
+    return pending;
+  };
+})();
+/* END EMBEDDED MANAGER LAUNCH */
+
 if (!navigator.userAgent.includes("PlayStation 5")) {
   alert(`This is a PlayStation 5 Exploit. => ${navigator.userAgent}`);
   throw new Error("");
@@ -983,6 +1016,19 @@ async function main(userlandRW, wkOnly = false) {
   let payloadSendTail = Promise.resolve();
   window.__sendPayload = function (filename) {
     const operation = payloadSendTail.then(() => sendLocalPayload(filename));
+    payloadSendTail = operation.catch(() => {});
+    return operation;
+  };
+  // Readiness uses the same serialized ROP queue as the sender, avoiding CORS probes.
+  window.__managerAddress = 'http://' + (ip.ip || '127.0.0.1') + ':8085/';
+  window.__managerReady = function () {
+    const operation = payloadSendTail.then(async function () {
+      const sock = (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
+      if (sock < 0) return false;
+      build_addr(p, sendAddr, AF_INET, htons(8085), 0x0100007f);
+      try { return ((await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0) >= 0; }
+      finally { await chain.syscall(SYS_CLOSE, sock); }
+    });
     payloadSendTail = operation.catch(() => {});
     return operation;
   };

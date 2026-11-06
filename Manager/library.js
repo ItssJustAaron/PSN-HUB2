@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.06.1';
+  const UI_RELEASE = '2026.11.06.2';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -120,10 +120,10 @@
   }
   function renderCompatibility() {
     if (!state.catalog) return;
-    renderPayloads($('hen-catalog'), state.catalog.hens); renderPayloads($('mod-menu-catalog'), state.catalog.modMenus); renderPayloads($('emulator-catalog'), state.catalog.emulators || []); renderPersonal();
+    renderPayloads($('hen-catalog'), state.catalog.hens); renderPayloads($('mod-menu-catalog'), state.catalog.modMenus); renderPayloads($('emulator-catalog'), state.catalog.emulators || []); renderPayloads($('payload-library'), state.catalog.payloads || []); renderPersonal();
   }
   function canSendName(name) {
-    const items = state.catalog ? [...state.catalog.hens, ...state.catalog.modMenus, ...(state.catalog.emulators || [])].filter(item => item.name === name) : [];
+    const items = state.catalog ? [...state.catalog.hens, ...state.catalog.modMenus, ...(state.catalog.emulators || []), ...(state.catalog.payloads || [])].filter(item => item.name === name) : [];
     const allowed = items.every(item => compatibility(item) !== 'incompatible');
     if (!allowed) $('catalog-status').textContent = name + ' does not support firmware ' + state.firmware + '. Sending is disabled.';
     return allowed;
@@ -251,7 +251,7 @@
     let index = personalIndex.get(catalog);
     if (!index) {
       index = {games: new Map(groupCheats(catalog.cheats).map(game => [game.id, game])),
-        files: new Map([...catalog.hens, ...catalog.modMenus, ...(catalog.emulators || []), ...catalog.cheats].map(file => [file.path, file]))};
+        files: new Map([...catalog.hens, ...catalog.modMenus, ...(catalog.emulators || []), ...(catalog.payloads || []), ...catalog.cheats].map(file => [file.path, file]))};
       personalIndex.set(catalog, index);
     }
     return index;
@@ -448,7 +448,7 @@
     const notes=element('details',undefined,'release-notes');notes.id='release-notes';notes.open=storeRead('release-seen','')!==UI_RELEASE;
     notes.append(element('summary','What’s new · '+UI_RELEASE));
     const list=element('ul');
-    for(const text of ['Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
+    for(const text of ['Homepage now starts Manager automatically after the jailbreak. Other payloads are in Manager’s Payload library.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
     notes.append(list,element('p','The stable Manager still uses its existing native storage API. Experimental native builds are separate.','hint'),action('Mark as read',()=>{storeWrite('release-seen',UI_RELEASE);notes.open=false;},'secondary'));panel.append(notes);
     $('connection-help').after(panel);
   }
@@ -764,7 +764,7 @@
       const data = await loadCatalog();
       for (const key of ['hens', 'modMenus', 'cheats']) if (!Array.isArray(data[key])) throw new Error('Invalid catalogue');
       state.catalog = data;
-      renderPayloads($('hen-catalog'), data.hens); renderPayloads($('mod-menu-catalog'), data.modMenus); renderPayloads($('emulator-catalog'), data.emulators || []);
+      renderPayloads($('hen-catalog'), data.hens); renderPayloads($('mod-menu-catalog'), data.modMenus); renderPayloads($('emulator-catalog'), data.emulators || []); renderPayloads($('payload-library'), data.payloads || []);
       $('download-all-cheats').disabled = false; applyFilters(false); renderPersonal(); restoreTab();
       updateMaintenance();
     } catch (error) { $('cheat-count').textContent = 'Catalogue unavailable. Check internet access and retry.'; $('catalog-status').textContent = error.message; }
@@ -779,6 +779,9 @@
   $('check-connection').addEventListener('click', checkConnection);
   $('retry-library').addEventListener('click', () => { catalogPromise = null; init(); checkConnection(); loadStyle().catch(error => { $('catalog-status').textContent = error.message; }); });
   window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, saveSetup, setControllerMode, installSummary, saveBrowsing, restoreBrowsing, applyFilters, state};
+  const payloadLibrary=element('section',undefined,'card');
+  payloadLibrary.append(element('h2','Payload library'),element('p','Choose bundled payloads here, or upload your own below. Firmware support must be checked before sending.','hint'));
+  const payloadCards=element('div');payloadCards.id='payload-library';payloadLibrary.append(payloadCards);$('panel-payloads').prepend(payloadLibrary);
   restoreBrowsing(); releaseControls();
   firmwareControls();
   maintenanceControls();

@@ -23,7 +23,9 @@ const urlContext=vm.createContext({repositoryBase:'https://site/'});
 vm.runInContext(dashboard.match(/function sourceURL[^\n]+/)[0],urlContext);
 assert.equal(urlContext.sourceURL('Manager/Emulators/Test Installer.elf'),'https://site/Manager/Emulators/Test%20Installer.elf');
 assert.throws(()=>urlContext.sourceURL('Manager/Emulators/../private.elf'),/Invalid/);
-for (const section of ['hens', 'modMenus', 'emulators', 'cheats']) {
+assert.equal(urlContext.sourceURL('payloads/test.elf'),'https://site/payloads/test.elf');
+assert.throws(()=>urlContext.sourceURL('payloads/../private.elf'),/Invalid/);
+for (const section of ['hens', 'modMenus', 'emulators', 'payloads', 'cheats']) {
   const destinations = new Set();
   for (const item of catalog[section]) {
     assert(fs.statSync(path.join(root, item.path)).isFile(), item.path);
@@ -40,7 +42,7 @@ for (const section of ['hens', 'modMenus', 'emulators', 'cheats']) {
 }
 const cached = read('cache.appcache').split('CACHE:\n')[1].split('\nNETWORK:')[0].trim().split('\n');
 for (const entry of cached) assert(fs.statSync(path.join(root, entry.split('?')[0])).isFile(), entry);
-for (const entry of ['core.js?v=132', 'mem.js?v=131', 'main.js?v=9', 'payload-fetch.js', 'cache-status.js', 'kexp.js', 'int64.js', 'payloads/elfldr-ps5-1360.elf', 'payloads/kexp_2026_05_25.bin']) assert(cached.includes(entry), entry);
+for (const entry of ['core.js?v=132', 'mem.js?v=131', 'main.js?v=10', 'manager-launch.js', 'payload-fetch.js', 'cache-status.js', 'kexp.js', 'int64.js', 'payloads/elfldr-ps5-1360.elf', 'payloads/kexp_2026_05_25.bin']) assert(cached.includes(entry), entry);
 for (const version of JSON.parse(read('offsets/offsets.json')).firmwares) assert(cached.includes('offsets/' + version.script));
 for (const [name, html] of [['index.html', read('index.html')], ['relapse.html', read('relapse.html')], ['dashboard', dashboard]]) {
   for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
@@ -51,3 +53,5 @@ for (const [name, html] of [['index.html', read('index.html')], ['relapse.html',
 console.log('PASS: catalogue paths, duplicate destinations, ELF embedding, cache dependencies and inline syntax.');
 require('./test-library.cjs');
 require('./test-payload-fetch.cjs');
+
+require('./test-manager-launch.cjs');

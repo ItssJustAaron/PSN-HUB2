@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# PSN-HUB Cache 8ae65c6efc78105a
+# PSN-HUB Cache ec1b90f8594f481b
 
 CACHE:
 cache-status.js
@@ -14,7 +14,8 @@ index.html
 int64.js
 kexp.js
 main.js
-main.js?v=9
+main.js?v=10
+manager-launch.js
 mascot.png
 mem.js
 mem.js?v=131
@@ -53,7 +54,7 @@ offsets/9.60.js
 offsets/offsets.json
 payload-fetch.js
 payloads.js
-payloads.js?v=4
+payloads.js?v=5
 payloads/CheatRunner_v0.17.1.elf
 payloads/Lapy-JB-Daemon_v1.2.elf
 payloads/OnionHEN.elf

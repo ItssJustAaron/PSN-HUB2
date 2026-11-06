@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 manager = ROOT / "Manager"
 metadata = json.loads((manager / "descriptions.json").read_text(encoding="utf-8"))
-catalog = {"hens": [], "modMenus": [], "emulators": [], "cheats": []}
+catalog = {"hens": [], "modMenus": [], "emulators": [], "payloads": [], "cheats": []}
 artwork_file = manager / "artwork.json"
 artwork = json.loads(artwork_file.read_text(encoding="utf-8")) if artwork_file.exists() else {"games": {}}
 
@@ -66,6 +66,20 @@ for directory, section in [("Hens", "hens"), ("Hen", "hens"), ("ModMenus", "modM
         if entry.get("expectedSha256") and entry["expectedSha256"] != entry["sha256"]:
             raise SystemExit("Payload differs from the documented release: " + relative)
         catalog[section].append(entry)
+
+# The former public payload menu is now browsed only inside Manager.
+for item in json.loads((manager / "payloads.json").read_text(encoding="utf-8")):
+    name = item["name"]
+    if not re.fullmatch(r"[A-Za-z0-9._-]+\.(?:elf|bin)", name, re.I) or name == "PSN-HUB-Manager.elf":
+        raise SystemExit("Invalid bundled payload name: " + name)
+    file = ROOT / "payloads" / name
+    binary = file.read_bytes()
+    if binary[:4] != b"\x7fELF":
+        raise SystemExit("Invalid bundled payload ELF: " + name)
+    catalog["payloads"].append({**item, "path": "payloads/" + name,
+        "size": len(binary), "sha256": hashlib.sha256(binary).hexdigest(),
+        "author": item.get("info", "").split(" - ")[-1],
+        "instructions": "Start a compatible HEN where required, then send this payload. Verify firmware support in the project's documentation."})
 
 # Encrypted MC4 files carry no readable metadata. Use a matching title ID/version
 # for the game name only; never infer that file's author or cheat list.

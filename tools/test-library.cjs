@@ -5,6 +5,7 @@ const catalog = {...full, cheats: full.cheats.slice(0, 6)};
 class Element {
   constructor(tag) { this.tag = tag; this.children = []; this.events = {}; this.dataset = {}; this.value = ''; this.open = false; this.hidden = false; }
   append(...children) { this.children.push(...children); }
+  prepend(...children) { this.children.unshift(...children); }
   setAttribute(name, value) { this[name] = value; }
   addEventListener(name, fn) { (this.events[name] ||= []).push(fn); }
   focus() { this.focused = true; }

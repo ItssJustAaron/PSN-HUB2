@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PSN-HUB - Exploit & Payloads</title>
+<title>PSN-HUB - Jailbreak & Manager</title>
 <style>
   html, body {
     margin: 0;
@@ -42,10 +42,10 @@
 <div id="console"></div>
 
 <script src="rop.js"></script>
-<script src="payloads.js?v=4"></script>
+<script src="payloads.js?v=5"></script>
 <script src="firmware.js?v=4"></script>
 <script src="payload-fetch.js"></script>
-<script src="main.js?v=9"></script>
+<script src="main.js?v=10"></script>
 
 <script>
 // main.js appends the offsets script for the detected firmware as its last act.
@@ -198,7 +198,7 @@ async function run() {
 function buildPayloadMenu() {
     const existing = document.getElementById("relapse-payload-menu");
     if (existing) return existing;
-    const tiles = window.PAYLOAD_TILES || [];
+    const tiles = (window.PAYLOAD_TILES || []).filter(tile => tile.name === "PSN-HUB-Manager.elf");
     if (!tiles.length) return print("no payload list (payloads.js missing)", "LOG-ERROR");
 
     const style = document.createElement("style");
@@ -268,7 +268,7 @@ function buildPayloadMenu() {
 
       #relapse-payload-menu .payload-grid {
         display: grid !important;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr;
         gap: 12px;
         width: 100%;
         max-width: 850px;
@@ -372,7 +372,7 @@ function buildPayloadMenu() {
     const header = document.createElement("div");
     header.className = "payload-header";
     const title = document.createElement("h2");
-    title.textContent = "PSN-HUB PAYLOADS";
+    title.textContent = "PSN-HUB MANAGER";
     const status = document.createElement("p");
     status.className = "payload-status";
     status.setAttribute("role", "status");
@@ -380,8 +380,11 @@ function buildPayloadMenu() {
     status.textContent = "ELF Loader active on 127.0.0.1:9021";
     const help = document.createElement("p");
     help.className = "payload-help";
-    help.textContent = "PSN-HUB Manager starts automatically; select other payloads below.";
-    header.append(title, status, help);
+    help.textContent = "Manager starts automatically after the jailbreak. Payloads, HENs and cheats are managed from its dashboard.";
+    const openManager = document.createElement('a');
+    openManager.textContent = 'Open Manager'; openManager.hidden = true;
+    openManager.className = 'payload-help'; openManager.style.color = '#39ff14';
+    header.append(title, status, help, openManager);
 
     const grid = document.createElement("div");
     grid.className = "payload-grid";
@@ -395,7 +398,7 @@ function buildPayloadMenu() {
 
         const name = document.createElement("div");
         name.className = "payload-line payload-title";
-        name.textContent = t.title;
+        name.textContent = "Start / retry Manager";
 
         const description = document.createElement("div");
         description.className = "payload-line payload-description";
@@ -424,11 +427,19 @@ function buildPayloadMenu() {
             status.textContent = "Sending " + t.title + " to elfldr on port 9021…";
             print(t.title + ": sending...", "LOG-INFO");
             try {
-                const n = await window.__sendPayload(t.name);
+                openManager.hidden = true;
+                const result = await window.startManagerFlow({
+                    send: window.__sendPayload, ready: window.__managerReady,
+                    address: window.__managerAddress,
+                    status: message => { status.textContent = message; },
+                    navigate: address => { location.href = address; }
+                });
+                const n = result.bytes;
+                openManager.href = window.__managerAddress; openManager.hidden = false;
                 a.classList.remove("sending", "failed");
                 a.classList.add("sent");
                 status.dataset.state = "success";
-                status.textContent = t.title + ": sent " + n + " bytes to elfldr." + (t.name === "PSN-HUB-Manager.elf" && window.__managerPayloadSource ? " " + window.__managerPayloadSource : "");
+                if (window.__managerPayloadSource) help.textContent = window.__managerPayloadSource;
                 print(t.title + ": sent " + n + " bytes to port 9021", "LOG-SUCCESS");
             } catch (err) {
                 a.classList.remove("sending", "sent");
@@ -485,7 +496,7 @@ run().then(() => {
     if (window.__elfldrUp && typeof window.__sendPayload === "function") {
         try { sessionStorage.setItem("psn_jb_done", "true"); } catch (e) {}
         showPayloadMenu();
-        if (new URLSearchParams(location.search).get("menu") !== "1") autoLoadManagerPayload();
+        autoLoadManagerPayload();
     }
 }).catch(reportFailure);
 </script>

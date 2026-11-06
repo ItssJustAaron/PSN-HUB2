@@ -109,30 +109,6 @@ h1 {
   font-family: monospace; font-size: 0.95rem; margin-top: 4px; letter-spacing: 1px;
 }
 
-/* Nav Tabs */
-.nav-tabs {
-  display: flex; gap: 14px; justify-content: center; margin-top: 10px;
-}
-.tab-link {
-  font-family: var(--font-comic);
-  text-decoration: none;
-  background: var(--purple-card);
-  color: #fff;
-  border: var(--border-thick);
-  border-radius: 12px;
-  padding: 6px 18px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  box-shadow: 3px 3px 0px #000;
-  transition: transform 0.15s ease;
-}
-.tab-link.active {
-  background: var(--green-main);
-  color: #000;
-  box-shadow: 3px 3px 0px var(--pink-accent);
-}
-.tab-link:hover { transform: translateY(-2px); }
-
 /* Mascot Area */
 .mascot-area {
   position: relative; display: flex; justify-content: center;
@@ -202,53 +178,6 @@ footer {
   font-size: 0.75rem; color: #ddd;
 }
 
-/* Modal Popup when trying to open payloads before running jailbreak */
-#warning-modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 100;
-  justify-content: center;
-  align-items: center;
-}
-.modal-box {
-  background: var(--purple-card);
-  border: 4px solid #000;
-  border-radius: 20px;
-  box-shadow: 6px 6px 0px #000, 0px 0px 24px var(--pink-accent);
-  max-width: 420px;
-  width: 90%;
-  padding: 24px 20px;
-  text-align: center;
-}
-.modal-box h3 {
-  font-family: var(--font-comic);
-  color: var(--pink-accent);
-  font-size: 1.8rem;
-  margin: 0 0 10px;
-  letter-spacing: 1px;
-}
-.modal-box p {
-  color: #eee;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  margin: 0 0 20px;
-}
-.modal-close-btn {
-  font-family: var(--font-comic);
-  background: var(--yellow-accent);
-  color: #000;
-  border: var(--border-thick);
-  border-radius: 12px;
-  padding: 10px 24px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  box-shadow: var(--box-shadow);
-}
-.modal-close-btn:hover {
-  background: #fff;
-}
 </style>
 </head>
 <body>
@@ -267,10 +196,7 @@ footer {
   <header>
     <h1>PSN-HUB</h1>
     <div class="subtitle">PS5 EXPLOIT HOST (7.00 - 13.60)</div>
-    <div class="nav-tabs">
-      <a class="tab-link active" href="index.html">HOME</a>
-      <a class="tab-link" href="#" onclick="handlePayloadsNav(event)">PAYLOADS</a>
-    </div>
+
   </header>
 
   <div class="mascot-area">
@@ -291,32 +217,7 @@ footer {
 </div>
 
 <script src="cache-status.js"></script>
-<!-- Modal Popup -->
-<div id="warning-modal">
-  <div class="modal-box">
-    <h3>LOCKED!</h3>
-    <p>Run <strong>JAILBREAK NOW</strong> first to enable the payload server before accessing the cartridge menu.</p>
-    <button class="modal-close-btn" onclick="closeModal()">GOT IT</button>
-  </div>
-</div>
-
 <script>
-// Route directly if already executed, or prompt with modal if not executed yet
-function handlePayloadsNav(e) {
-  e.preventDefault();
-  let jbDone = false;
-  try { jbDone = sessionStorage.getItem("psn_jb_done") === "true"; } catch (e) {}
-  if (jbDone) {
-    window.location.href = "relapse.html?menu=1";
-  } else {
-    document.getElementById("warning-modal").style.display = "flex";
-  }
-}
-
-function closeModal() {
-  document.getElementById("warning-modal").style.display = "none";
-}
-
 // Edge flood-fill transparent background cleaner
 function renderTransparentMascot(imgSrc) {
   var img = new Image();
