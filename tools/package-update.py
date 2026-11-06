@@ -49,7 +49,18 @@ The homepage now offers jailbreak only. After jailbreak, Manager is sent once,
 its listener is checked, then its dashboard opens. Other bundled payloads are
 available in Manager. An explicit retry/open fallback remains on the launch page.
 
-This UI release adds dismissible release notes, visible build status, detailed
+Advanced save tools are now available in Save Manager (WIP). Start the pinned
+Garlic SaveMgr engine from that panel, then Check engine. It provides local
+PS4/PS5 decrypt, encrypt, resign and reviewed import/restore. Imports need the
+experimental Manager on port 8087 so an existing title can be snapshotted before
+installation. PS4 encrypted inputs require their matching 96-byte .bin key.
+PS5 preserved exports require their original metadata sidecars.
+ZIP limit: 128 MiB compressed / 256 MiB expanded. Raw images: up to 2 GiB.
+Raw access was confirmed working by the user; advanced operations still need
+on-console validation. No automatic import retries or force-import are used.
+See Manager/SAVE-TOOLS.md for limitations, backup behavior and upstream credits.
+
+This UI release retains dismissible release notes, visible build status, detailed
 install reviews, saved cheat filters/pages/tabs and a compact mobile setup.
 Unsupported firmware is labelled and blocked; unconfirmed support stays labelled.
 """
@@ -61,6 +72,8 @@ with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
     assert "payloads/PSN-HUB-Manager.elf" in archive.namelist()
     assert "Manager/library.js" in archive.namelist()
+    for asset in ("Manager/save-tools.js", "Manager/vendor/fflate-0.8.2.js", "Manager/vendor/fflate-LICENSE.txt", "payloads/garlic-savemgr_08c24b5.elf"):
+        assert asset in archive.namelist()
 print(output)
 print(f"{output.stat().st_size:,} bytes; {len(files)} files; archive verified.")
 checksum = hashlib.sha256(output.read_bytes()).hexdigest()

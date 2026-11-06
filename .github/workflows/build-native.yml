@@ -49,5 +49,6 @@ jobs:
             native/build/PSN-HUB-Manager-native.elf
             native/build/PSN-HUB-Manager-native.elf.sha256
             native/README.md
+            native/SAVES.md
             native/COPYING
           retention-days: 30

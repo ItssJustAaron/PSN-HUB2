@@ -59,3 +59,5 @@ require('./test-payload-fetch.cjs');
 
 require('./test-manager-launch.cjs');
 require('./test-save-ui.cjs');
+
+require('./test-save-tools.cjs');

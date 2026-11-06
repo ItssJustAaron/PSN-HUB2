@@ -76,6 +76,8 @@ for item in json.loads((manager / "payloads.json").read_text(encoding="utf-8")):
     binary = file.read_bytes()
     if binary[:4] != b"\x7fELF":
         raise SystemExit("Invalid bundled payload ELF: " + name)
+    if item.get("expectedSha256") and hashlib.sha256(binary).hexdigest() != item["expectedSha256"]:
+        raise SystemExit("Bundled payload differs from its pinned build: " + name)
     catalog["payloads"].append({**item, "path": "payloads/" + name,
         "size": len(binary), "sha256": hashlib.sha256(binary).hexdigest(),
         "author": item.get("info", "").split(" - ")[-1],

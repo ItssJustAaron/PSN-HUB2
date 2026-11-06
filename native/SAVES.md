@@ -1,9 +1,10 @@
 # Save Manager — experimental
 
-Native version `0.2.0-experimental` runs on port **8087**. The jailbreak continues
+Native version `0.3.0-experimental` runs on port **8087**. The jailbreak continues
 to start the stable Manager on **8085**. Its original native engine has no save
-API, so the Save Manager tab explains the requirement and disables operations.
-The dashboard never sends save requests to an unsupported engine.
+API. Raw browsing/snapshots and backed-up imports require port 8087; advanced
+transforms use the separately launched Garlic engine on port 8082. The dashboard
+gates operations by the appropriate backend.
 
 ## Installation and use
 
@@ -53,13 +54,18 @@ GitHub Actions runs them with address/undefined-behavior sanitizers and builds
 the PS5 ELF with the pinned SDK. Console permissions and real save layouts still
 need on-console testing. No PS5 saves were modified to develop this feature.
 
-Decryption, encryption, resigning, importing, restoring, USB/cloud targets,
-archive export and automatic backups are not implemented. Automatic backups
-should wait until manual snapshots and a restore workflow have been validated.
+The dashboard now integrates the separately launched Garlic SaveMgr engine for
+decrypt, encrypt, resign and reviewed import/restore. See
+[the advanced tools guide](../Manager/SAVE-TOOLS.md) for inputs, limits and backup
+behavior. PSN-HUB does not implement PFS cryptography in this native server.
+Raw access was confirmed working by the user; advanced on-console validation is
+still pending. Automatic backups and unattended bulk restores remain unavailable.
 
 Research: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) and
 [Garlic Worker](https://github.com/earthonion/garlic-worker), by earthonion.
 The fixed save-directory layouts were checked against Garlic SaveMgr commit
 `08c24b5f98bf410f0addeec210857cfa07b73f63`. This implementation is original
-PSN-HUB code; no Garlic source or binaries are bundled. The native project is
+PSN-HUB code. The advanced tools separately bundle an unmodified Garlic SaveMgr
+ELF; see the provenance guide linked above. No Garlic Worker code or binary is
+bundled. The native project is
 distributed under its existing GPL-3.0-or-later license.

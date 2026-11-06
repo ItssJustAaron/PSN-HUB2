@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.06.3';
+  const UI_RELEASE = '2026.11.06.4';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -448,7 +448,7 @@
     const notes=element('details',undefined,'release-notes');notes.id='release-notes';notes.open=storeRead('release-seen','')!==UI_RELEASE;
     notes.append(element('summary','What’s new · '+UI_RELEASE));
     const list=element('ul');
-    for(const text of ['Homepage now starts Manager automatically after the jailbreak. Other payloads are in Manager’s Payload library.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
+    for(const text of ['Save tools now connect to the bundled local Garlic engine for decrypt, encrypt, resign and reviewed import/restore.','Homepage now starts Manager automatically after the jailbreak. Other payloads are in Manager’s Payload library.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
     notes.append(list,element('p','The stable Manager still uses its existing native storage API. Experimental native builds are separate.','hint'),action('Mark as read',()=>{storeWrite('release-seen',UI_RELEASE);notes.open=false;},'secondary'));panel.append(notes);
     $('connection-help').after(panel);
   }
@@ -792,7 +792,7 @@
     if(!saveControls)return;
     const available=state.manager&&!state.preview&&supports('saveRead');
     saveControls.refresh.disabled=!available||saveControls.busy;
-    saveControls.status.textContent=available?'Experimental raw save access. Close all games before backing up.':'Save operations require the experimental native Manager on port 8087. This stable build cannot access saves.';
+    saveControls.status.textContent=available?'Experimental raw save access. Close all games before backing up.':'Raw snapshots and imports require the experimental Manager on port 8087. Advanced tools can decrypt, encrypt and resign through the local save engine.';
     if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();}
   }
   async function saveJSON(path,post=false) {return JSON.parse(await (await response(path,post?{method:'POST',headers:{'X-PSNHUB-Request':'1'}}:{cache:'no-store'},post?300000:30000)).text());}
@@ -819,13 +819,30 @@
     for(const item of backups.items)saveControls.list.append(action(item.id,()=>saveTask(()=>showSaveFiles('id='+encodeURIComponent(item.id),item.id)),'secondary'));
     saveControls.status.textContent=data.items.length+' save title folders found. '+backups.items.length+' snapshots. Close games before backup; refresh to see new snapshots.';
   }
+  async function loadSaveTools(container,button) {
+    button.disabled=true;button.textContent='Loading save tools…';container.textContent='';
+    try{
+      for(const [path,ready] of [['Manager/vendor/fflate-0.8.2.js',()=>window.fflate],['Manager/save-tools.js',()=>window.PSNSaveTools]]){
+        if(ready())continue;const script=element('script');script.textContent=await (await response(repositoryBase+path+'?v='+UI_RELEASE,{cache:'no-store'},20000)).text();document.head.append(script);if(!ready())throw Error('Could not initialize '+path);
+      }
+      const nativeJSON=async(path,post=false)=>JSON.parse(await (await response(path,post?{method:'POST',headers:requestHeaders()}:{cache:'no-store'},300000)).text());
+      const canImport=()=>state.manager&&!state.preview&&supports('saveRead')&&supports('saveBackup');
+      window.PSNSaveTools.mount({container,element,action,fflate:window.fflate,fetch:(...args)=>fetch(...args),hostname:location.hostname,
+        canStart:()=>state.manager&&!state.preview&&!!state.catalog&&!(state.transfer&&state.transfer.running),canImport,
+        startEngine:async name=>{const item=state.catalog&&state.catalog.payloads.find(item=>item.name===name);if(!item)throw Error('Refresh the library to load the current save engine.');await startTransfer([item],'Start local save engine');},
+        backup:async selection=>{if(!canImport())throw Error('Open the experimental Manager on port 8087 for backed-up imports.');const list=await nativeJSON('/api/saves');if(!list.items.some(item=>item.user===selection.user&&item.platform===selection.platform&&item.title===selection.title))return {newTitle:true};const query='user='+encodeURIComponent(selection.user)+'&platform='+selection.platform+'&title='+selection.title;return nativeJSON('/api/saves/backup?'+query,true);},
+        snapshotSource:{list:()=>nativeJSON('/api/saves/backups'),files:id=>nativeJSON('/api/saves/files?id='+encodeURIComponent(id)),download:(id,name)=>response('/api/saves/download?id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name),{cache:'no-store'},300000)}
+      });button.hidden=true;
+    }catch(error){button.disabled=false;button.textContent='Retry loading save tools';container.textContent=error.message;}
+  }
   function saveManagerControls() {
     if(typeof managerTabs==='undefined'||typeof selectTab!=='function')return;
     const tab=element('button','SAVE MANAGER (WIP)','tab');tab.id='tab-save-manager';tab.type='button';tab.tabIndex=-1;
     tab.setAttribute('role','tab');tab.setAttribute('aria-selected','false');tab.setAttribute('aria-controls','panel-save-manager');
     const panel=element('div',undefined,'tab-panel');panel.id='panel-save-manager';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);
-    const card=element('section',undefined,'card');card.append(element('h2','Save Manager (WIP)'),element('p','Use at your own risk. Raw save browsing and manual snapshots are experimental and await PS5 testing.','hint'),element('p','Close all games before backup. Download every file in a snapshot, including PS4 .bin keys. Decryption, encryption, resigning, importing, restoring and automatic backups are unavailable. Keep separate verified backups.','hint'));
-    const credit=element('p','Research by earthonion: ','hint');
+    const card=element('section',undefined,'card');card.append(element('h2','Save Manager (WIP)'),element('p','Advanced save tools are experimental. Keep independent, verified backups.','hint'),element('p','Close games before backup or import. Keep independent backups. Advanced tools use the bundled Garlic SaveMgr engine on this console.','hint'));
+    const tools=element('div');tools.id='save-advanced-tools';const openTools=action('Open advanced save tools',()=>loadSaveTools(tools,openTools),'secondary');card.append(openTools,tools);
+    const credit=element('p','Save processing engine by earthonion: ','hint');
     for(const [title,repo] of [['Garlic SaveMgr','garlic-savemgr'],['Garlic Worker','garlic-worker']]){const link=element('a',title+' ');link.href='https://github.com/earthonion/'+repo;credit.append(link);}
     const status=element('p',undefined,'hint'),list=element('div'),files=element('div'),refresh=action('Refresh saves and snapshots',()=>saveTask(refreshSaves),'secondary');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     saveControls={status,list,files,refresh,busy:false};card.append(refresh,status,list,files,credit);panel.append(card);updateSaveControls();managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);

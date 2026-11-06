@@ -37,5 +37,12 @@ vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.i
   tab.events.click();assert.equal(selected,tab);
   tab.events.keydown({key:'ArrowRight',preventDefault(){}});assert.equal(selected,original);
   state.backend={};vm.runInContext('updateSaveControls()',context);assert.equal(controls.refresh.disabled,true);assert.equal(controls.files.children.length,0);
-  console.log('PASS: Save Manager native capability gates, browsing, downloads, manual snapshot requests and tab navigation.');
+  context.window={};context.repositoryBase='https://source/';context.UI_RELEASE='test';context.location={hostname:'console'};context.requestHeaders=()=>({});context.fetch=()=>{};
+  context.document={head:{append(script){vm.runInContext(script.textContent,context);}}};const scriptURLs=[];
+  context.response=async url=>{scriptURLs.push(url);return {text:async()=>url.includes('fflate')?'window.fflate={};':'window.PSNSaveTools={mount:options=>{globalThis.loadedOptions=options;}};'};};
+  context.downloadURL=()=>{throw Error('Payload-only path validation must not handle script assets');};
+  const container=element('div'),button=element('button');await context.loadSaveTools(container,button);
+  assert.equal(button.hidden,true);assert.deepEqual(scriptURLs,['https://source/Manager/vendor/fflate-0.8.2.js?v=test','https://source/Manager/save-tools.js?v=test']);assert.equal(context.loadedOptions.hostname,'console');assert.equal(context.loadedOptions.canImport(),false);
+  await assert.rejects(context.loadedOptions.backup({}),/8087/);
+  console.log('PASS: Save Manager native capability gates, browsing, downloads, snapshots, tab navigation and script loader.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

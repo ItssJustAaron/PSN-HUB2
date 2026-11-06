@@ -56,11 +56,13 @@
     "key": "ftpsrv-drakmor"
   },
   {
-    "title": "garlic-savemgr",
-    "description": "PS5 save decrypt/encrypt/browse utility with embedded web UI. Version v1.13.1",
-    "name": "garlic-savemgr_v1.13.1.elf",
-    "info": "garlic-savemgr_v1.13.1.elf - earthonion",
-    "key": "garlic-savemgr"
+    "title": "Garlic SaveMgr · save engine",
+    "description": "Local PS4/PS5 save engine for PSN-HUB advanced save tools. Decrypt, encrypt, resign and import. Pinned upstream build 08c24b5; runs on port 8082.",
+    "name": "garlic-savemgr_08c24b5.elf",
+    "info": "garlic-savemgr_08c24b5.elf - earthonion",
+    "key": "garlic-savemgr",
+    "source": "https://github.com/earthonion/garlic-savemgr/commit/08c24b5f98bf410f0addeec210857cfa07b73f63",
+    "expectedSha256": "4fe4bada2e11075a3dcece3230d0184e5d81865c38668898254c5ae6d0a3fdeb"
   },
   {
     "title": "kstuff-lite",
