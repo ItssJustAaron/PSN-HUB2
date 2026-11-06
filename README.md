@@ -115,3 +115,9 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
   <img width="1280" height="720" alt="PSNHUB-JB" src="https://github.com/user-attachments/assets/100f14d6-91f1-4e2b-9274-5da3466783dc" />
 
 
+
+## Save Manager (WIP)
+
+The Manager dashboard includes a clearly marked **SAVE MANAGER (WIP)** tab. **Use at your own risk.** Save listing, backups, decrypt/encrypt, resigning, importing, restoring, and exporting are not implemented in this GitHub build. Do not rely on it for save protection; keep separate backups until save operations are implemented and verified on a PS5.
+
+Research credit: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) and [Garlic Worker](https://github.com/earthonion/garlic-worker) by earthonion. These projects informed the research; their code and binaries are not included here.
