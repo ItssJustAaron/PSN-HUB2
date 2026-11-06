@@ -241,14 +241,14 @@ int main(int argc,char **argv) {
     (void)integrated_root;
     int port=8085,base;
 #ifdef HUB_UNIFIED_PREVIEW
-    port=8086;
+    port=HUB_UNIFIED_PREVIEW;
 #endif
 #ifdef HUB_HOST_TEST
     if(argc<3){fprintf(stderr,"usage: manager-host ABSOLUTE_TEST_ROOT PORT [LOADER_PORT]\n");return 2;}port=atoi(argv[2]);if(argc>3)loader_port=atoi(argv[3]);base=hub_open_path(argv[1],1);integrated_root=argv[1];
 #else
     (void)argc;(void)argv;
 #ifdef HUB_UNIFIED_PREVIEW
-    base=hub_open_path("/data/psn-hub-unified-test",1);
+    char test_root[100];snprintf(test_root,sizeof(test_root),"/data/psn-hub-unified-test-%d",port);base=hub_open_path(test_root,1);
 #else
     base=hub_open_path("/data/psn-hub",1);
 #endif

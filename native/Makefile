@@ -8,8 +8,8 @@ SOURCES := src/server.c src/storage.c src/sha256.c src/saves.c src/usb.c src/pos
 .PHONY: all clean
 all: build/PSN-HUB-Manager.elf build/PSN-HUB-Manager-preflight.elf
 build/PSN-HUB-Manager.elf: $(SOURCES) src/hub.h build/dashboard.h build/sqlite3.o
-	$(CC) $(CFLAGS) -o $@ $(SOURCES) build/sqlite3.o
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) build/sqlite3.o -lkernel_sys
 build/PSN-HUB-Manager-preflight.elf: $(SOURCES) src/hub.h build/dashboard.h build/sqlite3.o
-	$(CC) $(CFLAGS) -DHUB_UNIFIED_PREVIEW -o $@ $(SOURCES) build/sqlite3.o
+	$(CC) $(CFLAGS) -DHUB_UNIFIED_PREVIEW=8090 -o $@ $(SOURCES) build/sqlite3.o -lkernel_sys
 clean:
 	rm -f build/PSN-HUB-Manager-native.elf build/manager-host build/dashboard.h
