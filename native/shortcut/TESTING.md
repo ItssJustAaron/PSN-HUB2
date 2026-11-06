@@ -54,7 +54,8 @@ assume a failed or interrupted network send means the native payload did nothing
 
 Sending PSN-HUB-Store-Restore.elf restores the exact old cells from the committed
 plan in another coordinated transaction. It preserves unrelated apps and later
-unrelated database changes. Restore refuses if any patched cell has since drifted.
+unrelated database changes. Restore refuses if any patched field has since drifted. It preserves unrelated
+JSON updates such as access timestamps written after the tile was opened.
 It does not blindly upload old complete database copies over the live databases.
 
 Backups and the plan are retained. The new icon may remain as an unreferenced

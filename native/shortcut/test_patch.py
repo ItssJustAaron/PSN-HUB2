@@ -44,6 +44,14 @@ class PatchTests(unittest.TestCase):
   for file in ['app.db','appinfo.db']:
    with sqlite3.connect(backup/file) as db:self.assertEqual(db.execute('PRAGMA quick_check').fetchone()[0],'ok')
   self.run_engine('restore');self.assertEqual(self.snapshot(),self.before)
+ def test_restore_preserves_unrelated_json_updates(self):
+  self.run_engine()
+  with sqlite3.connect(self.root/'app.db') as db:
+   value=json.loads(db.execute('SELECT AppInfoJson FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0]);value['#_last_access_time']='Changed after opening the tile';db.execute('UPDATE tbl_contentinfo SET AppInfoJson=? WHERE titleId=?',(json.dumps(value),planner.TITLE))
+  self.run_engine('restore')
+  with sqlite3.connect(self.root/'app.db') as db:
+   value=json.loads(db.execute('SELECT AppInfoJson FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0])
+  self.assertEqual(value['TITLE'],'Jailbreak Store');self.assertEqual(value['#_last_access_time'],'Changed after opening the tile');self.assertEqual(value['CATEGORY_TYPE'],67108864)
  def test_missing_approval(self):
   for p in self.root.glob('approve-*'):p.unlink()
   self.run_engine(success=False);self.assertEqual(self.snapshot(),self.before)

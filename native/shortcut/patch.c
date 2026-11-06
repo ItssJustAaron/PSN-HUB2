@@ -89,6 +89,33 @@ static int cell(sqlite3 *db,Change *c,int restore,int write_value){
     }
     sqlite3_finalize(s);return result==0?0:fail("Store metadata changed, is missing, or failed a guarded update");
 }
+/* Undo only our JSON leaves; preserve access times and unrelated shell updates. */
+static int merge_json_restore(sqlite3 *db,Change *c){
+    char *sql=sqlite3_mprintf("SELECT \"%w\" FROM %s.\"%w\" WHERE rowid=? AND \"%w\"=?;",c->column,c->schema,c->table,c->key);
+    sqlite3_stmt *read=NULL,*diff=NULL;char *current=NULL,*merged=NULL;int result=-1;
+    if(!sql||sqlite3_prepare_v2(db,sql,-1,&read,NULL)!=SQLITE_OK){sqlite3_free(sql);return fail("Cannot read current JSON for restore");}sqlite3_free(sql);
+    sqlite3_bind_int64(read,1,c->row);sqlite3_bind_text(read,2,c->value,-1,SQLITE_TRANSIENT);
+    if(sqlite3_step(read)==SQLITE_ROW&&sqlite3_column_type(read,0)==SQLITE_TEXT)current=strdup((const char *)sqlite3_column_text(read,0));sqlite3_finalize(read);
+    if(!current)return fail("Current JSON metadata is missing");
+    if(!strcmp(current,c->new)){free(current);return 0;}
+    merged=strdup(current);if(!merged)goto done;
+    const char *difference="SELECT a.fullkey,a.atom,b.atom,b.type FROM json_tree(?) a JOIN json_tree(?) b ON b.fullkey=a.fullkey WHERE a.type NOT IN('array','object') AND NOT(a.atom IS b.atom);";
+    if(sqlite3_prepare_v2(db,difference,-1,&diff,NULL)!=SQLITE_OK)goto done;
+    sqlite3_bind_text(diff,1,c->old,-1,SQLITE_TRANSIENT);sqlite3_bind_text(diff,2,c->new,-1,SQLITE_TRANSIENT);
+    int code;
+    while((code=sqlite3_step(diff))==SQLITE_ROW){
+        const char *path=(const char *)sqlite3_column_text(diff,0),*type=(const char *)sqlite3_column_text(diff,3);sqlite3_stmt *guard=NULL,*patch=NULL;
+        if(sqlite3_prepare_v2(db,"SELECT json_extract(?,?) IS ? AND json_type(?,?)=?;",-1,&guard,NULL)!=SQLITE_OK)goto done;
+        sqlite3_bind_text(guard,1,current,-1,SQLITE_TRANSIENT);sqlite3_bind_text(guard,2,path,-1,SQLITE_TRANSIENT);sqlite3_bind_value(guard,3,sqlite3_column_value(diff,2));sqlite3_bind_text(guard,4,current,-1,SQLITE_TRANSIENT);sqlite3_bind_text(guard,5,path,-1,SQLITE_TRANSIENT);sqlite3_bind_text(guard,6,type,-1,SQLITE_TRANSIENT);
+        int matches=sqlite3_step(guard)==SQLITE_ROW&&sqlite3_column_int(guard,0)==1;sqlite3_finalize(guard);if(!matches)goto done;
+        if(sqlite3_prepare_v2(db,"SELECT json_set(?,?,?);",-1,&patch,NULL)!=SQLITE_OK)goto done;
+        sqlite3_bind_text(patch,1,merged,-1,SQLITE_TRANSIENT);sqlite3_bind_text(patch,2,path,-1,SQLITE_TRANSIENT);sqlite3_bind_value(patch,3,sqlite3_column_value(diff,1));
+        char *next=NULL;if(sqlite3_step(patch)==SQLITE_ROW&&sqlite3_column_type(patch,0)==SQLITE_TEXT)next=strdup((const char *)sqlite3_column_text(patch,0));sqlite3_finalize(patch);if(!next)goto done;free(merged);merged=next;
+    }
+    if(code!=SQLITE_DONE)goto done;
+    free(c->new);free(c->old);c->new=current;c->old=merged;current=NULL;merged=NULL;result=0;
+done:sqlite3_finalize(diff);free(current);free(merged);return result==0?0:fail("Patched JSON fields drifted; restore refused without overwriting them");
+}
 static int copy_database(sqlite3 *db,const char *schema,const char *path){
     int fd=open(path,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW,0600);if(fd<0)return fail("Cannot create fresh backup file");close(fd);
     sqlite3 *backup=NULL;if(sqlite3_open_v2(path,&backup,SQLITE_OPEN_READWRITE|SQLITE_OPEN_NOFOLLOW,NULL)!=SQLITE_OK){if(backup)sqlite3_close(backup);return fail("Cannot open backup file");}
@@ -121,6 +148,7 @@ static int operate(const char *root_path,const char *app,const char *info,const 
     }
     if(run(db,"BEGIN IMMEDIATE;")<0)goto done;in_transaction=1;
     if(text_equals(db,"PRAGMA main.journal_mode;","delete")<0||text_equals(db,"PRAGMA info.journal_mode;","delete")<0||text_equals(db,"PRAGMA plan.journal_mode;","delete")<0){fail("Journal mode changed before transaction");goto done;}
+    if(restore)for(int i=0;i<count;i++)if(strstr(changes[i].column,"Json")&&merge_json_restore(db,&changes[i])<0)goto done;
     for(int i=0;i<count;i++)if(cell(db,&changes[i],restore,0)<0)goto done;
     for(int i=0;i<count;i++)if(cell(db,&changes[i],restore,1)<0)goto done;
     if(text_equals(db,"PRAGMA main.quick_check;","ok")<0||text_equals(db,"PRAGMA info.quick_check;","ok")<0){fail("Database integrity check failed before commit");goto done;}
