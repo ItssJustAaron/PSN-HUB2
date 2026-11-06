@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.05.3';
+  const UI_RELEASE = '2026.11.06.1';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -211,6 +211,7 @@
       selectFirmware(state.reportedFirmware);
       $('manager-connection').textContent = data.preview ? 'Preview · no console' : 'Manager: connected';
       $('manager-connection').className = 'badge' + (data.preview ? '' : ' good');
+      if (supports('backupList')) loadBackups().catch(showMaintenanceError);
       $('connection-help').hidden = !data.preview;
       if (data.preview) {
         $('loader-connection').textContent = 'elfldr: preview only';
@@ -274,10 +275,11 @@
     groupedIndex.set(files, result);
     return result;
   }
-  function applyFilters() {
+  function applyFilters(reset = true) {
     if (!state.catalog) return;
     const files = filterCheats(state.catalog.cheats, {query: $('cheat-search').value, platform: $('cheat-platform').value, format: $('cheat-format').value, version: $('cheat-version').value});
-    state.groups = groupCheats(files); state.page = 0;
+    state.groups = groupCheats(files); if (reset) state.page = 0;
+    saveBrowsing();
     $('cheat-count').textContent = state.groups.length.toLocaleString() + (state.groups.length === 1 ? ' game · ' : ' games · ') + files.length.toLocaleString() + ' matching files · ' + state.catalog.cheats.length.toLocaleString() + ' total files';
     renderGames();
   }
@@ -285,6 +287,7 @@
     const container = $('cheat-games'); container.textContent = '';
     container.className = viewMode === 'list' ? 'game-list' : 'game-grid';
     const pages = Math.max(1, Math.ceil(state.groups.length / state.pageSize));
+    state.page = Math.max(0, Math.min(state.page, pages - 1)); saveBrowsing();
     if (!state.groups.length) container.append(element('p', 'No matching games. Try another title, ID, version or format.', 'empty'));
     state.groups.slice(state.page * state.pageSize, (state.page + 1) * state.pageSize).forEach((game, index) => {
       const box = element('article', undefined, 'cover-card');
@@ -394,9 +397,10 @@
   function setupControls() {
     const panel=element('section',undefined,'setup-panel');panel.id='setup-panel';panel.setAttribute('aria-labelledby','setup-heading');
     const heading=element('h2','Set up this console');heading.id='setup-heading';
-    panel.append(heading,element('p','Save the PS5 firmware and active HEN. These are console settings, even when you are using your phone.','hint'));
+    panel.append(heading,element('p','Choose this PS5’s firmware and active HEN.','hint'));
     const fields=element('div',undefined,'profile-fields');fields.append(inputField('1. Exact console firmware','setup-firmware',state.firmware),selectField('2. Active HEN','setup-hen',[['etahen','etaHEN'],['onionhen','onionHEN'],['cragson','cragson PS5-HEN'],['other','Other / unknown']],activeProfile.hen));panel.append(fields);
-    panel.append(element('h3','3. Review the cheat destination'),element('p','etaHEN: /data/etaHEN/cheats · OnionHEN: /data/OnionHEN/cheats','path'),element('p','This native Manager currently supports etaHEN cheat installs only. Selecting OnionHEN saves your profile; it does not redirect uploads to OnionHEN. Unsupported destination actions remain disabled.','hint'));
+    panel.append(element('p','Cheats install to the selected supported destination.','hint'));
+    const destinationInfo=element('details',undefined,'setup-destination');destinationInfo.append(element('summary','Destination details'),element('p','etaHEN: /data/etaHEN/cheats · OnionHEN: /data/OnionHEN/cheats','path'),element('p','OnionHEN installs need a native Manager reporting destination support. Selecting a HEN alone does not redirect uploads.','hint'));panel.append(destinationInfo);
     const actions=element('div',undefined,'row');actions.append(action('Save setup',saveSetup),action('Set up later',()=>{storeWrite('setup:'+location.host,true);panel.hidden=true;},'secondary'));panel.append(actions);
     const status=element('p','','status');status.id='setup-status';status.setAttribute('role','status');panel.append(status);panel.hidden=!!storeRead('setup:'+location.host,false);$('connection-help').after(panel);
     if(state.reportedFirmware||ps5Version)$('setup-firmware').disabled=true;
@@ -412,6 +416,41 @@
     const wrapper=element('label',label), select=element('select'); select.id=id;
     options.forEach(([id,title])=>{ const option=element('option',title); option.value=id; select.append(option); });
     select.value=value; wrapper.append(select); return wrapper;
+  }
+  const browsingKey = 'browsing:'+location.host;
+  function saveBrowsing() {
+    storeWrite(browsingKey, {...storeRead(browsingKey,{}),page:state.page,query:$('cheat-search').value,platform:$('cheat-platform').value,format:$('cheat-format').value,version:$('cheat-version').value});
+  }
+  function restoreBrowsing() {
+    const saved=storeRead(browsingKey,{});
+    if (!saved || typeof saved!=='object') return;
+    state.page=Number.isInteger(saved.page)&&saved.page>=0?saved.page:0;
+    for (const [id,key,values] of [['cheat-search','query'],['cheat-version','version'],['cheat-platform','platform',['','PS4','PS5']],['cheat-format','format',['','json','mc4','shn']]]) {
+      const value=typeof saved[key]==='string'?saved[key].slice(0,150):'';
+      $(id).value=!values||values.includes(value)?value:'';
+    }
+  }
+  function restoreTab() {
+    if(typeof selectTab!=='function'||typeof managerTabs==='undefined')return;
+    const saved=storeRead(browsingKey,{}),original=selectTab;
+    const tab=managerTabs.find(item=>item.id===saved.tab);
+    if(tab){original(tab);if(window.requestAnimationFrame)window.requestAnimationFrame(()=>window.scrollTo(0,Math.max(0,Number(saved.scroll)||0)));}
+    if(state.tabTracking)return;state.tabTracking=true;
+    selectTab=function(next){
+      original(next);storeWrite(browsingKey,{...storeRead(browsingKey,{}),tab:next.id,scroll:0});
+    };
+    if(window.addEventListener)window.addEventListener('pagehide',()=>storeWrite(browsingKey,{...storeRead(browsingKey,{}),scroll:window.scrollY||0}));
+  }
+  function releaseControls() {
+    const panel=element('section',undefined,'release-panel');
+    const row=element('div',undefined,'row'), badge=element('span','Checking published build…','badge');badge.id='update-badge';badge.setAttribute('role','status');
+    row.append(badge,action('Check for updates',refreshPublishedBuild,'secondary'));panel.append(row);
+    const notes=element('details',undefined,'release-notes');notes.id='release-notes';notes.open=storeRead('release-seen','')!==UI_RELEASE;
+    notes.append(element('summary','What’s new · '+UI_RELEASE));
+    const list=element('ul');
+    for(const text of ['Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
+    notes.append(list,element('p','The stable Manager still uses its existing native storage API. Experimental native builds are separate.','hint'),action('Mark as read',()=>{storeWrite('release-seen',UI_RELEASE);notes.open=false;},'secondary'));panel.append(notes);
+    $('connection-help').after(panel);
   }
   function maintenanceControls() {
     const panel=element('details',undefined,'maintenance-panel'), summary=element('summary','Versions, console profiles & maintenance');
@@ -440,7 +479,7 @@
     const status=element('p','','status'); status.id='maintenance-status'; status.setAttribute('role','status'); body.append(status);
     panel.append(summary,body); $('connection-help').after(panel);
     $('profile-select').addEventListener('change',loadProfile);
-    $('cheat-destination').addEventListener('change',()=>{ const next=$('cheat-destination').value; if(!destinationAllowed(next)){ $('cheat-destination').value=state.destination; showMaintenanceError(new Error('Native API upgrade required for '+destinationPath(next))); return; } state.destination=next; state.inventory=null; updateMaintenance(); renderGames(); });
+    $('cheat-destination').addEventListener('change',()=>{ const next=$('cheat-destination').value; if(!destinationAllowed(next)){ $('cheat-destination').value=state.destination; showMaintenanceError(new Error('Native API upgrade required for '+destinationPath(next))); return; } state.destination=next; state.inventory=null; updateMaintenance(); renderGames(); if(supports('backupList'))loadBackups().catch(showMaintenanceError); });
     updateMaintenance(); refreshPublishedBuild();
   }
   async function refreshPublishedBuild() {
@@ -456,6 +495,9 @@
     const mismatch=(embedded.uiRelease && embedded.uiRelease!==UI_RELEASE)||(embedded.buildId && published.buildId && embedded.buildId!==published.buildId)||(metadata.version && embedded.catalogueVersion && metadata.version!==embedded.catalogueVersion);
     if(mismatch) lines.push('Update mismatch: publish matching assets, restart Manager and reload this page.');
     $('build-details').textContent=lines.join('\n');
+    const update=$('update-badge');
+    update.textContent=!published.buildId?'Update check unavailable':!embedded.buildId?'Running build unknown':mismatch?'Builds differ — restart Manager to update':'Up to date · '+embedded.buildId;
+    update.className='badge '+(mismatch?'update-available':published.buildId&&embedded.buildId?'good':'');
     $('destination-path').textContent=destinationPath(state.destination);
     $('cheat-install-path').textContent='Installs to '+destinationPath(state.destination)+'/{json,mc4,shn}';
     $('storage-capabilities').textContent=(!supports('cheatInventory')||!supports('cheatBackup'))?'Current native ELF lacks console inventory/backup APIs. Those actions require a native Manager upgrade; browser history is not treated as an installed-file scan.':'Console inventory and backup APIs are available.';
@@ -507,6 +549,15 @@
     }catch(error){state.inventory=null;showMaintenanceError(error);updateMaintenance();}
   }
   function installUpdates() {if(!supports('cheatInventory')||!state.inventory||state.inventory.destination!==state.destination)return;const files=planUpdates(state.catalog.cheats,state.inventory.items).filter(item=>item.status!=='unchanged').map(item=>item.file);if(!files.length){$('maintenance-status').textContent='All catalogue files match the console inventory.';return;}return startTransfer(files,'Install new and changed cheats');}
+  async function loadBackups() {
+    const destination=state.destination;
+    const data=JSON.parse(await(await response('/api/cheats/backups?destination='+destination,{cache:'no-store'})).text());
+    if(destination!==state.destination)return;
+    if(data.destination!==destination||!Array.isArray(data.backups)||data.backups.some(item=>typeof item.id!=='string'||!/^[A-Za-z0-9._-]+$/.test(item.id)))throw new Error('Invalid backup list');
+    const list=$('backup-list'),previous=list.value;list.textContent='';
+    for(const item of data.backups){const option=element('option',item.id+' · '+destination);option.value=item.id;option.dataset.destination=destination;list.append(option);}
+    list.value=data.backups.some(item=>item.id===previous)?previous:data.backups.length?data.backups[0].id:'';updateMaintenance();
+  }
   async function createBackup(destination) {
     if(!supports('cheatBackup'))throw new Error('Console backups require a native Manager upgrade. No backup has been created.');
     if(!profileMatchesConsole())throw new Error('Wrong console profile');
@@ -563,7 +614,8 @@
       const box = element('details', undefined, 'feature-card hen-card'), summary = element('summary', item.title), content = element('div', undefined, 'hen-card-content');
       content.append(element('p', item.description, 'hint'));
       const support = compatibility(item);
-      content.append(badge(support === 'compatible' ? 'Supports firmware ' + state.firmware : support === 'incompatible' ? 'Incompatible with ' + state.firmware : 'Firmware compatibility unknown', support === 'compatible' ? 'good' : support === 'incompatible' ? 'bad' : ''));
+      summary.append(element('span', support === 'compatible' ? 'Supported · '+state.firmware : support === 'incompatible' ? 'Unsupported · '+state.firmware : 'Unconfirmed', 'compatibility-label '+support));
+      content.append(badge(support === 'compatible' ? 'Supported on firmware ' + state.firmware : support === 'incompatible' ? 'Unsupported on ' + state.firmware + ' — sending blocked' : 'Unconfirmed — check the project requirements before sending', support === 'compatible' ? 'good' : support === 'incompatible' ? 'bad' : '')); 
       content.append(badge(item.author || 'Author not specified'), badge(item.release || 'Version not specified'), badge(prettySize(item.size)));
       if (item.firmware) {
         content.append(element('h3', 'Supported console firmware'));
@@ -626,6 +678,17 @@
     document.querySelectorAll('[data-transfer]').forEach(button => { button.disabled = task.running || button.dataset.incompatible === 'true'; });
     updateMaintenance();
   }
+  function installSummary(items, title, destination) {
+    const cheats = items.some(item => item.target);
+    const games = [...new Set(items.map(item => item.title || item.name))];
+    const versions = [...new Set(items.map(item => item.version).filter(Boolean))];
+    return [title, games.slice(0, 6).join(' / ') + (games.length > 6 ? ' / +'+(games.length-6)+' more games' : ''),
+      versions.length ? 'Game versions: '+versions.slice(0, 6).join(', ')+(versions.length>6?' …':'') : '',
+      'Files: '+items.length+' · '+prettySize(items.reduce((total,item)=>total+(item.size||0),0)),
+      cheats ? 'Destination: '+destinationPath(destination) : 'Upload to Manager, then send to elfldr on this PS5.',
+      cheats ? 'Matching files will be replaced.' : 'The payload will run on the console.',
+      cheats && $('backup-before-install').checked ? 'A console backup must succeed before any files change.' : '', 'Continue?'].filter(Boolean).join('\n\n');
+  }
   async function startTransfer(items, title, resume = false) {
     if (state.transfer && state.transfer.running) { $('transfer-status').textContent = 'A transfer is already running. Wait or cancel it first.'; $('transfer-panel').scrollIntoView({block: 'nearest'}); return; }
     if (state.preview) { $('catalog-status').textContent = 'Preview only — open Manager at your PS5 address to install or send files.'; return; }
@@ -636,7 +699,7 @@
     if(!resume&&items.length<=12&&items.some(item=>item.target&&activeProfile.games&&activeProfile.games[item.id]&&activeProfile.games[item.id]!==item.version)&&!confirm('Some selected cheats differ from the game versions saved in your profile. Install them anyway?'))return;
     const destination = resume ? state.transfer.destination : state.destination;
     if (items.some(item => item.target)) { try { targetURL(items.find(item=>item.target),destination); } catch(error) { $('catalog-status').textContent=error.message; return; } }
-    if (!resume && items.length > 1 && !confirm('Install ' + items.length + ' files to ' + destinationPath(destination) + '? Matching files will be replaced.')) return;
+    if (!resume && !confirm(installSummary(items, title, destination))) return;
     const previous = state.transfer;
     const task = {entries: resume ? previous.entries : [...items], title, destination, completed: resume ? [...previous.completed] : [], failures: [], running: true, cancelled: false, message: 'Downloading…', controller: new AbortController()};
     state.transfer = task; updateTransfer();
@@ -701,7 +764,7 @@
       for (const key of ['hens', 'modMenus', 'cheats']) if (!Array.isArray(data[key])) throw new Error('Invalid catalogue');
       state.catalog = data;
       renderPayloads($('hen-catalog'), data.hens); renderPayloads($('mod-menu-catalog'), data.modMenus); renderPayloads($('emulator-catalog'), data.emulators || []);
-      $('download-all-cheats').disabled = false; applyFilters(); renderPersonal();
+      $('download-all-cheats').disabled = false; applyFilters(false); renderPersonal(); restoreTab();
       updateMaintenance();
     } catch (error) { $('cheat-count').textContent = 'Catalogue unavailable. Check internet access and retry.'; $('catalog-status').textContent = error.message; }
   }
@@ -714,7 +777,8 @@
   $('cancel-transfer').addEventListener('click', cancelTransfer); $('retry-transfer').addEventListener('click', retryTransfer);
   $('check-connection').addEventListener('click', checkConnection);
   $('retry-library').addEventListener('click', () => { catalogPromise = null; init(); checkConnection(); loadStyle().catch(error => { $('catalog-status').textContent = error.message; }); });
-  window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, saveSetup, setControllerMode, state};
+  window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, saveSetup, setControllerMode, installSummary, saveBrowsing, restoreBrowsing, applyFilters, state};
+  restoreBrowsing(); releaseControls();
   firmwareControls();
   maintenanceControls();
   setupControls();setControllerMode(!!storeRead('controllerMode',!!ps5Version));

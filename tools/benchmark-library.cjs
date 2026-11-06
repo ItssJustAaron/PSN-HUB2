@@ -4,7 +4,7 @@ const {performance} = require('node:perf_hooks');
 const root = path.resolve(__dirname, '..');
 const files = JSON.parse(fs.readFileSync(path.join(root,'Manager/catalog.json'))).cheats;
 const source = fs.readFileSync(path.join(root,'Manager/library.js'),'utf8');
-const start = source.indexOf('  const searchIndex ='), end = source.indexOf('  function applyFilters()');
+const start = source.indexOf('  const searchIndex ='), end = source.indexOf('  function applyFilters(');
 const api = vm.runInNewContext(source.slice(start,end)+'\n({filterCheats,groupCheats});');
 function reference(filters) {
   const words = filters.query.toLowerCase().trim().split(/\s+/).filter(Boolean);

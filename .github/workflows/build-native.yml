@@ -1,0 +1,51 @@
+name: Build experimental native Manager
+on:
+  push:
+    branches: [main]
+    paths: ['native/**', 'tools/build-native.py', 'Manager/dashboard.html', '.github/workflows/build-native.yml']
+  pull_request:
+    paths: ['native/**', 'tools/build-native.py', 'Manager/dashboard.html', '.github/workflows/build-native.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Generate embedded dashboard
+        run: python tools/build-native.py
+      - name: Compile portable server with sanitizers
+        run: gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -DHUB_HOST_TEST -Inative/build native/src/*.c -o native/build/manager-host
+      - name: Test real HTTP and storage operations
+        env:
+          ASAN_OPTIONS: detect_leaks=0:abort_on_error=1
+        run: python native/tests/test_server.py native/build/manager-host
+      - name: Install cross compiler
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y clang-18 lld-18
+      - name: Fetch pinned official SDK
+        run: |
+          curl --fail --location --retry 3 -o "$RUNNER_TEMP/sdk.zip" https://github.com/ps5-payload-dev/sdk/releases/download/v0.45/ps5-payload-sdk.zip
+          echo "5fac64093d0e3e69f2584ce7935f24f703f622d9681f1495c85b9f00d1291a2c  $RUNNER_TEMP/sdk.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/sdk.zip" -d "$RUNNER_TEMP/sdk"
+      - name: Build PS5 ELF
+        env:
+          PS5_PAYLOAD_SDK: ${{ runner.temp }}/sdk/ps5-payload-sdk
+        run: |
+          make -C native
+          file native/build/PSN-HUB-Manager-native.elf
+          sha256sum native/build/PSN-HUB-Manager-native.elf > native/build/PSN-HUB-Manager-native.elf.sha256
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: experimental-native-manager
+          path: |
+            native/build/PSN-HUB-Manager-native.elf
+            native/build/PSN-HUB-Manager-native.elf.sha256
+            native/README.md
+            native/COPYING
+          retention-days: 30

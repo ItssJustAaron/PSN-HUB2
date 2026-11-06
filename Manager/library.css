@@ -57,3 +57,10 @@ html[data-console=ps5] .cover-title{font-size:1.15rem}
 html[data-console=ps5] .cover-opener:focus{outline:5px solid var(--yellow);outline-offset:-5px}
 @media(max-width:600px){.cover-meta{padding:10px}.cover-title{font-size:.84rem}.cover-id,.cover-count,.cover-creators{font-size:.66rem}.cover-platform{font-size:.65rem;left:7px;top:8px}.cover-formats{left:7px}.cover-format{font-size:.6rem}.cover-card>.cover-favourite{width:32px;min-height:32px;font-size:1.15rem;right:6px}.cover-card[data-open=true]>.cover-opener{grid-template-columns:100px 1fr}.cover-card[data-open=true] .cover-wrap{width:100px}.cover-card[data-open=true] .cover-title{font-size:1rem}.firmware-settings .row{align-items:flex-start}.firmware-settings input[type=text]{width:120px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+.release-panel{padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin:12px 0;background:#130321}
+.release-notes{margin-top:12px}.release-notes summary,.setup-destination summary{cursor:pointer;font-weight:bold;padding:8px 0}.release-notes li{margin:8px 0;line-height:1.5}
+.update-available{color:var(--yellow);border-color:var(--yellow)}
+.compatibility-label{display:inline-block;font:600 .75rem/1.4 Arial,sans-serif;margin:4px 0 4px 10px;padding:4px 8px;border:1px solid #8b7742;border-radius:6px;color:#ffe787;vertical-align:middle}
+.compatibility-label.compatible{color:#9dff91;border-color:#407c37}.compatibility-label.incompatible{color:#ffb1bd;border-color:#a24b5c}
+@media(max-width:600px){.setup-panel{padding:14px}.setup-panel h2{font-size:1.25rem;margin:0 0 10px}.setup-panel .profile-fields{margin:12px 0}.setup-panel .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.setup-panel button{width:100%;padding:10px}.release-panel .row{gap:10px}.release-panel .badge{white-space:normal}.feature-card>summary .compatibility-label{display:table;margin:8px 0 0}.firmware-settings .row{gap:10px}.path{overflow-wrap:anywhere}.maintenance-body{padding:0 10px 14px}}

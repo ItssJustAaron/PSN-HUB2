@@ -1,14 +1,71 @@
-# Native Manager source still required
+# PSN-HUB native Manager (experimental)
 
-The project currently includes `payloads/PSN-HUB-Manager.elf`, not the C/C++
-source or native build toolchain that produced it. The web builder edits only
-the ELF's embedded dashboard slot; it does not compile a native Manager.
+A new, source-built implementation. It is separate from the supplied compiled
+Manager and is not automatically loaded by the jailbreak page.
 
-Place the original, appropriately licensed source project here when available,
-including its build files and PS5 SDK/toolchain requirements. Preserve its
-license and author credits. `Manager/NATIVE-API.md` documents the integration
-needed for console inventory, additional cheat destinations and backup/restore.
+- Experimental listener: **8087**. Stable Manager remains on **8085**.
+- Native version: `0.1.0-experimental`.
+- Payload/category/backup storage: `/data/psn-hub-native`.
+- Fixed cheat destinations: `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`.
+- HTTP: payload upload/list/delete/send, saved category CRUD/run, SHA-256 cheat
+  inventory, atomic cheat uploads, durable backup/list and recoverable restore.
+- Sends payloads to the console's loopback elfldr on port 9021.
+- Console shortcut registration is not implemented and is reported unsupported.
 
-Neither the release workflow nor a source folder can recover that implementation
-from the compiled payload. Native compilation and those storage features remain
-unavailable until the real source/build project is supplied.
+## Build
+
+The Windows checkout does not need WSL. The separate **Build experimental native
+Manager** GitHub Actions workflow runs the host integration tests with address
+and undefined-behavior sanitizers, downloads the official SDK v0.45 with a pinned
+SHA-256 checksum, cross-compiles the PS5 ELF and uploads an artifact.
+
+On Linux with the official SDK and clang-18/lld-18 installed:
+
+```sh
+python tools/build-native.py
+PS5_PAYLOAD_SDK=/path/to/ps5-payload-sdk make -C native
+```
+
+For host tests (uses disposable directories, never console paths):
+
+```sh
+python tools/build-native.py
+gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation \
+  -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/build \
+  native/src/*.c -o native/build/manager-host
+ASAN_OPTIONS=detect_leaks=0 python native/tests/test_server.py native/build/manager-host
+```
+
+## Console validation
+
+A successful cross-build is not console validation. Load this ELF manually only
+when testing is appropriate, then open `http://<PS5-IP>:8087`. No tool here sends
+it to a console automatically. Do not promote it to the stable auto-loader until
+real hardware checks pass. Start with disposable cheats and independently backed
+up data. Do not run other cheat installers or edit cheat files during backup or
+restore; external writers cannot be locked by this service.
+
+Restore copies a complete backup into a sibling staging directory, syncs it,
+renames the old root aside, then publishes the complete staged root. Startup
+recovers an interrupted rename before serving requests. It does not merge a
+backup into existing cheats: files added since the backup are removed. Available
+space must accommodate a full staged copy and the previous directory.
+
+Uploads stream to same-directory temporary files. Incomplete uploads preserve the
+previous file. File and directory sync errors fail the operation. Backups are
+listed only after their complete staged tree has been committed. Symbolic links
+and unsupported file types cause backup/restore to fail rather than follow them.
+
+This is a local-network service with no user login. Mutation requests require the
+UI's request marker and reject cross-origin browser requests. Do not expose the
+listener through router port forwarding. These checks are not authentication.
+
+## Sources and licensing
+
+New source files are GPL-3.0-or-later (see COPYING), compatible with the SDK's
+licensing. The existing stable ELF is not reimplemented by disassembly and its
+license is not changed. SDK runtime/library work belongs to its upstream authors;
+FreeBSD SDK headers retain their BSD licenses.
+
+Official SDK and build instructions:
+https://github.com/ps5-payload-dev/sdk/tree/v0.45

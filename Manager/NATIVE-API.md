@@ -3,7 +3,9 @@
 The supplied compiled Manager has a fixed etaHEN cheat-upload route and no cheat
 inventory, backup or restore routes. This document describes the contract used
 by the new UI; it is **not a claim that these routes exist in the supplied ELF**.
-The native C/C++ source and its build toolchain are needed to implement them.
+The new experimental implementation lives in `native/` and listens on port 8087.
+It implements this contract separately; the stable ELF on 8085 is unchanged.
+See `native/README.md` for build and console-validation instructions.
 
 `GET /api/status` may report:
 
@@ -48,3 +50,7 @@ and restore transactionally. Apply the existing mutation request-header checks.
 The UI binds each transfer to the selected destination, skips confirmed unchanged
 files when installing updates, and invalidates inventory after writes/restores.
 Backups available in this dashboard session can be selected for restore.
+
+`GET /api/cheats/backups?destination=etahen` lists durable snapshots as
+`{"destination":"etahen","backups":[{"id":"backup-..."}]}` when
+`capabilities.backupList` is true. The UI reloads these after reconnecting.

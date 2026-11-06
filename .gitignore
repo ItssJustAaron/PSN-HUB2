@@ -1,3 +1,5 @@
 releases/*.zip
 tools/__pycache__/
 Manager/preview-*.png
+
+native/build/
