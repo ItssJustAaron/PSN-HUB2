@@ -121,7 +121,28 @@ static void handle(int fd,Request *r) {
 #ifndef HUB_HOST_TEST
       uint32_t version=kernel_get_fw_version();if(version)snprintf(firmware,sizeof(firmware),"%x.%02x",version>>24,(version>>16)&255);
 #endif
-      buf_add(&b,"{\"version\":\"%s\",\"experimental\":true,\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"shortcuts\":false},\"manager\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0},\"jailbreak\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0}}",HUB_VERSION,firmware);
+      buf_add(&b,"{\"version\":\"%s\",\"experimental\":true,\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"saveRead\":true,\"saveBackup\":true,\"shortcuts\":false},\"manager\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0},\"jailbreak\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0}}",HUB_VERSION,firmware);
+    }else if((get&&(!strcmp(path,"/api/saves")||!strcmp(path,"/api/saves/files")||!strcmp(path,"/api/saves/download")||!strcmp(path,"/api/saves/backups")))||(post&&!strcmp(path,"/api/saves/backup"))){
+      if(get&&!strcmp(path,"/api/saves"))result=hub_save_list(&b);
+      else if(get&&!strcmp(path,"/api/saves/backups"))result=hub_save_backups(&b);
+      else {
+        char user[32],platform[16],title[32],id[128];int root=-1;
+        int snapshot=query(r,"id",id,sizeof(id));
+        if(snapshot<0||(post&&snapshot)){error_reply(fd,400,"Invalid snapshot request");return;}
+        if(snapshot)root=hub_save_snapshot(id);
+        else if(query(r,"user",user,sizeof(user))==1&&query(r,"platform",platform,sizeof(platform))==1&&query(r,"title",title,sizeof(title))==1)root=hub_save_title(user,platform,title);
+        if(root<0){error_reply(fd,400,"Save selection unavailable or invalid");return;}
+        if(post){char created[80],label[80];snprintf(label,sizeof(label),"%.8s-%.3s-%.9s",user,platform,title);result=hub_save_backup(root,label,created);if(result==0)buf_add(&b,"{\"id\":\"%s\"}",created);}
+        else if(!strcmp(path,"/api/saves/files"))result=hub_save_files(root,&b);
+        else {
+          char name[128];if(query(r,"name",name,sizeof(name))!=1||!hub_name(name)){close(root);error_reply(fd,400,"Invalid save filename");return;}
+          int file=openat(root,name,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);struct stat st;close(root);
+          if(file<0||fstat(file,&st)<0||!S_ISREG(st.st_mode)||st.st_size<0||(uint64_t)st.st_size>(uint64_t)4*1024*1024*1024){if(file>=0)close(file);error_reply(fd,400,"Save file unavailable");return;}
+          char head[640];int n=snprintf(head,sizeof(head),"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=\"%s\"\r\nContent-Length: %lld\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n",name,(long long)st.st_size);
+          int ok=n>0&&(size_t)n<sizeof(head)?hub_write(fd,head,(size_t)n):-1;uint64_t left=(uint64_t)st.st_size;unsigned char data[65536];
+          while(ok==0&&left){size_t want=left<sizeof(data)?(size_t)left:sizeof(data);ssize_t got=read(file,data,want);if(got<0&&errno==EINTR)continue;if(got<=0)break;ok=hub_write(fd,data,(size_t)got);left-=(uint64_t)got;}close(file);return;
+        }close(root);
+      }
     }else if(get&&!strcmp(path,"/api/list"))result=list_payloads(&b);
     else if((put||post)&&!strcmp(path,"/api/upload")){
       char name[128];if(query(r,"name",name,sizeof(name))!=1||!is_payload(name)||!r->length){error_reply(fd,400,"Invalid payload name or empty upload");return;}
@@ -165,6 +186,7 @@ int main(int argc,char **argv) {
 #endif
     if(base<0){perror("Manager storage");return 1;}
     int lock=openat(base,"lock",O_CREAT|O_RDWR|O_NOFOLLOW,0600);if(lock<0||flock(lock,LOCK_EX|LOCK_NB)<0){fprintf(stderr,"Manager already running or lock unavailable\n");return 1;}
+    hub_saves_init(base);
     payloads=hub_child(base,"payloads",1);backups=hub_child(base,"backups",1);categories=hub_child(base,"categories",1);
 #ifdef HUB_HOST_TEST
     parents[0]=hub_child(base,"etaHEN",1);parents[1]=hub_child(base,"OnionHEN",1);

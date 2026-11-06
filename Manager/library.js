@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.06.2';
+  const UI_RELEASE = '2026.11.06.3';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -231,7 +231,7 @@
       delete $('loader-connection').dataset.checked;
       $('connection-help').hidden = false;
       $('connection-help').textContent = 'Reconnect to the PS5 network and reopen http://<PS5-IP>:8085. ' + error.message;
-    } finally { $('check-connection').disabled = false; }
+    } finally { $('check-connection').disabled = false; updateSaveControls(); }
   }
   function setLoader(ok, message) {
     const badge = $('loader-connection'); badge.textContent = 'elfldr: ' + message;
@@ -787,7 +787,51 @@
   const payloadLibrary=element('section',undefined,'card');
   payloadLibrary.append(element('h2','Payload library'),element('p','Choose bundled payloads here, or upload your own below. Firmware support must be checked before sending.','hint'));
   const payloadCards=element('div');payloadCards.id='payload-library';payloadLibrary.append(payloadCards);$('panel-payloads').prepend(payloadLibrary);
-  restoreBrowsing(); releaseControls();
+  let saveControls=null;
+  function updateSaveControls() {
+    if(!saveControls)return;
+    const available=state.manager&&!state.preview&&supports('saveRead');
+    saveControls.refresh.disabled=!available||saveControls.busy;
+    saveControls.status.textContent=available?'Experimental raw save access. Close all games before backing up.':'Save operations require the experimental native Manager on port 8087. This stable build cannot access saves.';
+    if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();}
+  }
+  async function saveJSON(path,post=false) {return JSON.parse(await (await response(path,post?{method:'POST',headers:{'X-PSNHUB-Request':'1'}}:{cache:'no-store'},post?300000:30000)).text());}
+  async function saveTask(fn) {
+    if(!saveControls||saveControls.busy)return;
+    if(!state.manager||state.preview||!supports('saveRead')){updateSaveControls();return;}
+    saveControls.busy=true;saveControls.refresh.disabled=true;saveControls.list.querySelectorAll('button').forEach(button=>button.disabled=true);
+    try{await fn();}catch(error){saveControls.status.textContent=error.message;}finally{saveControls.busy=false;saveControls.refresh.disabled=false;saveControls.list.querySelectorAll('button').forEach(button=>button.disabled=false);}
+  }
+  async function showSaveFiles(query,label) {
+    const data=await saveJSON('/api/saves/files?'+query);saveControls.files.replaceChildren(element('h3',label));
+    if(!data.items.length)saveControls.files.append(element('p','No raw files found.','hint'));
+    for(const file of data.items){const link=element('a','Download '+file.name+' ('+file.size+' bytes)');link.href='/api/saves/download?'+query+'&name='+encodeURIComponent(file.name);link.download=file.name;const row=element('p');row.append(link);saveControls.files.append(row);}
+  }
+  async function refreshSaves() {
+    saveControls.status.textContent='Reading save folders…';saveControls.files.replaceChildren();
+    const data=await saveJSON('/api/saves'),backups=await saveJSON('/api/saves/backups');saveControls.list.replaceChildren();
+    for(const item of data.items){const query='user='+encodeURIComponent(item.user)+'&platform='+encodeURIComponent(item.platform)+'&title='+encodeURIComponent(item.title);const label=item.platform.toUpperCase()+' · '+item.title+' · User '+item.user;
+      const row=element('section',undefined,'card');row.append(element('strong',label),action('Browse raw files',()=>saveTask(()=>showSaveFiles(query,label)),'secondary'));
+      if(supports('saveBackup'))row.append(action('Back up title',()=>saveTask(async()=>{saveControls.status.textContent='Copying and verifying raw files. Keep the game closed…';const result=await saveJSON('/api/saves/backup?'+query,true);await showSaveFiles('id='+encodeURIComponent(result.id),result.id);saveControls.status.textContent='Snapshot saved on console: '+result.id+'. Download every listed file, including PS4 .bin keys. This is raw data, not a verified restorable export.';}),'secondary'));
+      saveControls.list.append(row);
+    }
+    saveControls.list.append(element('h3','Raw snapshots on this console'));
+    for(const item of backups.items)saveControls.list.append(action(item.id,()=>saveTask(()=>showSaveFiles('id='+encodeURIComponent(item.id),item.id)),'secondary'));
+    saveControls.status.textContent=data.items.length+' save title folders found. '+backups.items.length+' snapshots. Close games before backup; refresh to see new snapshots.';
+  }
+  function saveManagerControls() {
+    if(typeof managerTabs==='undefined'||typeof selectTab!=='function')return;
+    const tab=element('button','SAVE MANAGER (WIP)','tab');tab.id='tab-save-manager';tab.type='button';tab.tabIndex=-1;
+    tab.setAttribute('role','tab');tab.setAttribute('aria-selected','false');tab.setAttribute('aria-controls','panel-save-manager');
+    const panel=element('div',undefined,'tab-panel');panel.id='panel-save-manager';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);
+    const card=element('section',undefined,'card');card.append(element('h2','Save Manager (WIP)'),element('p','Use at your own risk. Raw save browsing and manual snapshots are experimental and await PS5 testing.','hint'),element('p','Close all games before backup. Download every file in a snapshot, including PS4 .bin keys. Decryption, encryption, resigning, importing, restoring and automatic backups are unavailable. Keep separate verified backups.','hint'));
+    const credit=element('p','Research by earthonion: ','hint');
+    for(const [title,repo] of [['Garlic SaveMgr','garlic-savemgr'],['Garlic Worker','garlic-worker']]){const link=element('a',title+' ');link.href='https://github.com/earthonion/'+repo;credit.append(link);}
+    const status=element('p',undefined,'hint'),list=element('div'),files=element('div'),refresh=action('Refresh saves and snapshots',()=>saveTask(refreshSaves),'secondary');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    saveControls={status,list,files,refresh,busy:false};card.append(refresh,status,list,files,credit);panel.append(card);updateSaveControls();managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);
+    tab.addEventListener('click',()=>selectTab(tab));tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(tab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
+  }
+  saveManagerControls(); restoreBrowsing(); releaseControls();
   firmwareControls();
   maintenanceControls();
   setupControls();setControllerMode(!!storeRead('controllerMode',!!ps5Version));

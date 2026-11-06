@@ -240,5 +240,51 @@ class ServerTests(unittest.TestCase):
                 sock.shutdown(socket.SHUT_WR)
                 self.assertIn(str(expected).encode(),sock.recv(2048))
 
+    def save_fixture(self, platform='ps5'):
+        folder = 'savedata_prospero' if platform == 'ps5' else 'savedata'
+        title = 'PPSA00001' if platform == 'ps5' else 'CUSA00001'
+        path = self.root / 'home' / '00000001' / folder / title
+        path.mkdir(parents=True)
+        (path / 'sdimg_slot').write_bytes(b'raw encrypted image' * 100)
+        (path / 'slot.bin').write_bytes(b'companion key')
+        return path, urlencode({'user':'00000001','platform':platform,'title':title})
+
+    def test_raw_saves_and_verified_snapshots(self):
+        for platform in ['ps5', 'ps4']:
+            path, query = self.save_fixture(platform)
+            self.assertTrue(self.api('/api/status')['capabilities']['saveRead'])
+            listing = self.api('/api/saves')['items']
+            self.assertTrue(any(item['platform'] == platform for item in listing))
+            files = self.api('/api/saves/files?'+query)['items']
+            self.assertEqual({item['name'] for item in files}, {'sdimg_slot','slot.bin'})
+            original = {p.name:p.read_bytes() for p in path.iterdir()}
+            result = self.api('/api/saves/backup?'+query, 'POST')
+            snapshot_query = urlencode({'id':result['id']})
+            self.assertEqual(len(self.api('/api/saves/files?'+snapshot_query)['items']), 2)
+            for name, data in original.items():
+                self.assertEqual(self.request('/api/saves/download?'+snapshot_query+'&'+urlencode({'name':name})), (200,data))
+            (path / 'sdimg_slot').write_bytes(b'new live data')
+            self.assertEqual(self.request('/api/saves/download?'+snapshot_query+'&name=sdimg_slot'), (200, original['sdimg_slot']))
+            self.assertTrue(any(item['id']==result['id'] for item in self.api('/api/saves/backups')['items']))
+
+    def test_save_paths_symlinks_and_incomplete_backups(self):
+        path, query = self.save_fixture()
+        outside = self.root / 'private'; outside.write_bytes(b'private')
+        for name in ['../private','/etc/passwd','a/b','..','bad"name']:
+            self.assertEqual(self.request('/api/saves/download?'+query+'&'+urlencode({'name':name}))[0],400)
+        (path / 'escape').symlink_to(outside)
+        self.assertEqual(self.request('/api/saves/download?'+query+'&name=escape')[0],400)
+        self.assertEqual(self.request('/api/saves/backup?'+query,'POST')[0],500)
+        self.assertEqual(self.api('/api/saves/backups')['items'],[])
+        self.assertEqual(outside.read_bytes(),b'private')
+        (path / 'escape').unlink()
+        (path / 'nested').mkdir()
+        self.assertEqual(self.request('/api/saves/backup?'+query,'POST')[0],500)
+        self.assertEqual(self.api('/api/saves/backups')['items'],[])
+        self.assertEqual(self.request('/api/saves/restore?'+query,'POST')[0],404)
+        self.assertEqual(self.request('/api/saves/backup?'+urlencode({'id':'save-any'}),'POST')[0],400)
+        self.assertEqual(self.request('/api/saves/files?'+urlencode({'user':'../bad','platform':'ps5','title':'PPSA00001'}))[0],400)
+        self.assertEqual(self.request('/api/saves/backup?'+query,'POST',headers={'X-PSNHUB-Request':'0'})[0],403)
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -3,6 +3,9 @@ const fs = require('node:fs'), path = require('node:path'), vm = require('node:v
 const {spawnSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8').replace(/\r\n/g, '\n');
+for (const name of ['README.md','Manager/dashboard.html','Manager/library.js']) assert(!/^(?:<{7} |={7}$|>{7} )/m.test(read(name)), 'Unresolved merge markers: '+name);
+const ids=[...read('Manager/dashboard.html').matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
+assert.equal(new Set(ids).size,ids.length,'Dashboard IDs must be unique');
 const catalog = JSON.parse(read('Manager/catalog.json'));
 const binary = fs.readFileSync(path.join(root, 'payloads/PSN-HUB-Manager.elf'));
 const start = binary.indexOf('<!doctype html>');
@@ -55,3 +58,4 @@ require('./test-library.cjs');
 require('./test-payload-fetch.cjs');
 
 require('./test-manager-launch.cjs');
+require('./test-save-ui.cjs');

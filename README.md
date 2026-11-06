@@ -23,7 +23,6 @@ Payload sending uses the console's own syscalls to connect to elfldr at `127.0.0
 
 ## Firmware support
 
-<<<<<<< Updated upstream
 The jailbreak includes these firmware versions:
 
 `7.00` `7.01` `7.20` `7.40` `7.60` `7.61` `8.00` `8.20` `8.40` `8.60` `9.00` `9.20` `9.40` `9.60` `10.00` `10.01` `10.20` `10.40` `11.00` `11.20` `11.60` `12.00` `12.02` `12.20` `12.40` `12.60` `12.70` `13.00` `13.20` `13.40` `13.42` `13.60`
@@ -119,20 +118,6 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
 
 ## Save Manager (WIP)
 
-The Manager dashboard includes a clearly marked **SAVE MANAGER (WIP)** tab. **Use at your own risk.** Save listing, backups, decrypt/encrypt, resigning, importing, restoring, and exporting are not implemented in this GitHub build. Do not rely on it for save protection; keep separate backups until save operations are implemented and verified on a PS5.
+The Manager dashboard includes a clearly marked **SAVE MANAGER (WIP)** tab. **Use at your own risk.** The stable Manager on port 8085 cannot access saves. The experimental native Manager on port 8087 now implements raw PS4/PS5 title discovery, per-file downloads, and manual raw snapshots. These additions pass host tests but still require PS5 validation. Decryption, encryption, resigning, importing, restoring, automatic backups, and restorable export packages are unavailable. Keep separate verified backups. See [native/SAVES.md](native/SAVES.md) for installation and limitations.
 
 Research credit: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) and [Garlic Worker](https://github.com/earthonion/garlic-worker) by earthonion. These projects informed the research; their code and binaries are not included here.
-=======
-I just cloned this to make a web to my own fun style as personal use however all is free to use if they like it. 
-
-## Save Manager (WIP)
-
-The Manager dashboard includes a clearly marked SAVE MANAGER (WIP) panel. Save
-operations are not implemented in this GitHub build. It does not list, back up,
-decrypt, encrypt, resign, import, restore, or export saves. **Use at your own
-risk** and keep separate backups; do not rely on this panel for save protection.
-
-Research credit: Garlic SaveMgr and Garlic Worker by earthonion. Their published
-work informed the planned integration; this repository does not bundle their
-code or ELF files.
->>>>>>> Stashed changes

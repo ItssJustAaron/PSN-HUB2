@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
-#define HUB_VERSION "0.1.0-experimental"
+#define HUB_VERSION "0.2.0-experimental"
 #define HUB_LIMIT (64u*1024u*1024u)
 #define HUB_JSON_LIMIT (8u*1024u*1024u)
 typedef struct { char *data; size_t len, cap; int failed; } Buffer;
@@ -23,4 +23,11 @@ int hub_remove_tree(int, const char *);
 int hub_recover(int, const char *);
 int hub_clean_uploads(int);
 int hub_restore(int, const char *, int);
+void hub_saves_init(int);
+int hub_save_title(const char *, const char *, const char *);
+int hub_save_list(Buffer *);
+int hub_save_files(int, Buffer *);
+int hub_save_snapshot(const char *);
+int hub_save_backup(int, const char *, char [80]);
+int hub_save_backups(Buffer *);
 #endif
