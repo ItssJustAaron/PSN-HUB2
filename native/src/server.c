@@ -101,6 +101,8 @@ static int prepare_restart(void){
 }
 static int finish_restart(void){
  unsigned char bytes[65536];ssize_t n;int result=0;while((n=read(restart_file,bytes,sizeof(bytes)))!=0){if(n<0){if(errno==EINTR)continue;result=-1;break;}if(hub_write(restart_socket,bytes,(size_t)n)<0){result=-1;break;}}
+ /* Let elfldr consume EOF before SDK teardown can terminate the network stack. */
+ if(result==0){shutdown(restart_socket,SHUT_WR);struct timeval timeout={5,0};setsockopt(restart_socket,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));unsigned char ack;read(restart_socket,&ack,1);}
  close(restart_file);close(restart_socket);return result;
 }
 static int send_payload(const char *name) {
