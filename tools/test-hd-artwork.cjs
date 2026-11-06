@@ -10,4 +10,5 @@ for(const [offset,capacity] of [[93232,209927],[303424,141347]]){
 const page=read('index.html').toString();assert(page.includes('<img id="mascot-image"'));assert(!page.includes('renderTransparentMascot'));
 assert(read('cache.appcache').toString().includes('mascot.png?v=2'));
 const web=read('mascot.png');assert.equal(web.readUInt32BE(16),768);assert.equal(web.readUInt32BE(20),768);
+assert(read('payloads/PSN-HUB-HD-Icons.elf').includes(icon),'icon refresh ELF embeds the reviewed export');
 console.log('PASS: HD web image, offline URL and both fixed-capacity ELF icon slots.');

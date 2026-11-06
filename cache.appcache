@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# PSN-HUB Cache ffec10aa326cee3f
+# PSN-HUB Cache 0b66cdaaf2d8d3e2
 
 CACHE:
 cache-status.js
@@ -60,6 +60,7 @@ payloads/CheatRunner_v0.17.1.elf
 payloads/Lapy-JB-Daemon_v1.2.elf
 payloads/OnionHEN.elf
 payloads/PKG-Manager_v1.4.1.elf
+payloads/PSN-HUB-HD-Icons.elf
 payloads/PSN-HUB-Manager.elf
 payloads/PSN-HUB-Store-Background-Restore.elf
 payloads/PSN-HUB-Store-Background.elf

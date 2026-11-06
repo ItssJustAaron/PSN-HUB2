@@ -121,5 +121,13 @@
     "description": "Restore the artwork references recorded by the matching PSN-HUB background updater. Preserves unrelated metadata changes.",
     "info": "PSN-HUB-Store-Background-Restore.elf - PSN-HUB",
     "expectedSha256": "e4c5590588e4b0a20fe242dc0f3b8154d4ea286bcbd172758c73872ad04d3ae3"
+  },
+  {
+    "title": "PSN-HUB HD home-screen icons",
+    "name": "PSN-HUB-HD-Icons.elf",
+    "key": "psn-hub-hd-icons",
+    "description": "Refresh existing PSN-HUB Manager and jailbreak icons with the HD mascot. Backs up original PNGs; preserves names, links, backgrounds and visibility. Refresh the console home screen afterwards.",
+    "info": "PSN-HUB-HD-Icons.elf - PSN-HUB",
+    "expectedSha256": "aaf02823a67c8499dbb4138865e5d56ef10d24ab3bca5f8488111e009ca62a33"
   }
 ]
