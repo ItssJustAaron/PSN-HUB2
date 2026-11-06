@@ -11,6 +11,7 @@
 #include <sys/select.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
@@ -81,7 +82,7 @@ int main(int argc,char **argv){
     int result=operate(root,db,prefix);char body[500];int length=snprintf(body,sizeof(body),"{\"success\":%s,\"icons\":%d,\"sha256\":\"%s\",\"rollbackFailed\":%s,\"message\":\"%s\"}",result==0?"true":"false",count,HOME_ICON_SHA,result==-2?"true":"false",result==0?"HD icons installed. Refresh the home screen manually.":"Icon update failed; inspect private backups before retrying.");puts(body);
 #ifndef HUB_HOST_TEST
     int server=socket(AF_INET,SOCK_STREAM,0),yes=1;if(server<0)return 1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons(8094);a.sin_addr.s_addr=htonl(INADDR_ANY);
-    if(bind(server,(struct sockaddr *)&a,sizeof(a))==0&&listen(server,1)==0){fd_set set;FD_ZERO(&set);FD_SET(server,&set);struct timeval wait={60,0};if(select(server+1,&set,NULL,NULL,&wait)>0){int client=accept(server,NULL,NULL);if(client>=0){char header[250];int n=snprintf(header,sizeof(header),"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: %d\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n",length);hub_write(client,header,(size_t)n);hub_write(client,body,(size_t)length);close(client);}}}close(server);
+    if(bind(server,(struct sockaddr *)&a,sizeof(a))==0&&listen(server,1)==0){fd_set set;FD_ZERO(&set);FD_SET(server,&set);struct timeval wait={60,0};if(select(server+1,&set,NULL,NULL,&wait)>0){int client=accept(server,NULL,NULL);if(client>=0){struct timeval timeout={3,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));char request[2048];read(client,request,sizeof(request));char header[250];int n=snprintf(header,sizeof(header),"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: %d\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n",length);hub_write(client,header,(size_t)n);hub_write(client,body,(size_t)length);close(client);}}}close(server);
 #else
     (void)length;
 #endif

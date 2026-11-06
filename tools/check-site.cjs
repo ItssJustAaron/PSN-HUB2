@@ -55,6 +55,7 @@ for (const [name, html] of [['index.html', read('index.html')], ['relapse.html',
     assert.equal(result.status, 0, name + ': ' + result.stderr);
   }
 }
+require('./test-hd-artwork.cjs');
 console.log('PASS: catalogue paths, duplicate destinations, ELF embedding, cache dependencies and inline syntax.');
 require('./test-library.cjs');
 require('./test-payload-fetch.cjs');
