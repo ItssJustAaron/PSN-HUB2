@@ -2,9 +2,9 @@ name: Build experimental native Manager
 on:
   push:
     branches: [main]
-    paths: ['native/**', 'tools/build-native.py', 'Manager/dashboard.html', '.github/workflows/build-native.yml']
+    paths: ['native/**', 'tools/build-native.py', 'Manager/dashboard.html', 'Manager/build.json', 'payloads/PSN-HUB-Manager.elf', '.github/workflows/build-native.yml']
   pull_request:
-    paths: ['native/**', 'tools/build-native.py', 'Manager/dashboard.html', '.github/workflows/build-native.yml']
+    paths: ['native/**', 'tools/build-native.py', 'Manager/dashboard.html', 'Manager/build.json', 'payloads/PSN-HUB-Manager.elf', '.github/workflows/build-native.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,7 +17,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Generate embedded dashboard
-        run: python tools/build-native.py
+        run: |
+          python tools/build-manager.py
+          python tools/build-native.py
       - name: Compile portable server with sanitizers
         run: gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -DHUB_HOST_TEST -Inative/build native/src/*.c -o native/build/manager-host
       - name: Test real HTTP and storage operations

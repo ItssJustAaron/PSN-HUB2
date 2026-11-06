@@ -690,6 +690,11 @@
       cheats ? 'Matching files will be replaced.' : 'The payload will run on the console.',
       cheats && $('backup-before-install').checked ? 'A console backup must succeed before any files change.' : '', 'Continue?'].filter(Boolean).join('\n\n');
   }
+  function downloadURL(path) {
+    // Older running ELF dashboards only recognize Manager/ paths.
+    if (/^payloads\/[A-Za-z0-9._-]+\.(?:elf|bin)$/.test(path)) return repositoryBase+path;
+    return sourceURL(path);
+  }
   async function startTransfer(items, title, resume = false) {
     if (state.transfer && state.transfer.running) { $('transfer-status').textContent = 'A transfer is already running. Wait or cancel it first.'; $('transfer-panel').scrollIntoView({block: 'nearest'}); return; }
     if (state.preview) { $('catalog-status').textContent = 'Preview only — open Manager at your PS5 address to install or send files.'; return; }
@@ -715,7 +720,7 @@
         const item = items[next++];
         try {
           const uploadURL = targetURL(item,task.destination);
-          const blob = await response(sourceURL(item.path), {cache: 'no-store', signal: task.controller.signal});
+          const blob = await response(downloadURL(item.path), {cache: 'no-store', signal: task.controller.signal});
           await verify(blob, item);
           if (task.cancelled) break;
           task.message = 'Saving ' + (item.target || item.name) + '…'; updateTransfer();
@@ -778,7 +783,7 @@
   $('cancel-transfer').addEventListener('click', cancelTransfer); $('retry-transfer').addEventListener('click', retryTransfer);
   $('check-connection').addEventListener('click', checkConnection);
   $('retry-library').addEventListener('click', () => { catalogPromise = null; init(); checkConnection(); loadStyle().catch(error => { $('catalog-status').textContent = error.message; }); });
-  window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, saveSetup, setControllerMode, installSummary, saveBrowsing, restoreBrowsing, applyFilters, state};
+  window.PSNLibrary = {record, favourite, filterCheats, groupCheats, verify, targetURL, startTransfer, cancelTransfer, retryTransfer, checkConnection, compatibility, selectFirmware, canSendName, diagnostics, planUpdates, checkInventory, installUpdates, createBackup, restoreBackup, destinationAllowed, saveProfile, saveGameVersion, saveSetup, setControllerMode, installSummary, downloadURL, saveBrowsing, restoreBrowsing, applyFilters, state};
   const payloadLibrary=element('section',undefined,'card');
   payloadLibrary.append(element('h2','Payload library'),element('p','Choose bundled payloads here, or upload your own below. Firmware support must be checked before sending.','hint'));
   const payloadCards=element('div');payloadCards.id='payload-library';payloadLibrary.append(payloadCards);$('panel-payloads').prepend(payloadLibrary);
