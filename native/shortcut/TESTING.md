@@ -7,8 +7,10 @@ restart SceShellUI or reboot the console.
 
 ## Review and plan
 
-Generate the new PNG with `python tools/build-shortcut-icon.py`. It is a new,
-code-native PSN-HUB logo using the Manager's purple/green leaf artwork.
+Install Pillow 13.0.0, then prepare the PNG with `python tools/build-shortcut-icon.py`.
+It reuses the existing site mascot from `mascot.png`, preserving its artwork,
+aspect ratio and background. Only the PNG format and 512x512 canvas are prepared
+for the PS5. No replacement logo is generated.
 
 Keep inspection copies and the plan private. They contain console metadata and
 local profile table identifiers. They belong under ignored `native/build/`, not
@@ -57,6 +59,9 @@ plan in another coordinated transaction. It preserves unrelated apps and later
 unrelated database changes. Restore refuses if any patched field has since drifted. It preserves unrelated
 JSON updates such as access timestamps written after the tile was opened.
 It does not blindly upload old complete database copies over the live databases.
+
+Restore supports plans from an earlier icon build; it does not require the
+new/current icon bytes to match the old installer.
 
 Backups and the plan are retained. The new icon may remain as an unreferenced
 file after restoration; the old icon reference is restored.

@@ -19,6 +19,7 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y libsqlite3-dev clang-18 lld-18
           mkdir -p native/build
+          python -m pip install Pillow==13.0.0
           python tools/build-shortcut-icon.py
           gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-pie -no-pie -DHUB_HOST_TEST -Inative/src native/shortcut/inspect.c native/src/storage.c native/src/sha256.c -lsqlite3 -o native/build/store-inspector-host
           ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 python native/shortcut/test_inspector.py native/build/store-inspector-host

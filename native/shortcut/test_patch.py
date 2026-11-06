@@ -52,6 +52,10 @@ class PatchTests(unittest.TestCase):
   with sqlite3.connect(self.root/'app.db') as db:
    value=json.loads(db.execute('SELECT AppInfoJson FROM tbl_contentinfo WHERE titleId=?',(planner.TITLE,)).fetchone()[0])
   self.assertEqual(value['TITLE'],'Jailbreak Store');self.assertEqual(value['#_last_access_time'],'Changed after opening the tile');self.assertEqual(value['CATEGORY_TYPE'],67108864)
+ def test_restore_accepts_plan_from_previous_icon_build(self):
+  self.run_engine()
+  with sqlite3.connect(self.root/'plan.db') as db:db.execute("UPDATE meta SET val='previous-icon-build' WHERE key='iconSha256'")
+  self.run_engine('restore');self.assertEqual(self.snapshot(),self.before)
  def test_missing_approval(self):
   for p in self.root.glob('approve-*'):p.unlink()
   self.run_engine(success=False);self.assertEqual(self.snapshot(),self.before)
