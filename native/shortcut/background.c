@@ -158,13 +158,24 @@ static int operate(const char *root_path,const char *app,const char *info,const 
 done:if(in_tx&&db)sqlite3_exec(db,"ROLLBACK;",NULL,NULL,NULL);if(db)sqlite3_close(db);if(ledger)sqlite3_close(ledger);if(art>=0)close(art);if(lock>=0)close(lock);close(root);return result;
 }
 static void quote(Buffer *b,const char *s){buf_add(b,"\"");for(const unsigned char *p=(const unsigned char *)s;*p;p++){if(*p=='"'||*p=='\\')buf_add(b,"\\%c",*p);else if(*p<32)buf_add(b,"\\u%04x",*p);else buf_add(b,"%c",*p);}buf_add(b,"\"");}
-#ifndef HUB_HOST_TEST
+#if !defined(HUB_HOST_TEST) && !defined(HUB_EMBEDDED)
 static void serve_result(Buffer *b){
     int server=socket(AF_INET,SOCK_STREAM,0);if(server<0)return;int yes=1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons(8093);a.sin_addr.s_addr=htonl(INADDR_ANY);
     if(bind(server,(struct sockaddr *)&a,sizeof(a))<0||listen(server,1)<0){close(server);return;}fd_set set;FD_ZERO(&set);FD_SET(server,&set);struct timeval wait={60,0};
     if(select(server+1,&set,NULL,NULL,&wait)>0){int client=accept(server,NULL,NULL);if(client>=0){struct timeval timeout={3,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));char request[2048];ssize_t n=read(client,request,sizeof(request)-1);if(n>0){request[n]=0;if(!strncmp(request,"GET / HTTP/1.",13)||!strncmp(request,"GET /api/status HTTP/1.",23)){char header[400];int size=snprintf(header,sizeof(header),"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: %zu\r\nCache-Control: no-store\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",b->len);if(size>0&&(size_t)size<sizeof(header)&&hub_write(client,header,(size_t)size)==0)hub_write(client,b->data,b->len);}}close(client);}}close(server);
 }
 #endif
+int hub_background_run(const char *test_root,int restore,Buffer *report){
+    const char *root="/data/psn-hub-store-background",*app="/system_data/priv/mms/app.db",*info="/system_data/priv/mms/appinfo.db",*art="/user/appmeta/NPXS40047";
+#ifdef HUB_HOST_TEST
+    char a[1200],b[1200],c[1200];root=test_root;snprintf(a,sizeof(a),"%s/app.db",root);snprintf(b,sizeof(b),"%s/appinfo.db",root);snprintf(c,sizeof(c),"%s/appmeta",root);app=a;info=b;art=c;
+#else
+    (void)test_root;
+#endif
+    changed=0;snprintf(problem,sizeof(problem),"Background update failed");int result=operate(root,app,info,art,restore);
+    buf_add(report,"{\"success\":%s,\"operation\":\"%s\",\"sha256\":\"%s\",\"message\":",result==0?"true":"false",restore?"restore-background":"apply-background",BACKGROUND_SHA256);quote(report,result==0?"Artwork references updated. Refresh the home screen manually.":problem);buf_add(report,"}");return result;
+}
+#ifndef HUB_EMBEDDED
 int main(int argc,char **argv){
     signal(SIGPIPE,SIG_IGN);
     const char *root="/data/psn-hub-store-background",*app="/system_data/priv/mms/app.db",*info="/system_data/priv/mms/appinfo.db",*art="/user/appmeta/NPXS40047";int restore=0;
@@ -183,3 +194,5 @@ int main(int argc,char **argv){
 #endif
     buf_free(&report);return result==0?0:1;
 }
+
+#endif

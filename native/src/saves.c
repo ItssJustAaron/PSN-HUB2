@@ -13,7 +13,7 @@
 
 /* Raw, flat title directories only. No mounting, database edits or restore. */
 #define SAVE_LIMIT ((uint64_t)4*1024*1024*1024)
-static int save_home=-1, save_backups=-1;
+static int save_home=-1, save_backups=-1,legacy_backups[2]={-1,-1};
 static int valid_user(const char *s){if(strlen(s)!=8)return 0;for(int i=0;i<8;i++)if(!((s[i]>='0'&&s[i]<='9')||(s[i]>='a'&&s[i]<='f')||(s[i]>='A'&&s[i]<='F')))return 0;return 1;}
 static const char *save_folder(const char *s){return !strcmp(s,"ps5")?"savedata_prospero":!strcmp(s,"ps4")?"savedata":NULL;}
 static int valid_title(const char *s){if(strlen(s)!=9||(strncmp(s,"PPSA",4)&&strncmp(s,"CUSA",4)))return 0;for(int i=4;i<9;i++)if(s[i]<'0'||s[i]>'9')return 0;return 1;}
@@ -24,6 +24,11 @@ void hub_saves_init(int base){
     save_home=hub_open_path("/user/home",0);
 #endif
     save_backups=hub_child(base,"save-backups",1);
+#ifdef HUB_HOST_TEST
+    int legacy=hub_child(base,"legacy-save-service",0);if(legacy>=0){legacy_backups[0]=hub_child(legacy,"save-backups",0);close(legacy);}
+#else
+    legacy_backups[0]=hub_open_path("/data/psn-hub-save-service/save-backups",0);legacy_backups[1]=hub_open_path("/data/psn-hub-native/save-backups",0);
+#endif
 }
 int hub_save_title(const char *user,const char *platform,const char *title){
     const char *folder=save_folder(platform);if(!valid_user(user)||!folder||!valid_title(title)){errno=EINVAL;return -1;}
@@ -51,7 +56,7 @@ int hub_save_list(Buffer *b){
       }close(user);if(result<0)break;
     }closedir(users);buf_add(b,"]}");return result<0||b->failed?-1:0;
 }
-int hub_save_snapshot(const char *id){if(strncmp(id,"save-",5)||!hub_name(id))return -1;return hub_child(save_backups,id,0);}
+int hub_save_snapshot(const char *id){if(strncmp(id,"save-",5)||!hub_name(id))return -1;int roots[]={save_backups,legacy_backups[0],legacy_backups[1]};for(int i=0;i<3;i++){if(roots[i]<0)continue;int fd=hub_child(roots[i],id,0);if(fd>=0)return fd;if(errno!=ENOENT)return -1;}return -1;}
 int hub_save_backup_into(int destination,int source,const char *label,char id[80]){
     if(!hub_name(label)||strlen(label)>24)return -1;
     Buffer before={0},after={0};int result=hub_save_files(source,&before);if(result<0){buf_free(&before);return -1;}
@@ -78,6 +83,9 @@ int hub_save_backup_into(int destination,int source,const char *label,char id[80
 }
 int hub_save_backup(int source,const char *label,char id[80]){return hub_save_backup_into(save_backups,source,label,id);}
 int hub_save_backups(Buffer *b){
-    int scan=openat(save_backups,".",O_RDONLY|O_DIRECTORY);DIR *d=scan<0?NULL:fdopendir(scan);if(!d){if(scan>=0)close(scan);return -1;}struct dirent *e;int count=0,result=0;buf_add(b,"{\"items\":[");
-    while((e=readdir(d))){if(strncmp(e->d_name,"save-",5)||!hub_name(e->d_name))continue;if(++count>4096){result=-1;break;}int dir=hub_save_snapshot(e->d_name);if(dir<0){result=-1;break;}close(dir);buf_add(b,"%s{\"id\":\"%s\"}",count>1?",":"",e->d_name);}closedir(d);buf_add(b,"]}");return result<0||b->failed?-1:0;
+    int roots[]={save_backups,legacy_backups[0],legacy_backups[1]},count=0,result=0;buf_add(b,"{\"items\":[");
+    for(int i=0;i<3&&result==0;i++){if(roots[i]<0)continue;int scan=openat(roots[i],".",O_RDONLY|O_DIRECTORY);DIR *d=scan<0?NULL:fdopendir(scan);if(!d){if(scan>=0)close(scan);result=-1;break;}struct dirent *e;
+      while((e=readdir(d))){if(strncmp(e->d_name,"save-",5)||!hub_name(e->d_name))continue;char needle[160];snprintf(needle,sizeof(needle),"\"id\":\"%.127s\"",e->d_name);if(b->data&&strstr(b->data,needle))continue;if(++count>4096){result=-1;break;}int dir=hub_save_snapshot(e->d_name);if(dir<0){result=-1;break;}close(dir);buf_add(b,"%s{\"id\":\"%s\"}",count>1?",":"",e->d_name);
+      }closedir(d);
+    }buf_add(b,"]}");return result<0||b->failed?-1:0;
 }

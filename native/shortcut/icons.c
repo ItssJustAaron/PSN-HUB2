@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 typedef struct {int dir;char name[64],backup[64],path[1200];unsigned char *old;size_t size;int changed;} Target;
 static Target targets[5];static int count;
@@ -55,7 +56,7 @@ static int operate(const char *root,const char *dbpath,const char *prefix){
     backup=hub_open_path(root,1);if(backup<0)goto done;
     lock=openat(backup,"lock",O_CREAT|O_RDWR|O_NOFOLLOW,0600);if(lock<0||flock(lock,LOCK_EX|LOCK_NB)<0)goto done;
     /* A unique backup folder prevents a repeat run from replacing originals. */
-    char folder[80];snprintf(folder,sizeof(folder),"icons-%ld",(long)getpid());if(mkdirat(backup,folder,0700)<0)goto done;
+    char folder[80];struct timespec now;if(clock_gettime(CLOCK_REALTIME,&now)<0)goto done;snprintf(folder,sizeof(folder),"icons-%lld-%09ld",(long long)now.tv_sec,now.tv_nsec);if(mkdirat(backup,folder,0700)<0)goto done;
     int session=hub_child(backup,folder,0);if(session<0)goto done;close(backup);backup=session;
     if(sqlite3_open_v2(dbpath,&db,SQLITE_OPEN_READONLY,NULL)!=SQLITE_OK)goto done;
     const char *ids[]={"PSNH00001","PSNH00002","NPXS40047"};
@@ -76,6 +77,17 @@ done:
     if(db)sqlite3_close(db);if(lock>=0)close(lock);if(backup>=0)close(backup);
     for(int i=0;i<count;i++){free(targets[i].old);close(targets[i].dir);}return result;
 }
+int hub_icons_run(const char *test_root,Buffer *report){
+ const char *root="/data/psn-hub-icon-update",*db="/system_data/priv/mms/app.db",*prefix="";
+#ifdef HUB_HOST_TEST
+ char a[1200],b[1200];snprintf(a,sizeof(a),"%s/icons",test_root);snprintf(b,sizeof(b),"%s/app.db",test_root);root=a;db=b;prefix=test_root;
+#else
+ (void)test_root;
+#endif
+ count=0;memset(targets,0,sizeof(targets));int result=operate(root,db,prefix);
+ buf_add(report,"{\"success\":%s,\"icons\":%d,\"rollbackFailed\":%s,\"message\":\"%s\"}",result==0?"true":"false",count,result==-2?"true":"false",result==0?"HD icons installed. Refresh the home screen manually.":"Icon update failed. Original backups are preserved.");return result;
+}
+#ifndef HUB_EMBEDDED
 int main(int argc,char **argv){
     signal(SIGPIPE,SIG_IGN);const char *root="/data/psn-hub-icon-update",*db="/system_data/priv/mms/app.db",*prefix="";
 #ifdef HUB_HOST_TEST
@@ -92,3 +104,5 @@ int main(int argc,char **argv){
 #endif
     return result==0?0:1;
 }
+
+#endif

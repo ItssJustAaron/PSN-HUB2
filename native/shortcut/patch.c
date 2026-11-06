@@ -202,6 +202,17 @@ done:
     free_changes(changes,count);if(db)sqlite3_close(db);close(root);return result;
 }
 static void quoted(Buffer *out,const char *value){buf_add(out,"\"");for(const unsigned char *p=(const unsigned char *)value;*p;p++){if(*p=='"'||*p=='\\')buf_add(out,"\\%c",*p);else if(*p<32)buf_add(out,"\\u%04x",*p);else buf_add(out,"%c",*p);}buf_add(out,"\"");}
+int hub_store_run(const char *test_root,int restore,int rename,Buffer *report){
+ const char *root="/data/psn-hub-store-test",*app="/system_data/priv/mms/app.db",*info="/system_data/priv/mms/appinfo.db",*icon="/user/appmeta/NPXS40047/psn-hub-icon.png";
+#ifdef HUB_HOST_TEST
+ char a[1200],b[1200],c[1200];root=test_root;snprintf(a,sizeof(a),"%s/app.db",root);snprintf(b,sizeof(b),"%s/appinfo.db",root);snprintf(c,sizeof(c),"%s/psn-hub-icon.png",root);app=a;info=b;icon=c;
+#else
+ (void)test_root;
+#endif
+ snprintf(target_name,sizeof(target_name),"%s",FULL_NAME);snprintf(problem,sizeof(problem),"A matching reviewed Store recovery plan is required.");int result=operate(root,app,info,icon,restore,rename);
+ buf_add(report,"{\"success\":%s,\"operation\":\"%s\",\"message\":",result==0?"true":"false",rename?"rename-store":restore?"restore-store":"apply-store");quoted(report,result==0?"Reviewed Store metadata operation completed. Refresh the home screen manually.":problem);buf_add(report,"}");return result;
+}
+#ifndef HUB_EMBEDDED
 int main(int argc,char **argv){
     const char *root="/data/psn-hub-store-test",*app="/system_data/priv/mms/app.db",*info="/system_data/priv/mms/appinfo.db",*icon="/user/appmeta/NPXS40047/psn-hub-icon.png";int restore=0,rename=0;
 #ifdef HUB_HOST_TEST
@@ -218,3 +229,5 @@ int main(int argc,char **argv){
     int result=operate(root,app,info,icon,restore,rename);Buffer message={0};buf_add(&message,"{\"success\":%s,\"operation\":\"%s\",\"titleId\":\"%s\",\"name\":\"%s\",\"url\":\"%s\",\"message\":",result==0?"true":"false",rename?"rename":restore?"restore":"apply",TITLE,target_name,SITE);quoted(&message,result==0?(restore?"Original Store metadata restored. Reboot manually to refresh the shell.":"Store metadata committed. Backups are recorded in plan.db. Reboot manually to test the tile."):problem);buf_add(&message,"}");
     int folder=hub_open_path(root,0);if(folder>=0){hub_atomic(folder,"result.json",-1,message.len,(const unsigned char *)message.data,message.len);close(folder);}if(message.data)printf("%s\n",message.data);buf_free(&message);return result==0?0:1;
 }
+
+#endif

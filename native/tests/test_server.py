@@ -82,13 +82,12 @@ class ServerTests(unittest.TestCase):
 
     def test_status_and_dashboard(self):
         status = self.api('/api/status')
-        self.assertTrue(status['experimental'])
+        self.assertTrue(status['capabilities']['unified'])
         self.assertEqual(status['capabilities']['destinations'], ['etahen','onionhen'])
         code, body = self.request('/')
         self.assertEqual(code, 200)
         self.assertIn(b'PSN-HUB MANAGER', body)
-        self.assertIn(b'EXPERIMENTAL native engine', body)
-        self.assertIn(b'/data/psn-hub-native/payloads', body)
+        self.assertIn(b'/data/psn-hub/payloads', body)
 
     def test_sha256_vectors_and_destinations(self):
         for index, data in enumerate([b'', b'abc', b'a'*55, b'a'*56, b'a'*64, bytes(range(256))*4096]):
@@ -287,6 +286,47 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request('/api/saves/backup?'+urlencode({'id':'save-any'}),'POST')[0],400)
         self.assertEqual(self.request('/api/saves/files?'+urlencode({'user':'../bad','platform':'ps5','title':'PPSA00001'}))[0],400)
         self.assertEqual(self.request('/api/saves/backup?'+query,'POST',headers={'X-PSNHUB-Request':'0'})[0],403)
+
+    def test_unified_status_and_embedded_engine(self):
+        status=self.api('/api/status');self.assertEqual(status['layout'],'PSNHUB_UNIFIED_V1')
+        for name in ['saveRead','saveUSB','artwork','saveEngine','unified']:
+            self.assertTrue(status['capabilities'][name])
+        received=[]
+        with socket.socket() as listener:
+            listener.bind(('127.0.0.1',self.loader_port));listener.listen();listener.settimeout(5)
+            def receive():
+                with listener.accept()[0] as client:
+                    data=bytearray()
+                    while True:
+                        chunk=client.recv(65536)
+                        if not chunk:break
+                        data.extend(chunk)
+                    received.append(hashlib.sha256(data).hexdigest())
+            worker=threading.Thread(target=receive);worker.start()
+            self.assertTrue(self.api('/api/save-engine/start','POST')['embedded']);worker.join(timeout=5)
+        self.assertEqual(received,['4fe4bada2e11075a3dcece3230d0184e5d81865c38668898254c5ae6d0a3fdeb'])
+        self.api('/api/upload?name=PSN-HUB-Save-Service.elf','PUT',b'old helper')
+        self.assertFalse(any(x['name']=='PSN-HUB-Save-Service.elf' for x in self.api('/api/list')['items']))
+        self.assertFalse(self.api('/api/artwork?action=background-apply','POST')['success'])
+        self.assertFalse(self.api('/api/artwork?action=store-restore','POST')['success'])
+        self.assertEqual(self.request('/api/artwork?action=anything','POST')[0],400)
+        self.assertEqual(self.request('/api/artwork?action=icons','POST',headers={'X-PSNHUB-Request':'0'})[0],403)
+
+    def test_legacy_categories_settings_and_snapshots_are_preserved(self):
+        legacy=self.root/'autoload-categories.txt';text='Daily Use|250|first.elf,second.elf\n';legacy.write_text(text)
+        old=self.root/'legacy-save-service';old.mkdir();(old/'save-usb.conf').write_text('0 usb2 60\n')
+        snapshot=old/'save-backups'/'save-old-test';snapshot.mkdir(parents=True);(snapshot/'slot.bin').write_bytes(b'old snapshot')
+        self.stop();self.start()
+        category=self.api('/api/categories')['categories'][0];self.assertEqual(category,{'name':'Daily Use','delayMs':250,'payloads':['first.elf','second.elf']})
+        self.assertEqual(legacy.read_text(),text)
+        self.assertEqual(self.api('/api/saves/usb')['minutes'],60)
+        self.assertEqual(self.request('/api/saves/download?id=save-old-test&name=slot.bin'),(200,b'old snapshot'))
+        self.assertTrue(any(x['id']=='save-old-test' for x in self.api('/api/saves/backups')['items']))
+        self.api('/api/category/save?'+urlencode({'category':'Daily Use','delay':0,'payloads':'mine.elf'}),'POST')
+        self.api('/api/saves/usb/config?enabled=0&usb=usb1&minutes=30','POST')
+        self.stop();self.start()
+        self.assertEqual(self.api('/api/categories')['categories'][0]['payloads'],['mine.elf'])
+        self.assertEqual(self.api('/api/saves/usb')['usb'],'usb1')
 
     def test_usb_export_all_and_unchanged_detection(self):
         path, query = self.save_fixture()

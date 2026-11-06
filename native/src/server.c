@@ -4,6 +4,8 @@
 #define _DEFAULT_SOURCE
 #include "hub.h"
 #include "dashboard.h"
+#include "integrated.h"
+#include "save_engine.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <ctype.h>
@@ -29,6 +31,7 @@
 static int parents[2],payloads,backups,categories;
 static const char *destinations[]={"etahen","onionhen"};
 static int loader_port=9021;
+static const char *integrated_root="/data/psn-hub";
 typedef struct { char header[HEADER_LIMIT+1],method[8],target[8192],host[256],origin[320];size_t length,first;unsigned char *body;int marker,cross_site; } Request;
 static void reply(int client,int code,const char *type,const void *data,size_t size) {
     char head[512];int n=snprintf(head,sizeof(head),"HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %zu\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n",code,code==200?"OK":"Error",type,size);
@@ -77,6 +80,11 @@ static int query(const Request *r,const char *key,char *out,size_t cap) {
 }
 static int destination(const Request *r) {char value[32];int q=query(r,"destination",value,sizeof(value));if(q<0)return -1;if(!q)return 0;for(int i=0;i<2;i++)if(!strcmp(value,destinations[i]))return i;return -1;}
 static int is_payload(const char *name){const char *ext=strrchr(name,'.');return hub_name(name)&&ext&&(!strcasecmp(ext,".elf")||!strcasecmp(ext,".bin"));}
+static int internal_payload(const char *name){return !strcmp(name,"PSN-HUB-Manager.elf")||!strcmp(name,"PSN-HUB-Save-Service.elf")||!strcmp(name,"PSN-HUB-HD-Icons.elf")||!strncmp(name,"PSN-HUB-Store-",14)||!strcmp(name,"garlic-savemgr_08c24b5.elf");}
+static int start_save_engine(void){
+ int sock=socket(AF_INET,SOCK_STREAM,0);if(sock<0)return -1;struct timeval timeout={10,0};setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons((uint16_t)loader_port);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
+ int result=connect(sock,(struct sockaddr *)&a,sizeof(a));if(result==0)result=hub_write(sock,save_engine,sizeof(save_engine));close(sock);return result;
+}
 static int send_payload(const char *name) {
     if(!is_payload(name))return -1;int file=openat(payloads,name,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(file<0)return -1;
     struct stat st;if(fstat(file,&st)<0||!S_ISREG(st.st_mode)||st.st_size<=0||(uint64_t)st.st_size>HUB_LIMIT){close(file);return -1;}
@@ -89,7 +97,7 @@ static int send_payload(const char *name) {
     close(file);close(sock);return result;
 }
 static int list_payloads(Buffer *b){int scan=openat(payloads,".",O_RDONLY|O_DIRECTORY);if(scan<0)return -1;DIR *d=fdopendir(scan);if(!d){close(scan);return -1;}struct dirent *e;int count=0;buf_add(b,"{\"items\":[");
-    while((e=readdir(d))){struct stat st;if(!is_payload(e->d_name))continue;if(fstatat(payloads,e->d_name,&st,AT_SYMLINK_NOFOLLOW)<0){closedir(d);return -1;}if(!S_ISREG(st.st_mode))continue;buf_add(b,"%s{\"name\":\"%s\",\"size\":%lld}",count++?",":"",e->d_name,(long long)st.st_size);}
+    while((e=readdir(d))){struct stat st;if(!is_payload(e->d_name)||internal_payload(e->d_name))continue;if(fstatat(payloads,e->d_name,&st,AT_SYMLINK_NOFOLLOW)<0){closedir(d);return -1;}if(!S_ISREG(st.st_mode))continue;buf_add(b,"%s{\"name\":\"%s\",\"size\":%lld}",count++?",":"",e->d_name,(long long)st.st_size);}
     closedir(d);buf_add(b,"]}");return b->failed?-1:0;
 }
 static int inventory(int root,Buffer *b,const char *destination_name){const char *formats[]={"json","mc4","shn"};int count=0;buf_add(b,"{\"destination\":\"%s\",\"items\":[",destination_name);
@@ -111,6 +119,17 @@ static int backup_list(int dest,Buffer *b){int group=hub_child(backups,destinati
 static int read_category(const char *name,char *data,size_t cap){int fd=openat(categories,name,O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(fd<0)return -1;struct stat st;if(fstat(fd,&st)<0||!S_ISREG(st.st_mode)||st.st_size<1||(uint64_t)st.st_size>=cap){close(fd);return -1;}size_t used=0;while(used<(size_t)st.st_size){ssize_t n=read(fd,data+used,(size_t)st.st_size-used);if(n<0&&errno==EINTR)continue;if(n<=0){close(fd);return -1;}used+=(size_t)n;}close(fd);data[used]=0;return 0;}
 static int category_data(char *data,unsigned *delay,char **list){char *end=strchr(data,'\n');if(!end)return -1;*end++=0;char *tail=NULL;unsigned long v=strtoul(data,&tail,10);if(!*data||*tail||v>60000)return -1;*delay=(unsigned)v;*list=end;return 0;}
 static int category_json(Buffer *b,const char *name,char *data){unsigned delay;char *list;if(category_data(data,&delay,&list)<0)return -1;buf_add(b,"{\"name\":\"%s\",\"delayMs\":%u,\"payloads\":[",name,delay);int n=0;char *save=NULL;for(char *p=strtok_r(list,",",&save);p;p=strtok_r(NULL,",",&save)){if(!is_payload(p)||++n>64)return -1;buf_add(b,"%s\"%s\"",n>1?",":"",p);}if(!n)return -1;buf_add(b,"]}");return 0;}
+static int migrate_categories(int base){
+ struct stat st;if(fstatat(base,"autoload-imported",&st,AT_SYMLINK_NOFOLLOW)==0)return 0;
+ int fd=openat(base,"autoload-categories.txt",O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(fd<0)return errno==ENOENT?0:-1;
+ if(fstat(fd,&st)<0||!S_ISREG(st.st_mode)||st.st_size<0||st.st_size>512*1024){close(fd);return -1;}size_t size=(size_t)st.st_size,at=0;char *text=malloc(size+1);if(!text){close(fd);return -1;}
+ while(at<size){ssize_t n=read(fd,text+at,size-at);if(n<=0)break;at+=(size_t)n;}close(fd);if(at!=size){free(text);return -1;}text[size]=0;
+ char *save=NULL;int result=0,count=0;for(char *line=strtok_r(text,"\n",&save);line;line=strtok_r(NULL,"\n",&save)){
+  char *first=strchr(line,'|'),*second=first?strchr(first+1,'|'):NULL;if(!first||!second||++count>64){result=-1;break;}*first++=0;*second++=0;second[strcspn(second,"\r")]=0;
+  char data[8192],copy[8192];int n=snprintf(data,sizeof(data),"%s\n%s",first,second);if(!hub_name(line)||n<=0||(size_t)n>=sizeof(data)){result=-1;break;}strcpy(copy,data);Buffer test={0};int valid=category_json(&test,line,copy);buf_free(&test);if(valid<0){result=-1;break;}
+  if(fstatat(categories,line,&st,AT_SYMLINK_NOFOLLOW)==0)continue;if(errno!=ENOENT||hub_atomic(categories,line,-1,(size_t)n,(unsigned char *)data,(size_t)n)<0){result=-1;break;}
+ }free(text);if(result==0)result=hub_atomic(base,"autoload-imported",-1,1,(unsigned char *)"1",1);return result;
+}
 static void handle(int fd,Request *r) {
     char path[8192];strcpy(path,r->target);char *q=strchr(path,'?');if(q)*q=0;
     int get=!strcmp(r->method,"GET"),post=!strcmp(r->method,"POST"),put=!strcmp(r->method,"PUT");
@@ -122,7 +141,19 @@ static void handle(int fd,Request *r) {
 #ifndef HUB_HOST_TEST
       uint32_t version=kernel_get_fw_version();if(version)snprintf(firmware,sizeof(firmware),"%x.%02x",version>>24,(version>>16)&255);
 #endif
-      buf_add(&b,"{\"version\":\"%s\",\"experimental\":true,\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"saveRead\":true,\"saveBackup\":true,\"saveUSB\":true,\"shortcuts\":false},\"manager\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0},\"jailbreak\":{\"status\":\"failed\",\"stage\":\"not supported by experimental engine\",\"code\":0}}",HUB_VERSION,firmware);
+      buf_add(&b,"{\"version\":\"%s\",\"layout\":\"PSNHUB_UNIFIED_V1\",\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"saveRead\":true,\"saveBackup\":true,\"saveUSB\":true,\"shortcuts\":true,\"artwork\":true,\"saveEngine\":true,\"unified\":true}",HUB_VERSION,firmware);
+      hub_shortcuts_status(&b);buf_add(&b,"}");
+    }else if(post&&!strcmp(path,"/api/save-engine/start")){result=start_save_engine();if(result==0)buf_add(&b,"{\"sent\":true,\"embedded\":true}");}
+    else if(post&&!strcmp(path,"/api/artwork")){
+#ifdef HUB_UNIFIED_PREVIEW
+      error_reply(fd,403,"Artwork writes are disabled in the preflight build");return;
+#else
+      char operation[40];if(query(r,"action",operation,sizeof(operation))!=1){error_reply(fd,400,"Choose an artwork action");return;}
+      if(!strcmp(operation,"background-apply")||!strcmp(operation,"background-restore"))hub_background_run(integrated_root,!strcmp(operation,"background-restore"),&b);
+      else if(!strcmp(operation,"icons"))hub_icons_run(integrated_root,&b);
+      else if(!strcmp(operation,"store-apply")||!strcmp(operation,"store-restore")||!strcmp(operation,"store-rename"))hub_store_run(integrated_root,!strcmp(operation,"store-restore"),!strcmp(operation,"store-rename"),&b);
+      else{error_reply(fd,400,"Unknown artwork action");return;}
+#endif
     }else if(get&&!strcmp(path,"/api/saves/usb"))result=hub_usb_status(&b);
     else if(post&&(!strcmp(path,"/api/saves/usb/export")||!strcmp(path,"/api/saves/usb/all")||!strcmp(path,"/api/saves/usb/config"))){
       char usb[16];if(query(r,"usb",usb,sizeof(usb))!=1){error_reply(fd,400,"Choose a USB device");return;}
@@ -188,18 +219,19 @@ static void handle(int fd,Request *r) {
     if(result<0){buf_free(&b);error_reply(fd,500,"Operation failed; check console storage, permissions or elfldr");return;}json_reply(fd,&b);
 }
 int main(int argc,char **argv) {
-    int port=8087,base;
-#ifdef HUB_SAVE_SERVICE
-    port=8088;
+    (void)integrated_root;
+    int port=8085,base;
+#ifdef HUB_UNIFIED_PREVIEW
+    port=8086;
 #endif
 #ifdef HUB_HOST_TEST
-    if(argc<3){fprintf(stderr,"usage: manager-host ABSOLUTE_TEST_ROOT PORT [LOADER_PORT]\n");return 2;}port=atoi(argv[2]);if(argc>3)loader_port=atoi(argv[3]);base=hub_open_path(argv[1],1);
+    if(argc<3){fprintf(stderr,"usage: manager-host ABSOLUTE_TEST_ROOT PORT [LOADER_PORT]\n");return 2;}port=atoi(argv[2]);if(argc>3)loader_port=atoi(argv[3]);base=hub_open_path(argv[1],1);integrated_root=argv[1];
 #else
     (void)argc;(void)argv;
-#ifdef HUB_SAVE_SERVICE
-    base=hub_open_path("/data/psn-hub-save-service",1);
+#ifdef HUB_UNIFIED_PREVIEW
+    base=hub_open_path("/data/psn-hub-unified-test",1);
 #else
-    base=hub_open_path("/data/psn-hub-native",1);
+    base=hub_open_path("/data/psn-hub",1);
 #endif
 #endif
     if(base<0){perror("Manager storage");return 1;}
@@ -216,6 +248,7 @@ int main(int argc,char **argv) {
       for(int j=0;j<3;j++){int format=hub_child(dir,formats[j],0);if(format<0){if(errno!=ENOENT)return 1;}else{int result=hub_clean_uploads(format);close(format);if(result<0)return 1;}}
       close(dir);}
     if(payloads<0||backups<0||categories<0||hub_clean_uploads(payloads)<0||hub_clean_uploads(categories)<0)return 1;
+    if(migrate_categories(base)<0)fprintf(stderr,"Legacy category import could not complete; original file preserved\n");
     signal(SIGPIPE,SIG_IGN);int server=socket(AF_INET,SOCK_STREAM,0);if(server<0)return 1;int yes=1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
     struct sockaddr_in address;memset(&address,0,sizeof(address));address.sin_family=AF_INET;address.sin_port=htons((uint16_t)port);
 #ifdef HUB_HOST_TEST
@@ -224,7 +257,8 @@ int main(int argc,char **argv) {
     address.sin_addr.s_addr=htonl(INADDR_ANY);
 #endif
     if(port<1||port>65535||bind(server,(struct sockaddr *)&address,sizeof(address))<0||listen(server,16)<0){perror("Manager listener");return 1;}
-    printf("PSN-HUB native %s listening on %d\n",HUB_VERSION,port);fflush(stdout);
+    hub_shortcuts_init();
+    printf("PSN-HUB unified %s listening on %d\n",HUB_VERSION,port);fflush(stdout);
     for(;;){hub_usb_tick();fd_set ready;FD_ZERO(&ready);FD_SET(server,&ready);struct timeval poll={1,0};int available=select(server+1,&ready,NULL,NULL,&poll);if(available<0){if(errno==EINTR)continue;break;}if(!available)continue;int client=accept(server,NULL,NULL);if(client<0){if(errno==EINTR)continue;break;}struct timeval timeout={30,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));Request request;int code=parse_request(client,&request);if(code)error_reply(client,code,"Invalid request, size, origin or mutation header");else handle(client,&request);close(client);}
     close(server);close(lock);close(base);return 1;
 }

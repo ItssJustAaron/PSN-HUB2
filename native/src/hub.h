@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
-#define HUB_VERSION "0.3.3-experimental"
+#define HUB_VERSION "0.4.0"
 #define HUB_LIMIT (64u*1024u*1024u)
 #define HUB_JSON_LIMIT (8u*1024u*1024u)
 typedef struct { char *data; size_t len, cap; int failed; } Buffer;

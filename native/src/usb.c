@@ -31,6 +31,17 @@ static time_t due(void){
 }
 void hub_usb_init(int base){
  config_root=dup(base);
+ /* Import settings once without replacing a configuration already saved here. */
+ struct stat config;if(fstatat(base,"save-usb.conf",&config,AT_SYMLINK_NOFOLLOW)<0&&errno==ENOENT){
+#ifdef HUB_HOST_TEST
+  int old=hub_child(base,"legacy-save-service",0);
+#elif !defined(HUB_UNIFIED_PREVIEW)
+  int old=hub_open_path("/data/psn-hub-save-service",0);
+#else
+  int old=-1;
+#endif
+  if(old>=0){int fd=openat(old,"save-usb.conf",O_RDONLY|O_NOFOLLOW|O_NONBLOCK);close(old);if(fd>=0){char value[128];struct stat st;if(fstat(fd,&st)==0&&S_ISREG(st.st_mode)&&st.st_size>0&&st.st_size<(off_t)sizeof(value)){ssize_t n=read(fd,value,(size_t)st.st_size);if(n==st.st_size)hub_atomic(base,"save-usb.conf",-1,(size_t)n,(unsigned char *)value,(size_t)n);}close(fd);}}
+ }
 #ifdef HUB_HOST_TEST
  mounts=hub_child(base,"usb",1);home=hub_child(base,"home",1);
 #else
