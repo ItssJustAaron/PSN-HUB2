@@ -104,6 +104,7 @@ class PatchTests(unittest.TestCase):
    self.assertEqual(db.execute("SELECT dispLocation FROM tbl_contentinfo WHERE titleId='PSNH00001'").fetchone()[0],188)
    self.assertEqual(json.loads(db.execute("SELECT value FROM tbl_info_1234 WHERE key='nsx_content_flag_PSNH00002'").fetchone()[0]),{'deleted':True,'pushed':False})
   self.run_engine('restore');self.assertEqual(self.snapshot(),self.before)
+  with sqlite3.connect(self.root/'plan.db') as db:self.assertEqual(db.execute("SELECT val FROM meta WHERE key='mediaJailbreakHidden'").fetchone()[0],'0')
  def test_media_hide_failure_rolls_back_store_choice(self):
   self.add_media()
   with sqlite3.connect(self.root/'app.db') as db:db.execute("UPDATE tbl_contentinfo SET pprDeeplinkUri='https://different.example/' WHERE titleId='PSNH00002'")

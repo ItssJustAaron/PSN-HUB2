@@ -134,4 +134,4 @@ static int restore_flags(sqlite3 *db){
         int existed=sqlite3_column_int(read,1);sql=existed?sqlite3_mprintf("UPDATE main.\"%w\" SET value=? WHERE key=?;",table):sqlite3_mprintf("DELETE FROM main.\"%w\" WHERE key=?;",table);sqlite3_stmt *write=0;if(!sql||sqlite3_prepare_v2(db,sql,-1,&write,0)!=SQLITE_OK){sqlite3_free(sql);result=-1;break;}sqlite3_free(sql);int i=1;if(existed)sqlite3_bind_value(write,i++,sqlite3_column_value(read,2));sqlite3_bind_text(write,i,NSX_KEY,-1,SQLITE_STATIC);int rc=sqlite3_step(write);sqlite3_finalize(write);if(rc!=SQLITE_DONE){result=-1;break;}
     }sqlite3_finalize(read);return result==0&&code==SQLITE_DONE?0:-1;
 }
-int hub_media_restore(sqlite3 *db){if(replay_visibility(db,1)<0)return -1;return restore_flags(db);}
+int hub_media_restore(sqlite3 *db){if(replay_visibility(db,1)<0||restore_flags(db)<0)return -1;return execute(db,"UPDATE plan.meta SET val='0' WHERE key='mediaJailbreakHidden';");}
