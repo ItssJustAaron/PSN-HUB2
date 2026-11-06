@@ -1,0 +1,68 @@
+# Reversible Store shortcut test
+
+The apply ELF targets only title **NPXS40047** and concept
+`cid:local:NPXS40047`. It does not install automatically, change the jailbreak
+exploit, replace whole live databases, modify app category/location/DRM fields,
+restart SceShellUI or reboot the console.
+
+## Review and plan
+
+Generate the new PNG with `python tools/build-shortcut-icon.py`. It is a new,
+code-native PSN-HUB logo using the Manager's purple/green leaf artwork.
+
+Keep inspection copies and the plan private. They contain console metadata and
+local profile table identifiers. They belong under ignored `native/build/`, not
+in the public repository. FTP inspection copies are not recovery backups.
+
+`tools/prepare-store-plan.py` reads local inspection copies without editing them.
+It handles both flat AppInfoJson and legacy ConceptInfoJson field_list records,
+records each old/new cell and preserves unrelated metadata, including display
+locations, concept bitmasks, categories, title IDs, launch-handler URIs and DRM.
+
+The supported operation changes Store titles to PSN-HUB, deeplink URLs to
+`https://itssjustaaron.github.io/PSN-HUB2/`, and icon references to a separately
+staged `/user/appmeta/NPXS40047/psn-hub-icon.png?psnhub=1`. The existing icon file
+is not overwritten.
+
+## Apply
+
+Stage the reviewed PNG and private plan as:
+
+- `/user/appmeta/NPXS40047/psn-hub-icon.png`
+- `/data/psn-hub-store-test/plan.db`
+
+Applying also requires a file named `approve-<SHA256-of-plan.db>.txt` under the
+test directory. Its exact content is `APPLY NPXS40047`, a newline, the jailbreak
+URL above, and another newline. This binds approval to one concrete plan.
+
+After explicit approval, send PSN-HUB-Store-Apply.elf through elfldr. The payload:
+
+1. Checks the approval, plan, target, journal mode, JSON change scope and icon.
+2. Creates new SQLite Backup API snapshots of both live databases while holding
+   read transactions. It checks the snapshots and syncs their files/directories.
+3. Opens one IMMEDIATE transaction spanning app.db, appinfo.db and plan.db, using
+   DELETE journals and FULL synchronous mode. WAL or unsupported modes are refused.
+4. Checks every current cell still matches its reviewed old value before writing.
+5. Updates only guarded target cells, checks integrity, and commits plan state
+   together with both system databases.
+
+The result is written to `/data/psn-hub-store-test/result.json`. The plan records
+its native backup directory. An error must be inspected before retrying; do not
+assume a failed or interrupted network send means the native payload did nothing.
+
+## Restore
+
+Sending PSN-HUB-Store-Restore.elf restores the exact old cells from the committed
+plan in another coordinated transaction. It preserves unrelated apps and later
+unrelated database changes. Restore refuses if any patched cell has since drifted.
+It does not blindly upload old complete database copies over the live databases.
+
+Backups and the plan are retained. The new icon may remain as an unreferenced
+file after restoration; the old icon reference is restored.
+
+## Hardware test
+
+Reboot/refresh the shell manually after a successful result. Check the tile's
+name and artwork, its website destination, and persistence after reboot. The
+existing Store shell may override database shortcut fields; successful database
+updates alone do not establish that the tile opens the intended browser URL.
