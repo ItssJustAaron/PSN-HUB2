@@ -46,12 +46,15 @@ jobs:
           make -C native
           file native/build/PSN-HUB-Manager-native.elf
           sha256sum native/build/PSN-HUB-Manager-native.elf > native/build/PSN-HUB-Manager-native.elf.sha256
+          sha256sum native/build/PSN-HUB-Save-Service.elf > native/build/PSN-HUB-Save-Service.elf.sha256
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: experimental-native-manager
           path: |
             native/build/PSN-HUB-Manager-native.elf
             native/build/PSN-HUB-Manager-native.elf.sha256
+            native/build/PSN-HUB-Save-Service.elf
+            native/build/PSN-HUB-Save-Service.elf.sha256
             native/README.md
             native/SAVES.md
             native/COPYING

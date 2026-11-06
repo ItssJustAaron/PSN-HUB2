@@ -6,8 +6,10 @@ endif
 CFLAGS := -std=c11 -O2 -Wall -Wextra -Werror -Wno-misleading-indentation -Ibuild
 SOURCES := src/server.c src/storage.c src/sha256.c src/saves.c src/usb.c src/posix.c
 .PHONY: all clean
-all: build/PSN-HUB-Manager-native.elf
+all: build/PSN-HUB-Manager-native.elf build/PSN-HUB-Save-Service.elf
 build/PSN-HUB-Manager-native.elf: $(SOURCES) src/hub.h build/dashboard.h
 	$(CC) $(CFLAGS) -o $@ $(SOURCES)
+build/PSN-HUB-Save-Service.elf: $(SOURCES) src/hub.h build/dashboard.h
+	$(CC) $(CFLAGS) -DHUB_SAVE_SERVICE -o $@ $(SOURCES)
 clean:
 	rm -f build/PSN-HUB-Manager-native.elf build/manager-host build/dashboard.h

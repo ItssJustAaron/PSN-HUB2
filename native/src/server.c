@@ -189,10 +189,18 @@ static void handle(int fd,Request *r) {
 }
 int main(int argc,char **argv) {
     int port=8087,base;
+#ifdef HUB_SAVE_SERVICE
+    port=8088;
+#endif
 #ifdef HUB_HOST_TEST
     if(argc<3){fprintf(stderr,"usage: manager-host ABSOLUTE_TEST_ROOT PORT [LOADER_PORT]\n");return 2;}port=atoi(argv[2]);if(argc>3)loader_port=atoi(argv[3]);base=hub_open_path(argv[1],1);
 #else
-    (void)argc;(void)argv;base=hub_open_path("/data/psn-hub-native",1);
+    (void)argc;(void)argv;
+#ifdef HUB_SAVE_SERVICE
+    base=hub_open_path("/data/psn-hub-save-service",1);
+#else
+    base=hub_open_path("/data/psn-hub-native",1);
+#endif
 #endif
     if(base<0){perror("Manager storage");return 1;}
     int lock=openat(base,"lock",O_CREAT|O_RDWR|O_NOFOLLOW,0600);if(lock<0||flock(lock,LOCK_EX|LOCK_NB)<0){fprintf(stderr,"Manager already running or lock unavailable\n");return 1;}
