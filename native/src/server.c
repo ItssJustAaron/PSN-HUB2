@@ -32,6 +32,13 @@ static int parents[2],payloads,backups,categories;
 static const char *destinations[]={"etahen","onionhen"};
 static int loader_port=9021;
 static const char *integrated_root="/data/psn-hub";
+static void preflight_trace(const char *text){
+#if defined(HUB_UNIFIED_PREVIEW) && !defined(HUB_HOST_TEST)
+ int fd=open("/data/psn-hub-unified-preflight.log",O_WRONLY|O_CREAT|O_APPEND,0600);if(fd>=0){hub_write(fd,text,strlen(text));hub_write(fd,"\n",1);close(fd);}
+#else
+ (void)text;
+#endif
+}
 typedef struct { char header[HEADER_LIMIT+1],method[8],target[8192],host[256],origin[320];size_t length,first;unsigned char *body;int marker,cross_site; } Request;
 static void reply(int client,int code,const char *type,const void *data,size_t size) {
     char head[512];int n=snprintf(head,sizeof(head),"HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %zu\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n",code,code==200?"OK":"Error",type,size);
@@ -219,6 +226,7 @@ static void handle(int fd,Request *r) {
     if(result<0){buf_free(&b);error_reply(fd,500,"Operation failed; check console storage, permissions or elfldr");return;}json_reply(fd,&b);
 }
 int main(int argc,char **argv) {
+    preflight_trace("entered main");
     (void)integrated_root;
     int port=8085,base;
 #ifdef HUB_UNIFIED_PREVIEW
@@ -234,9 +242,10 @@ int main(int argc,char **argv) {
     base=hub_open_path("/data/psn-hub",1);
 #endif
 #endif
-    if(base<0){perror("Manager storage");return 1;}
+    if(base<0){preflight_trace("storage failed");perror("Manager storage");return 1;}
+    preflight_trace("storage open");
     int lock=openat(base,"lock",O_CREAT|O_RDWR|O_NOFOLLOW,0600);if(lock<0||flock(lock,LOCK_EX|LOCK_NB)<0){fprintf(stderr,"Manager already running or lock unavailable\n");return 1;}
-    hub_saves_init(base);hub_usb_init(base);
+    hub_saves_init(base);hub_usb_init(base);preflight_trace("saves initialized");
     payloads=hub_child(base,"payloads",1);backups=hub_child(base,"backups",1);categories=hub_child(base,"categories",1);
 #ifdef HUB_HOST_TEST
     parents[0]=hub_child(base,"etaHEN",1);parents[1]=hub_child(base,"OnionHEN",1);
@@ -247,7 +256,7 @@ int main(int argc,char **argv) {
       const char *formats[]={"json","mc4","shn"};
       for(int j=0;j<3;j++){int format=hub_child(dir,formats[j],0);if(format<0){if(errno!=ENOENT)return 1;}else{int result=hub_clean_uploads(format);close(format);if(result<0)return 1;}}
       close(dir);}
-    if(payloads<0||backups<0||categories<0||hub_clean_uploads(payloads)<0||hub_clean_uploads(categories)<0)return 1;
+    if(payloads<0||backups<0||categories<0||hub_clean_uploads(payloads)<0||hub_clean_uploads(categories)<0){preflight_trace("directory initialization failed");return 1;}
     if(migrate_categories(base)<0)fprintf(stderr,"Legacy category import could not complete; original file preserved\n");
     signal(SIGPIPE,SIG_IGN);int server=socket(AF_INET,SOCK_STREAM,0);if(server<0)return 1;int yes=1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
     struct sockaddr_in address;memset(&address,0,sizeof(address));address.sin_family=AF_INET;address.sin_port=htons((uint16_t)port);
@@ -256,7 +265,8 @@ int main(int argc,char **argv) {
 #else
     address.sin_addr.s_addr=htonl(INADDR_ANY);
 #endif
-    if(port<1||port>65535||bind(server,(struct sockaddr *)&address,sizeof(address))<0||listen(server,16)<0){perror("Manager listener");return 1;}
+    if(port<1||port>65535||bind(server,(struct sockaddr *)&address,sizeof(address))<0||listen(server,16)<0){preflight_trace("listener failed");perror("Manager listener");return 1;}
+    preflight_trace("listener ready");
     hub_shortcuts_init();
     printf("PSN-HUB unified %s listening on %d\n",HUB_VERSION,port);fflush(stdout);
     for(;;){hub_usb_tick();fd_set ready;FD_ZERO(&ready);FD_SET(server,&ready);struct timeval poll={1,0};int available=select(server+1,&ready,NULL,NULL,&poll);if(available<0){if(errno==EINTR)continue;break;}if(!available)continue;int client=accept(server,NULL,NULL);if(client<0){if(errno==EINTR)continue;break;}struct timeval timeout={30,0};setsockopt(client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));Request request;int code=parse_request(client,&request);if(code)error_reply(client,code,"Invalid request, size, origin or mutation header");else handle(client,&request);close(client);}
