@@ -63,9 +63,14 @@ jobs:
           path: |
             native/build/PSN-HUB-Manager.elf
             native/build/PSN-HUB-Manager.elf.sha256
-            native/build/PSN-HUB-Manager-preflight.elf
-            native/build/PSN-HUB-Manager-preflight.elf.sha256
             native/README.md
             native/SAVES.md
             native/COPYING
           retention-days: 30
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: development-preflight
+          path: |
+            native/build/PSN-HUB-Manager-preflight.elf
+            native/build/PSN-HUB-Manager-preflight.elf.sha256
+          retention-days: 7

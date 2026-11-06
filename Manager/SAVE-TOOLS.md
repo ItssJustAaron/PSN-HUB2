@@ -1,13 +1,13 @@
 # Advanced save tools
 
-Open **Saves (WIP) → Open advanced save tools** in PSN-HUB Manager.
-Choose **Start save engine** and approve the usual payload send review, then
+Open **Saves → Advanced save tools (WIP) → Open advanced save tools** in PSN-HUB Manager.
+Choose **Start save engine** to launch the embedded engine internally, then
 **Check engine** when it has started. The UI uses the same PS5 hostname on port
 8082. No configurable third-party processing server or cloud account is used.
 
 The save engine is **Garlic SaveMgr by earthonion**, pinned to commit
 [`08c24b5f98bf410f0addeec210857cfa07b73f63`](https://github.com/earthonion/garlic-savemgr/commit/08c24b5f98bf410f0addeec210857cfa07b73f63).
-It is a separate ELF, not PSN-HUB's own implementation of save cryptography.
+It is embedded unchanged inside PSN-HUB-Manager.elf, rather than downloaded separately. It is not PSN-HUB's own implementation of save cryptography.
 PSN-HUB provides the interface, input validation, snapshot integration and import
 review. The native save engine and its original UI are not rebranded.
 
@@ -33,10 +33,10 @@ Missing metadata is rejected; the integration never uses force-import.
 
 ## Import review and backups
 
-Imports require the experimental PSN-HUB Manager on **8087**, with raw save
+Imports require the unified PSN-HUB Manager on **8085**, with raw save
 listing and snapshot capabilities. On the stable Manager on **8085**, decrypt,
 encrypt and resign are available through the companion engine; imports explain
-the experimental Manager requirement before staging files.
+the required Manager capabilities before staging files.
 
 The engine stages uploaded data in its working area. PSN-HUB checks the platform,
 title and directory, then asks its native backend to snapshot an existing title
@@ -77,7 +77,7 @@ UI; PSN-HUB does not enable or change them.
 
 ## Build provenance and dependencies
 
-- Bundled ELF: `payloads/garlic-savemgr_08c24b5.elf`.
+- Embedded build input: `native/vendor/garlic-savemgr_08c24b5.elf.gz`.
 - Upstream [successful build](https://github.com/earthonion/garlic-savemgr/actions/runs/42223889282).
 - Artifact ZIP SHA-256: `98dfd589bd61096da0dcd5e2351414ae019af25f18141827e5d26b77e88cd95e`.
 - ELF SHA-256: `4fe4bada2e11075a3dcece3230d0184e5d81865c38668898254c5ae6d0a3fdeb`.

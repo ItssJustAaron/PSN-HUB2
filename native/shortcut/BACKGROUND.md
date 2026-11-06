@@ -1,3 +1,5 @@
+> Current Manager 0.4.0 runs these operations directly through **My library → Home-screen artwork**. No separate artwork ELF is required. The standalone commands and helper artifact references below document legacy/development builds; the same guarded implementation is linked into the current Manager.
+
 # PSN-HUB JAILBREAK tile background
 
 The reviewed weed-themed artwork is

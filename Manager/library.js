@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.06.7';
+  const UI_RELEASE = '2026.11.06.8';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -448,8 +448,8 @@
     const notes=element('details',undefined,'release-notes');notes.id='release-notes';notes.open=storeRead('release-seen','')!==UI_RELEASE;
     notes.append(element('summary','What’s new · '+UI_RELEASE));
     const list=element('ul');
-    for(const text of ['Save tools now connect to the bundled local Garlic engine for decrypt, encrypt, resign and reviewed import/restore.','Homepage now starts Manager automatically after the jailbreak. Other payloads are in Manager’s Payload library.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
-    notes.append(list,element('p','The stable Manager still uses its existing native storage API. Experimental native builds are separate.','hint'),action('Mark as read',()=>{storeWrite('release-seen',UI_RELEASE);notes.open=false;},'secondary'));panel.append(notes);
+    for(const text of ['One PSN-HUB-Manager.elf now includes saves, USB backups, artwork controls and the pinned save engine.','Current console saves and raw downloads are available directly in the Saves tab.','User-uploaded payloads appear in two columns.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
+    notes.append(list,element('p','The main Manager now provides these features directly. Advanced save transforms/imports remain WIP.','hint'),action('Mark as read',()=>{storeWrite('release-seen',UI_RELEASE);notes.open=false;},'secondary'));panel.append(notes);
     $('connection-help').after(panel);
   }
   function maintenanceControls() {
@@ -792,25 +792,20 @@
   payloadLibrary.hidden=true;
   const payloadCards=element('div');payloadCards.id='payload-library';payloadLibrary.append(payloadCards);$('panel-payloads').prepend(payloadLibrary);
   let saveControls=null;
-  function consoleSaveURL() {
-    const host=location.hostname.replace(/^\[|\]$/g,'');
-    return 'http://'+(host.includes(':')?'['+host+']':host)+':8088/#console-saves';
-  }
   async function openConsoleSaves() {
     if(!saveControls||!state.manager||state.preview)return;
     if(supports('saveRead'))return saveTask(refreshSaves);
-    if(!saveControls.frame.src)saveControls.frame.src=consoleSaveURL();
+    saveControls.status.textContent='Load the latest PSN-HUB-Manager.elf to enable integrated console saves.';
   }
   function updateSaveControls() {
     if(!saveControls)return;
     const available=state.manager&&!state.preview&&supports('saveRead');
     saveControls.refresh.disabled=!available||saveControls.busy;
     saveControls.refresh.hidden=!available;
-    saveControls.bridge.hidden=available||!state.manager||state.preview;
     saveControls.usb.hidden=!available;
-    saveControls.usbStatus.textContent=supports('saveUSB')?'Choose a connected USB drive. Automatic backup runs on the PS5 while this save service is running.':'USB backups require save service 0.3.3. Start the updated service from the main Manager Saves tab.';
+    saveControls.usbStatus.textContent=supports('saveUSB')?'Choose a connected USB drive. Automatic backup runs on the PS5 while Manager is running.':'Load the latest Manager ELF to enable USB backups.';
     saveControls.usbButtons.forEach(button=>button.disabled=!available||!supports('saveUSB'));
-    saveControls.status.textContent=available?'Your console game saves. Close games before downloading or backing up.':'Your console saves open below through the local save service. If it is not running, use Start save service, then Reload save browser.';
+    saveControls.status.textContent=available?'Your console game saves. Close games before downloading or backing up.':'Load the latest PSN-HUB-Manager.elf to enable integrated console saves.';
     if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();}
     if(state.manager&&!state.preview&&$('tab-save-manager').getAttribute('aria-selected')==='true'&&!saveControls.autoLoaded){saveControls.autoLoaded=true;openConsoleSaves();}
   }
@@ -859,38 +854,37 @@
       const canImport=()=>state.manager&&!state.preview&&supports('saveRead')&&supports('saveBackup');
       window.PSNSaveTools.mount({container,element,action,fflate:window.fflate,fetch:(...args)=>fetch(...args),hostname:location.hostname,
         canStart:()=>state.manager&&!state.preview&&!!state.catalog&&!(state.transfer&&state.transfer.running),canImport,
-        startEngine:async name=>{const item=state.catalog&&state.catalog.payloads.find(item=>item.name===name);if(!item)throw Error('Refresh the library to load the current save engine.');await startTransfer([item],'Start local save engine');},
-        backup:async selection=>{if(!canImport())throw Error('Open the experimental Manager on port 8087 for backed-up imports.');const list=await nativeJSON('/api/saves');if(!list.items.some(item=>item.user===selection.user&&item.platform===selection.platform&&item.title===selection.title))return {newTitle:true};const query='user='+encodeURIComponent(selection.user)+'&platform='+selection.platform+'&title='+selection.title;return nativeJSON('/api/saves/backup?'+query,true);},
+        startEngine:async()=>{if(!supports('saveEngine'))throw Error('Load the latest unified Manager ELF to start the built-in save engine.');await nativeJSON('/api/save-engine/start',true);},
+        backup:async selection=>{if(!canImport())throw Error('Load the latest Manager ELF for backed-up imports.');const list=await nativeJSON('/api/saves');if(!list.items.some(item=>item.user===selection.user&&item.platform===selection.platform&&item.title===selection.title))return {newTitle:true};const query='user='+encodeURIComponent(selection.user)+'&platform='+selection.platform+'&title='+selection.title;return nativeJSON('/api/saves/backup?'+query,true);},
         snapshotSource:{list:()=>nativeJSON('/api/saves/backups'),files:id=>nativeJSON('/api/saves/files?id='+encodeURIComponent(id)),download:(id,name)=>response('/api/saves/download?id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name),{cache:'no-store'},300000)}
       });button.hidden=true;
     }catch(error){button.disabled=false;button.textContent='Retry loading save tools';container.textContent=error.message;}
   }
   const BACKGROUND_HASH='43ae997fe0b0ff3dca9d50d489baa9f948caa9069815c0c443700369c1e24d85';
   function backgroundControls() {
-    const card=element('section',undefined,'card'),status=element('p','Apply the matching artwork after installing the PSN-HUB Store shortcut.','hint');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-    card.append(element('h2','Jailbreak tile background'));
-    const details=element('details');details.append(element('summary','Preview background'));const img=element('img');img.src=repositoryBase+'Manager/assets/jailbreak-background.png?v='+BACKGROUND_HASH.slice(0,12);img.alt='PSN-HUB mascot with floating green weed leaves on a dark purple background';img.loading='lazy';img.className='console-background-preview';details.append(img);card.append(details);
+    const card=element('section',undefined,'card'),status=element('p','Artwork and reviewed Store shortcut operations are built into Manager.','hint');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    card.append(element('h2','Home-screen artwork'));
+    const details=element('details');details.append(element('summary','Preview jailbreak background'));const img=element('img');img.src=repositoryBase+'Manager/assets/jailbreak-background.png?v='+BACKGROUND_HASH.slice(0,12);img.alt='PSN-HUB mascot with floating green weed leaves on a dark purple background';img.loading='lazy';img.className='console-background-preview';details.append(img);card.append(details);
     const buttons=[];
-    async function run(name,operation,label){
-      if(state.preview||!state.manager){status.textContent='Open Manager on the PS5 to apply or restore its background.';return;}
-      const item=state.catalog&&state.catalog.payloads.find(item=>item.name===name);if(!item){status.textContent='Refresh the library to load the background payloads.';return;}
-      buttons.forEach(button=>button.disabled=true);const previous=state.transfer;
-      try{await startTransfer([item],label);const task=state.transfer;if(task===previous||!task||task.running||task.cancelled||task.failures.length||!task.completed.some(done=>done.path===item.path)){status.textContent='Background operation was not sent. Check the transfer report.';return;}
-        status.textContent='Payload sent. Waiting for the console result…';const host=(location.hostname||location.host.split(':')[0]).replace(/^\[|\]$/g,'');const url='http://'+(host.includes(':')?'['+host+']':host)+':8093/api/status';let result;
-        for(let attempt=0;attempt<10;attempt++){try{result=JSON.parse(await (await response(url,{cache:'no-store'},2000)).text());break;}catch(error){if(attempt===9)throw Error('Payload sent, but its result was not confirmed. Check the console before sending again.');await new Promise(resolve=>setTimeout(resolve,500));}}
-        if(!result||result.sha256!==BACKGROUND_HASH||result.operation!==operation)throw Error('Unexpected background updater result. Check the console before retrying.');
-        status.textContent=result.message;if(!result.success)throw Error('Background update refused: '+result.message);
-      }catch(error){status.textContent=error.message;}finally{buttons.forEach(button=>button.disabled=false);}
+    async function run(operation,label){
+      if(state.preview||!state.manager){status.textContent='Open Manager on the PS5 to update its artwork.';return;}
+      if(!supports('artwork')){status.textContent='Load the latest unified Manager ELF for built-in artwork controls.';return;}
+      if(typeof window.confirm==='function'&&!window.confirm(label+'? The existing backup and metadata checks will run first.'))return;
+      buttons.forEach(button=>button.disabled=true);
+      try{status.textContent='Applying console operation…';const result=await saveJSON('/api/artwork?action='+encodeURIComponent(operation),true);if(!result.success)throw Error(result.message||'The console declined this operation.');status.textContent=result.message;}
+      catch(error){status.textContent=error.message;}finally{buttons.forEach(button=>button.disabled=false);}
     }
-    const apply=action('Apply jailbreak background',()=>run('PSN-HUB-Store-Background.elf','apply-background','Apply jailbreak background'));
-    const restore=action('Restore previous background',()=>run('PSN-HUB-Store-Background-Restore.elf','restore-background','Restore previous background'),'secondary');buttons.push(apply,restore);card.append(apply,restore,status);$('panel-my-library').append(card);
+    for(const [operation,label] of [['background-apply','Apply jailbreak background'],['background-restore','Restore previous background'],['icons','Update HD icons']]){const button=action(label,()=>run(operation,label),'secondary');buttons.push(button);card.append(button);}
+    const store=element('details');store.append(element('summary','Reviewed Store shortcut plan'),element('p','These actions require the matching console-specific Store plan and its recovery backups.','hint'));
+    for(const [operation,label] of [['store-apply','Apply reviewed Store plan'],['store-restore','Restore original Store'],['store-rename','Name shortcut PSN-HUB JAILBREAK']]){const button=action(label,()=>run(operation,label),'secondary');buttons.push(button);store.append(button);}
+    card.append(store,status);$('panel-my-library').append(card);
   }
   function saveManagerControls() {
     if(typeof managerTabs==='undefined'||typeof selectTab!=='function')return;
-    const tab=element('button','SAVES (WIP)','tab');tab.id='tab-save-manager';tab.type='button';tab.tabIndex=-1;
+    const tab=element('button','SAVES','tab');tab.id='tab-save-manager';tab.type='button';tab.tabIndex=-1;
     tab.setAttribute('role','tab');tab.setAttribute('aria-selected','false');tab.setAttribute('aria-controls','panel-save-manager');
     const panel=element('div',undefined,'tab-panel');panel.id='panel-save-manager';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);
-    const card=element('section',undefined,'card');card.append(element('h2','Save Manager (WIP)'),element('p','Advanced save tools are experimental. Keep independent, verified backups.','hint'),element('p','Close games before backup or import. Keep independent backups. Advanced tools use the bundled Garlic SaveMgr engine on this console.','hint'));
+    const card=element('section',undefined,'card');card.append(element('h2','Console saves'),element('p','Close games before backing up their latest saves. Advanced save tools remain experimental.','hint'));
     const tools=element('div');tools.id='save-advanced-tools';const openTools=action('Open advanced save tools',()=>loadSaveTools(tools,openTools),'secondary');const advanced=element('details');advanced.append(element('summary','Advanced save tools (WIP)'),openTools,tools);
     const credit=element('p','Save processing engine by earthonion: ','hint');
     for(const [title,repo] of [['Garlic SaveMgr','garlic-savemgr'],['Garlic Worker','garlic-worker']]){const link=element('a',title+' ');link.href='https://github.com/earthonion/'+repo;credit.append(link);}
@@ -902,12 +896,7 @@
     const allUSB=action('Back up all changed saves to USB',()=>saveTask(async()=>{if(!usbSelect.value)throw Error('Connect a USB drive first.');saveControls.status.textContent='Backing up changed saves to USB. Keep games closed…';const result=await saveJSON('/api/saves/usb/all?usb='+encodeURIComponent(usbSelect.value),true);await refreshSaveUSB();saveControls.status.textContent=result.exported+' save folders copied to USB; '+result.unchanged+' unchanged.';}),'secondary');
     const configUSB=action('Save automatic backup settings',()=>saveTask(async()=>{const id=usbSelect.value||'usb0';await saveJSON('/api/saves/usb/config?usb='+encodeURIComponent(id)+'&enabled='+(auto.checked?'1':'0')+'&minutes='+encodeURIComponent(minutes.value),true);await refreshSaveUSB();saveControls.status.textContent='USB automatic backup settings saved on this console.';}),'secondary');
     usb.append(element('h3','USB save backups'),usbStatus,usbSelect,refreshUSB,allUSB,autoLabel,minutes,configUSB);
-    const bridge=element('section'),frame=element('iframe');frame.title='Console game saves';frame.className='console-save-browser';
-    const direct=element('a','Open save browser in a full page');direct.href=typeof location!=='undefined'?consoleSaveURL():'#';direct.target='_blank';direct.rel='noopener';
-    const reload=action('Reload save browser',()=>{if(state.manager&&!state.preview)frame.src=consoleSaveURL();},'secondary');
-    const start=action('Start save service',async()=>{const item=state.catalog&&state.catalog.payloads.find(item=>item.name==='PSN-HUB-Save-Service.elf');if(!item){status.textContent='Refresh the library to load the save service.';return;}if(!state.manager||state.preview)return;await startTransfer([item],'Start console save service');status.textContent='If the service started successfully, select Reload save browser.';},'secondary');
-    bridge.append(element('p','The save browser runs locally on your PS5. Start the service after a reboot if the browser below cannot connect.','hint'),start,reload,direct,frame);
-    saveControls={status,list,files,refresh,bridge,frame,usb,usbStatus,usbSelect,auto,minutes,usbButtons:[refreshUSB,allUSB,configUSB],busy:false,autoLoaded:false};card.append(status,bridge,refresh,usb,list,files,advanced,credit);panel.append(card);managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);updateSaveControls();
+    saveControls={status,list,files,refresh,usb,usbStatus,usbSelect,auto,minutes,usbButtons:[refreshUSB,allUSB,configUSB],busy:false,autoLoaded:false};card.append(status,refresh,usb,list,files,advanced,credit);panel.append(card);managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);updateSaveControls();
     tab.addEventListener('click',async()=>{selectTab(tab);await openConsoleSaves();});tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(tab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
   }
   saveManagerControls(); backgroundControls(); restoreBrowsing(); releaseControls();

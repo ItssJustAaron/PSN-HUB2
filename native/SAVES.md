@@ -1,81 +1,53 @@
-# Save Manager — experimental
+# Console saves in unified Manager 0.4.0
 
-Native version `0.3.3-experimental` runs on port **8087**. The jailbreak continues
-to start the stable Manager on **8085**. Its original native engine has no save
-API. Raw browsing/snapshots and backed-up imports require port 8087; advanced
-transforms use the separately launched Garlic engine on port 8082. The dashboard
-gates operations by the appropriate backend.
+Use the normal **Saves** tab on port **8085**. The one current
+**PSN-HUB-Manager.elf** includes console save discovery, raw downloads, snapshots,
+USB exports and optional automatic USB backups. No separate save-service startup
+is required. Reboot once and jailbreak with the updated ELF to clear older helpers.
 
-## Installation and use
+## Downloads and snapshots
 
-Download `PSN-HUB-Manager-native.elf` from the successful **Build experimental
-native Manager** Actions run. Unzip its artifact and send that ELF using the
-stable Manager's payload upload/send controls. Open `http://<PS5-IP>:8087`.
-Use **SAVES (WIP)** and **Refresh saves and snapshots**. Firmware/HEN
-permissions may prevent access; hardware validation is pending.
+Current PS4/PS5 save folders are read under the fixed `/user/home/<user>/savedata`
+and `savedata_prospero` roots. Select **View saves / download** for file links.
+Keep PS4 companion `.bin` keys with their images. Files remain encrypted; raw
+copies do not include save-database metadata and are not verified portable restore
+packages. Advanced transformations/imports use the built-in pinned Garlic engine
+and remain WIP; see [the advanced guide](../Manager/SAVE-TOOLS.md).
 
-Close all games first. Choose a title to browse its raw files or create a manual
-snapshot. Snapshots are stored under `/data/psn-hub-native/save-backups/`; their
-IDs include user, platform and title. Refresh to list newly created snapshots.
-Download every listed file, including PS4 companion `.bin` keys, and retain the
-snapshot ID to identify its source. Files remain encrypted in their native form.
-These are raw copies, **not a verified restorable export package**. Save database
-metadata is not included. Keep independent, verified backups.
+Manual snapshots use `/data/psn-hub/save-backups`. Earlier snapshots in the old
+native/save-service directories remain readable. Source files are opened read-only
+without following symlinks. Titles are limited to 4 GiB total and 4,096 regular
+files; nested directories and unsupported names fail instead of omitting data.
+Copies are SHA-256 verified and directory metadata is checked before publishing
+an atomic completed snapshot. Close games: this cannot freeze a running game's writes.
 
-## Implemented API
+## USB backups
 
-| Route | Behavior |
-| --- | --- |
-| `GET /api/saves` | Discover title folders under fixed `/user/home/<8-hex-user>/savedata_prospero` (PS5) and `savedata` (PS4) roots |
-| `GET /api/saves/files?user=…&platform=ps5&title=PPSA00001` | List all raw regular files in a title |
-| `GET /api/saves/download?user=…&platform=…&title=…&name=…` | Stream one raw file |
-| `POST /api/saves/backup?user=…&platform=…&title=…` | Create a manual title snapshot; requires `X-PSNHUB-Request: 1` and same-origin checks |
-| `GET /api/saves/backups` | List completed snapshots |
-| `GET /api/saves/files?id=…` | List snapshot files |
-| `GET /api/saves/download?id=…&name=…` | Download one snapshot file |
+Choose a connected USB volume and use **Back up save to USB** or
+**Back up all changed saves to USB**. Destinations are existing mounted USB0–USB7
+volumes, under `/PSN-HUB/Saves/<user>/<platform>/<title>/<snapshot>`.
+Unchanged titles are skipped based on their recorded file inventory. Originals
+are preserved; completed snapshots are not automatically deleted.
 
-Status capabilities `saveRead` and `saveBackup` gate the dashboard controls.
-Source files are opened read-only, descriptor-relative, without following
-symlinks. Each title is limited to 4 GiB total and 4,096 files. Unsupported
-filenames, nested directories, symlinks and special files fail the operation
-rather than silently omitting data. Per-file copies are SHA-256 compared against
-their source; directory metadata is checked again before publishing the snapshot
-with an atomic rename. Failed copies do not appear in the completed snapshot list.
-This cannot provide an atomic view of a running game's writes: keep games closed.
-Power loss can leave a hidden staging directory; completed snapshots are retained.
-The single-threaded server can be busy while copying large titles.
+Automatic backup is off by default. Its selected volume and 15–1440 minute
+interval are saved on the console and run while Manager is active. Prior USB
+settings are imported once without replacing a configuration already saved in
+the main Manager. Disconnected/full drives produce a reported failure; Manager
+does not create a fake USB mount or silently redirect backups to internal storage.
 
-## Verification and remaining work
+## API
 
-Host integration tests exercise PS4 and PS5 discovery, companion keys, exact
-downloads, snapshot retention after source changes, traversal and symlink
-rejection, unsupported layouts, mutation protection and unavailable restore.
-GitHub Actions runs them with address/undefined-behavior sanitizers and builds
-the PS5 ELF with the pinned SDK. Console permissions and real save layouts still
-need on-console testing. No PS5 saves were modified to develop this feature.
+- `GET /api/saves`, `/api/saves/files`, `/api/saves/download`, `/api/saves/backups`.
+- `POST /api/saves/backup` for a verified internal snapshot.
+- `GET /api/saves/usb` for devices and automatic-backup status.
+- `POST /api/saves/usb/export`, `/api/saves/usb/all`, `/api/saves/usb/config`.
+- `POST /api/save-engine/start` starts the embedded Garlic engine internally.
 
-The dashboard now integrates the separately launched Garlic SaveMgr engine for
-decrypt, encrypt, resign and reviewed import/restore. See
-[the advanced tools guide](../Manager/SAVE-TOOLS.md) for inputs, limits and backup
-behavior. PSN-HUB does not implement PFS cryptography in this native server.
-Raw access was confirmed working by the user; advanced on-console validation is
-still pending. Automatic backups and unattended bulk restores remain unavailable.
+Mutations require the request marker and origin checks. All save access remains
+on the console's local network; no remote save-processing service is configured.
+The single-threaded server can be busy while copying a large title.
 
-Research: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) and
-[Garlic Worker](https://github.com/earthonion/garlic-worker), by earthonion.
-The fixed save-directory layouts were checked against Garlic SaveMgr commit
-`08c24b5f98bf410f0addeec210857cfa07b73f63`. This implementation is original
-PSN-HUB code. The advanced tools separately bundle an unmodified Garlic SaveMgr
-ELF; see the provenance guide linked above. No Garlic Worker code or binary is
-bundled. The native project is
-distributed under its existing GPL-3.0-or-later license.
-
-## Console save browser and USB backups
-
-The stable Manager Saves tab embeds the dedicated local save service on port 8088 and automatically lists console PS4/PS5 save folders. The service can be started from that tab. Download links return raw encrypted files; keep PS4 companion keys.
-
-Version 0.3.3 adds per-game USB export, backup of all changed saves, and optional automatic backups every 15–1440 minutes. Automatic backup is disabled by default and its settings persist on the console. It runs only while this service is active; it does not run while the PS5 is powered off. Close games to ensure their latest save data has been flushed to disk.
-
-Destinations are existing mounted USB0–USB7 volumes only, under /PSN-HUB/Saves/<user>/<platform>/<title>/<snapshot>. Original saves are never overwritten or deleted. Each copy is verified before it becomes a completed snapshot; unchanged saves are skipped based on their recorded file inventory. No automatic retention deletion is performed.
-
-The dedicated PSN-HUB-Save-Service.elf runs on port 8088 with private settings under /data/psn-hub-save-service. It can run alongside the older experimental service on 8087. USB writes still need hardware validation with a connected drive.
+Host tests cover discovery, downloads, retained snapshots, USB exports, unchanged
+skipping, timer/configuration persistence, migration, path protection and self-update
+handoff. Read-only discovery of 13 save folders and a real download passed on PS5.
+Physical USB writes and advanced transforms/imports still require hardware validation.

@@ -45,6 +45,9 @@ def main():
     (ROOT/'Manager/assets/home-icon.png').write_bytes(asset)
     elf = ROOT/'payloads/PSN-HUB-Manager.elf'
     before = elf.read_bytes()
+    if b'PSNHUB_UNIFIED_V1' in before:
+        print('Artwork exports ready. Rebuild the source-built native Manager to embed them.')
+        return
     assert len(before) == 508784 and before[:4] == b'\x7fELF', 'Unrecognized Manager ELF layout'
     after = bytearray(before)
     slots = [(93232,209927),(303424,141347)]

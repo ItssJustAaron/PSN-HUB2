@@ -131,6 +131,9 @@ assert updated[:start] == binary[:start] and updated[start + capacity:] == binar
 payload.write_bytes(updated)
 build["elfSha256"] = hashlib.sha256(updated).hexdigest()
 build["elfBytes"] = len(updated)
+if b'PSNHUB_UNIFIED_V1' in updated:
+    build['nativeVersion'] = re.search(r'#define HUB_VERSION "([^"]+)"', (ROOT/'native/src/hub.h').read_text())[1]
+    build['engine'] = 'unified'
 (manager / "build.json").write_text(json.dumps(build, indent=2) + "\n", encoding="utf-8")
 
 # Cache exact request URLs, including query strings used by scripts and modules.
@@ -142,9 +145,8 @@ for file in ROOT.glob("*.js"):
 for file in (ROOT / "offsets").glob("*.js"):
     if file.stem != "TEMPLATE":
         entries.add(file.relative_to(ROOT).as_posix())
-for file in (ROOT / "payloads").iterdir():
-    if file.suffix.lower() in (".elf", ".bin"):
-        entries.add(file.relative_to(ROOT).as_posix())
+entries.update({'payloads/PSN-HUB-Manager.elf','payloads/elfldr-ps5-1360.elf','payloads/kexp_2026_05_25.bin'})
+entries.update(item['path'] for item in catalog['payloads'])
 for file in [ROOT / "index.html", ROOT / "relapse.html", *ROOT.glob("*.js")]:
     for match in re.findall(r'''["'](?:\./)?([^"'\s]+\.(?:js|elf|bin|png)\?v=\d+)["']''', file.read_text(encoding="utf-8")):
         if not (ROOT / match.split("?")[0]).is_file():

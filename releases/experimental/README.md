@@ -1,3 +1,12 @@
+# Historical experimental builds
+
+The current release is [PSN-HUB-Manager.elf](../../payloads/PSN-HUB-Manager.elf),
+the unified Manager on port 8085. It includes saves, USB backups and artwork
+operations. The separate 0.3.x service files below are archived for reproduction;
+they are not needed for the current release.
+
+---
+
 # Experimental Save Manager 0.3.3
 
 Use the normal Manager's **Saves** tab to open the console save browser. It lists current PS4/PS5 save folders and offers raw file downloads, per-game USB exports and optional automatic USB backups.

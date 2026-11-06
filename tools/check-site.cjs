@@ -68,5 +68,11 @@ require('./test-save-tools.cjs');
 const background=fs.readFileSync(path.join(root,'Manager/assets/jailbreak-background.png'));
 const backgroundHash=require('node:crypto').createHash('sha256').update(background).digest('hex');
 assert(read('Manager/library.js').includes("const BACKGROUND_HASH='"+backgroundHash+"'"));
-assert(fs.readFileSync(path.join(root,'payloads/PSN-HUB-Store-Background.elf')).includes(background),'Apply ELF must embed the reviewed PNG unchanged');
-for(const name of ['PSN-HUB-Store-Background.elf','PSN-HUB-Store-Background-Restore.elf'])assert(catalog.payloads.some(item=>item.name===name));
+if(binary.includes(Buffer.from('PSNHUB_UNIFIED_V1'))){
+  assert(binary.includes(background),'unified Manager must embed the reviewed background');
+  const engine=require('node:zlib').gunzipSync(fs.readFileSync(path.join(root,'native/vendor/garlic-savemgr_08c24b5.elf.gz')));
+  assert(binary.includes(engine),'unified Manager must embed the pinned save engine unchanged');
+  assert.equal(catalog.payloads.length,0,'supplied helper payloads are not part of the current release');
+}else{
+  assert(fs.readFileSync(path.join(root,'payloads/PSN-HUB-Store-Background.elf')).includes(background),'legacy Apply ELF must embed reviewed PNG');
+}

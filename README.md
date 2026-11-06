@@ -1,6 +1,18 @@
 # PSN-HUB — Manager
 PSN-HUB2 is a community PS5 jailbreak and payload hub with a companion PS5 Manager. The site is a static project intended for GitHub Pages. It does not require PHP, a database, or a custom web server.
 
+## Current release: unified Manager 0.4.0
+
+[Download PSN-HUB-Manager.elf](payloads/PSN-HUB-Manager.elf). This is the one
+current Manager ELF; it includes saves, USB backup support, artwork operations
+and the pinned advanced-save engine. The normal jailbreak sends this file and
+opens Manager on port 8085. Separate PSN-HUB helper downloads are retired.
+
+[Release notes](Manager/RELEASE-2026.11.06.8.md) · [Save tools](Manager/SAVE-TOOLS.md).
+Existing installations should reboot and jailbreak with the updated ELF to clear
+older helper services. Advanced transforms/imports remain WIP; physical USB
+writes still need validation with a connected drive.
+
 ## Contents
 
 - [Website](#website)
@@ -118,9 +130,9 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
 
 ## Save Manager (WIP)
 
-The Manager dashboard includes a clearly marked **SAVES (WIP)** tab. **Use at your own risk.** The stable Manager’s native API on port 8085 does not read save folders. The experimental native Manager on port 8087 implements raw PS4/PS5 title discovery, downloads and manual snapshots. Advanced save tools connect to the bundled local Garlic SaveMgr engine on port 8082 for decryption, encryption, resigning, and reviewed import/restore. Imports require the experimental Manager backup API; transforms can also be opened from the stable Manager. Raw access was confirmed working by the user; the advanced operations still require PS5 validation. Automatic backups and unattended bulk restores are unavailable. Keep separate verified backups. See [native/SAVES.md](native/SAVES.md) for installation and limitations.
+The **SAVES** tab lists console saves and provides raw downloads, snapshots, USB export and optional automatic USB backups through the unified Manager on port 8085. Advanced transforms/imports remain WIP. See [native/SAVES.md](native/SAVES.md) for limits and validation status.
 
-Save processing: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) by earthonion, bundled as an unmodified companion ELF. [Garlic Worker](https://github.com/earthonion/garlic-worker) informed the research; its source, binary and remote service are not included. See [Manager/SAVE-TOOLS.md](Manager/SAVE-TOOLS.md) for engine provenance and usage.
+Save processing: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) by earthonion, embedded unchanged inside the single Manager ELF and started internally when requested. [Garlic Worker](https://github.com/earthonion/garlic-worker) informed the research; its source, binary and remote service are not included. See [Manager/SAVE-TOOLS.md](Manager/SAVE-TOOLS.md) for engine provenance and usage.
 
 ## Jailbreak tile background
 
