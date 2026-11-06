@@ -6,14 +6,20 @@
 #include "integrated.h"
 #include "home_icon.h"
 #include <sqlite3.h>
+#include <dlfcn.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 static int manager_code,jailbreak_code,manager_ready,jailbreak_ready;
 #if !defined(HUB_HOST_TEST) && !defined(HUB_UNIFIED_PREVIEW)
-int sceAppInstUtilInitialize(void);
-int sceAppInstUtilAppInstallTitleDir(const char *,const char *,void *);
+static int (*app_initialize)(void);
+static int (*app_install)(const char *,const char *,void *);
+static int load_installer(void){
+ void *user=dlopen("libSceUserService.sprx",RTLD_LAZY);if(user){int (*initialize)(void *)=dlsym(user,"sceUserServiceInitialize");if(initialize)initialize(NULL);}
+ void *app=dlopen("libSceAppInstUtil.sprx",RTLD_LAZY);if(!app)return -1;
+ app_initialize=dlsym(app,"sceAppInstUtilInitialize");app_install=dlsym(app,"sceAppInstUtilAppInstallTitleDir");return app_initialize&&app_install?0:-1;
+}
 static int exists(sqlite3 *db,const char *title){
  sqlite3_stmt *s=NULL;int found=0;if(sqlite3_prepare_v2(db,"SELECT 1 FROM tbl_contentinfo WHERE titleId=?",-1,&s,NULL)==SQLITE_OK){sqlite3_bind_text(s,1,title,-1,SQLITE_STATIC);found=sqlite3_step(s)==SQLITE_ROW;}sqlite3_finalize(s);return found;
 }
@@ -26,14 +32,14 @@ static int install(const char *id,const char *name,const char *url){
  int result=n>0&&(size_t)n<sizeof(json)?hub_atomic(sys,"param.json",-1,(size_t)n,(unsigned char *)json,(size_t)n):-1;
  if(result==0)result=hub_atomic(sys,"icon0.png",-1,sizeof(home_icon),home_icon,sizeof(home_icon));
  if(result==0){const char *files[]={"param.json","icon0.png"};for(int i=0;i<2;i++){int fd=openat(sys,files[i],O_RDONLY|O_NOFOLLOW);if(fd<0){result=-1;break;}if(fchmod(fd,0644)<0)result=-1;close(fd);}}
- close(sys);return result<0?result:sceAppInstUtilAppInstallTitleDir(id,"/user/app/",NULL);
+ close(sys);return result<0?result:app_install(id,"/user/app/",NULL);
 }
 #endif
 void hub_shortcuts_init(void){
 #if !defined(HUB_HOST_TEST) && !defined(HUB_UNIFIED_PREVIEW)
  sqlite3 *db=NULL;if(sqlite3_open_v2("/system_data/priv/mms/app.db",&db,SQLITE_OPEN_READONLY,NULL)!=SQLITE_OK){if(db)sqlite3_close(db);manager_code=jailbreak_code=-1;return;}
  manager_ready=exists(db,"PSNH00001");jailbreak_ready=exists(db,"PSNH00002")||replaced(db);sqlite3_close(db);
- if(manager_ready&&jailbreak_ready)return;int code=sceAppInstUtilInitialize();if(code){manager_code=jailbreak_code=code;return;}
+ if(manager_ready&&jailbreak_ready)return;int code=load_installer();if(code==0)code=app_initialize();if(code){manager_code=jailbreak_code=code;return;}
  if(!manager_ready){manager_code=install("PSNH00001","PSN-HUB Manager","http://127.0.0.1:8085/");manager_ready=manager_code==0;}
  if(!jailbreak_ready){jailbreak_code=install("PSNH00002","PSN-HUB JAILBREAK","https://itssjustaaron.github.io/PSN-HUB2/");jailbreak_ready=jailbreak_code==0;}
 #endif
