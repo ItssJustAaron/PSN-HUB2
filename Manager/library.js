@@ -848,7 +848,7 @@
       const item=state.catalog&&state.catalog.payloads.find(item=>item.name===name);if(!item){status.textContent='Refresh the library to load the background payloads.';return;}
       buttons.forEach(button=>button.disabled=true);const previous=state.transfer;
       try{await startTransfer([item],label);const task=state.transfer;if(task===previous||!task||task.running||task.cancelled||task.failures.length||!task.completed.some(done=>done.path===item.path)){status.textContent='Background operation was not sent. Check the transfer report.';return;}
-        status.textContent='Payload sent. Waiting for the console result…';const host=(location.hostname||location.host.split(':')[0]).replace(/^\[|\]$/g,'');const url='http://'+(host.includes(':')?'['+host+']':host)+':8089/api/status';let result;
+        status.textContent='Payload sent. Waiting for the console result…';const host=(location.hostname||location.host.split(':')[0]).replace(/^\[|\]$/g,'');const url='http://'+(host.includes(':')?'['+host+']':host)+':8093/api/status';let result;
         for(let attempt=0;attempt<10;attempt++){try{result=JSON.parse(await (await response(url,{cache:'no-store'},2000)).text());break;}catch(error){if(attempt===9)throw Error('Payload sent, but its result was not confirmed. Check the console before sending again.');await new Promise(resolve=>setTimeout(resolve,500));}}
         if(!result||result.sha256!==BACKGROUND_HASH||result.operation!==operation)throw Error('Unexpected background updater result. Check the console before retrying.');
         status.textContent=result.message;if(!result.success)throw Error('Background update refused: '+result.message);

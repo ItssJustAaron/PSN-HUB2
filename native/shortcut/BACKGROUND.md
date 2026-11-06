@@ -17,7 +17,7 @@ Opaque path IDs and timestamps in `appinfo.db` are not guessed or modified.
 
 In **Payloads → Jailbreak tile background**, preview the artwork and choose
 **Apply jailbreak background**. Review and send the payload. Manager then checks
-the helper's temporary result endpoint on port **8089**, including the operation
+the helper's temporary result endpoint on port **8093**, including the operation
 and exact artwork hash. A sent payload is not reported as a successful change
 until its result is confirmed. Refresh the PS5 home screen manually afterward;
 the updater never restarts the shell or reboots the console.

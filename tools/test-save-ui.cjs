@@ -47,7 +47,7 @@ vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.i
   const payloadPanel=element('div');nodes.set('panel-payloads',payloadPanel);context.backgroundControls();const card=payloadPanel.children[0],apply=card.children[2],restore=card.children[3],message=card.children[4];
   const entry={name:'PSN-HUB-Store-Background.elf',path:'payloads/PSN-HUB-Store-Background.elf'};state.catalog={payloads:[entry,{name:'PSN-HUB-Store-Background-Restore.elf',path:'payloads/PSN-HUB-Store-Background-Restore.elf'}]};let sends=0;
   context.startTransfer=async items=>{sends++;state.transfer={completed:items,failures:[],running:false,cancelled:false};};
-  context.response=async url=>{assert.equal(url,'http://console:8089/api/status');return {text:async()=>JSON.stringify({success:true,operation:'apply-background',sha256:'43ae997fe0b0ff3dca9d50d489baa9f948caa9069815c0c443700369c1e24d85',message:'Background applied'})};};
+  context.response=async url=>{assert.equal(url,'http://console:8093/api/status');return {text:async()=>JSON.stringify({success:true,operation:'apply-background',sha256:'43ae997fe0b0ff3dca9d50d489baa9f948caa9069815c0c443700369c1e24d85',message:'Background applied'})};};
   await apply.events.click();assert.equal(sends,1);assert.equal(message.textContent,'Background applied');
   await restore.events.click();assert.equal(sends,2);assert(message.textContent.includes('Unexpected background updater result'));
   state.preview=true;await apply.events.click();assert.equal(sends,2,'Preview must never send a background payload');

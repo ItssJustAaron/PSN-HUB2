@@ -112,7 +112,7 @@
     "key": "psn-hub-store-background",
     "description": "Apply the reviewed weed-themed background to the already installed PSN-HUB Store shortcut. Backs up both metadata databases; artwork references only.",
     "info": "PSN-HUB-Store-Background.elf - PSN-HUB",
-    "expectedSha256": "95f8680421fa7ede30d053a59dd1924d4e767e2bc873bf7c8e16551fa06eafcc"
+    "expectedSha256": "937f32478c4f7a40d2c7be39ed501819188cb978360fd5ffa8865f2d24137816"
   },
   {
     "title": "Restore previous jailbreak background",
@@ -120,6 +120,6 @@
     "key": "psn-hub-store-background-restore",
     "description": "Restore the artwork references recorded by the matching PSN-HUB background updater. Preserves unrelated metadata changes.",
     "info": "PSN-HUB-Store-Background-Restore.elf - PSN-HUB",
-    "expectedSha256": "60c9c4323af81366efec39eb65498892a7ce29892970dd8dcac76deda76d7abb"
+    "expectedSha256": "d18f7c3d370b603f074edd5e9ffecf7354b1725dc88031fb1718ed6f4bf708d6"
   }
 ]
