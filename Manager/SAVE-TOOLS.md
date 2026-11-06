@@ -1,6 +1,6 @@
 # Advanced save tools
 
-Open **Save Manager (WIP) → Open advanced save tools** in PSN-HUB Manager.
+Open **Saves (WIP) → Open advanced save tools** in PSN-HUB Manager.
 Choose **Start save engine** and approve the usual payload send review, then
 **Check engine** when it has started. The UI uses the same PS5 hostname on port
 8082. No configurable third-party processing server or cloud account is used.

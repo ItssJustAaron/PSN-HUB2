@@ -49,7 +49,7 @@ The homepage now offers jailbreak only. After jailbreak, Manager is sent once,
 its listener is checked, then its dashboard opens. Other bundled payloads are
 available in Manager. An explicit retry/open fallback remains on the launch page.
 
-Advanced save tools are now available in Save Manager (WIP). Start the pinned
+Advanced save tools are now available in the Saves (WIP) tab. Start the pinned
 Garlic SaveMgr engine from that panel, then Check engine. It provides local
 PS4/PS5 decrypt, encrypt, resign and reviewed import/restore. Imports need the
 experimental Manager on port 8087 so an existing title can be snapshotted before
@@ -59,6 +59,11 @@ ZIP limit: 128 MiB compressed / 256 MiB expanded. Raw images: up to 2 GiB.
 Raw access was confirmed working by the user; advanced operations still need
 on-console validation. No automatic import retries or force-import are used.
 See Manager/SAVE-TOOLS.md for limitations, backup behavior and upstream credits.
+
+The Payloads tab now includes a preview plus Apply/Restore controls for the
+weed-themed Store jailbreak background. The existing PSN-HUB Store shortcut is
+required; both databases are backed up before artwork references change.
+See native/shortcut/BACKGROUND.md.
 
 This UI release retains dismissible release notes, visible build status, detailed
 install reviews, saved cheat filters/pages/tabs and a compact mobile setup.

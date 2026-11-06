@@ -105,5 +105,21 @@
     "name": "ShadowMountPlus_1.7beta2.elf",
     "info": "ShadowMountPlus_1.7beta2.elf - drakmor",
     "key": "shadowmountplus"
+  },
+  {
+    "title": "PSN-HUB jailbreak background",
+    "name": "PSN-HUB-Store-Background.elf",
+    "key": "psn-hub-store-background",
+    "description": "Apply the reviewed weed-themed background to the already installed PSN-HUB Store shortcut. Backs up both metadata databases; artwork references only.",
+    "info": "PSN-HUB-Store-Background.elf - PSN-HUB",
+    "expectedSha256": "95f8680421fa7ede30d053a59dd1924d4e767e2bc873bf7c8e16551fa06eafcc"
+  },
+  {
+    "title": "Restore previous jailbreak background",
+    "name": "PSN-HUB-Store-Background-Restore.elf",
+    "key": "psn-hub-store-background-restore",
+    "description": "Restore the artwork references recorded by the matching PSN-HUB background updater. Preserves unrelated metadata changes.",
+    "info": "PSN-HUB-Store-Background-Restore.elf - PSN-HUB",
+    "expectedSha256": "60c9c4323af81366efec39eb65498892a7ce29892970dd8dcac76deda76d7abb"
   }
 ]

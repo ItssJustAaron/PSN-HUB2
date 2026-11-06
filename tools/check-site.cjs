@@ -63,3 +63,9 @@ require('./test-manager-launch.cjs');
 require('./test-save-ui.cjs');
 
 require('./test-save-tools.cjs');
+
+const background=fs.readFileSync(path.join(root,'Manager/assets/jailbreak-background.png'));
+const backgroundHash=require('node:crypto').createHash('sha256').update(background).digest('hex');
+assert(read('Manager/library.js').includes("const BACKGROUND_HASH='"+backgroundHash+"'"));
+assert(fs.readFileSync(path.join(root,'payloads/PSN-HUB-Store-Background.elf')).includes(background),'Apply ELF must embed the reviewed PNG unchanged');
+for(const name of ['PSN-HUB-Store-Background.elf','PSN-HUB-Store-Background-Restore.elf'])assert(catalog.payloads.some(item=>item.name===name));

@@ -20,6 +20,6 @@ function environment(){const window={};vm.runInNewContext(source,{window,setTime
   assert.equal(window2.__managerAddress,options.address);await Promise.all([window2.__managerReady(),window2.__managerReady()]);assert.equal(maximum,1);assert.deepEqual(calls,['socket','connect','close','socket','connect','close']);
   const publicList={};vm.runInNewContext(fs.readFileSync(path.join(root,'payloads.js'),'utf8'),{window:publicList});assert.deepEqual(Array.from(publicList.PAYLOAD_TILES,item=>item.name),['PSN-HUB-Manager.elf']);
   assert(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('handlePayloadsNav'));
-  const catalog=JSON.parse(fs.readFileSync(path.join(root,'Manager/catalog.json'),'utf8'));assert.equal(catalog.payloads.length,15);assert(!catalog.payloads.some(item=>item.name==='PSN-HUB-Manager.elf'));
+  const catalog=JSON.parse(fs.readFileSync(path.join(root,'Manager/catalog.json'),'utf8'));assert.deepEqual(catalog.payloads.map(item=>item.name).sort(),JSON.parse(fs.readFileSync(path.join(root,'Manager/payloads.json'),'utf8')).map(item=>item.name).sort());assert(!catalog.payloads.some(item=>item.name==='PSN-HUB-Manager.elf'));
   console.log('PASS: Manager-only public launch, one ELF send per attempt, serialized readiness, confirmed dashboard navigation, timeout fallback and explicit retry.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

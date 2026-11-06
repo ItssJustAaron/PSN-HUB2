@@ -1,12 +1,12 @@
 {
-  "buildId": "ec83a64594e7",
-  "uiRelease": "2026.11.06.4",
-  "uiSha256": "14008ee6b284878247fa82d80e0d48f399f431add98471a5a81d6593e58934c3",
-  "cssSha256": "c40c921568c66cd2718a4aad47174c67b796caae563c0565f649a2db68b7356b",
+  "buildId": "c0ded8592f8b",
+  "uiRelease": "2026.11.06.5",
+  "uiSha256": "0ace13a188a1e13eddfcd71cce0f7b16861f48ce3371ce1b18492903405cc30b",
+  "cssSha256": "31d3b33714824a3647623918347c1e1a733db629d97ad5c6346863bf9ca73f5a",
   "saveToolsSha256": "965da0f9db1a905d4de3171bc7b075fbfd332f293968ae14a32627f577210f53",
   "zipLibrarySha256": "c3b34f2e9f5e74d4d7d64e01cac7a0c01954c6c406414d42185c7b53d6875ddf",
-  "catalogueVersion": "76fc6fda8442",
-  "catalogueUpdatedAt": "2026-11-06T17:45:24+00:00",
-  "elfSha256": "3049bdfd065b4eb84cf1b981062860ac28e8dc5834ee5e01dc98be24c3f5d105",
+  "catalogueVersion": "0dd8537a0dd1",
+  "catalogueUpdatedAt": "2026-11-06T18:20:03+00:00",
+  "elfSha256": "96d234fbf36b95c09a5c1f3757e73df06ed7204f87d9b8de374902489e06866e",
   "elfBytes": 508784
 }

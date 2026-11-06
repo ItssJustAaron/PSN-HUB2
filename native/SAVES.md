@@ -1,6 +1,6 @@
 # Save Manager — experimental
 
-Native version `0.3.0-experimental` runs on port **8087**. The jailbreak continues
+Native version `0.3.1-experimental` runs on port **8087**. The jailbreak continues
 to start the stable Manager on **8085**. Its original native engine has no save
 API. Raw browsing/snapshots and backed-up imports require port 8087; advanced
 transforms use the separately launched Garlic engine on port 8082. The dashboard
@@ -11,7 +11,7 @@ gates operations by the appropriate backend.
 Download `PSN-HUB-Manager-native.elf` from the successful **Build experimental
 native Manager** Actions run. Unzip its artifact and send that ELF using the
 stable Manager's payload upload/send controls. Open `http://<PS5-IP>:8087`.
-Use **SAVE MANAGER (WIP)** and **Refresh saves and snapshots**. Firmware/HEN
+Use **SAVES (WIP)** and **Refresh saves and snapshots**. Firmware/HEN
 permissions may prevent access; hardware validation is pending.
 
 Close all games first. Choose a title to browse its raw files or create a manual

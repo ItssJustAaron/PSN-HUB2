@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.06.4';
+  const UI_RELEASE = '2026.11.06.5';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -680,6 +680,8 @@
     updateMaintenance();
   }
   function installSummary(items, title, destination) {
+    const background=items.length===1&&/^PSN-HUB-Store-Background(?:-Restore)?\.elf$/.test(items[0].name||'');
+    if(background)return [title,items[0].name.includes('-Restore')?'Restore the previous background references saved by this artwork updater.':'Apply the displayed artwork to the already installed PSN-HUB Store shortcut. Both metadata databases are backed up first.','This updates only the Store tile’s background references. Refresh the home screen manually afterward.','Continue?'].join('\n\n');
     const cheats = items.some(item => item.target);
     const games = [...new Set(items.map(item => item.title || item.name))];
     const versions = [...new Set(items.map(item => item.version).filter(Boolean))];
@@ -835,9 +837,29 @@
       });button.hidden=true;
     }catch(error){button.disabled=false;button.textContent='Retry loading save tools';container.textContent=error.message;}
   }
+  const BACKGROUND_HASH='43ae997fe0b0ff3dca9d50d489baa9f948caa9069815c0c443700369c1e24d85';
+  function backgroundControls() {
+    const card=element('section',undefined,'card'),status=element('p','Apply the matching artwork after installing the PSN-HUB Store shortcut.','hint');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    card.append(element('h2','Jailbreak tile background'));
+    const details=element('details');details.append(element('summary','Preview background'));const img=element('img');img.src=repositoryBase+'Manager/assets/jailbreak-background.png?v='+BACKGROUND_HASH.slice(0,12);img.alt='PSN-HUB mascot with floating green weed leaves on a dark purple background';img.loading='lazy';img.className='console-background-preview';details.append(img);card.append(details);
+    const buttons=[];
+    async function run(name,operation,label){
+      if(state.preview||!state.manager){status.textContent='Open Manager on the PS5 to apply or restore its background.';return;}
+      const item=state.catalog&&state.catalog.payloads.find(item=>item.name===name);if(!item){status.textContent='Refresh the library to load the background payloads.';return;}
+      buttons.forEach(button=>button.disabled=true);const previous=state.transfer;
+      try{await startTransfer([item],label);const task=state.transfer;if(task===previous||!task||task.running||task.cancelled||task.failures.length||!task.completed.some(done=>done.path===item.path)){status.textContent='Background operation was not sent. Check the transfer report.';return;}
+        status.textContent='Payload sent. Waiting for the console result…';const host=(location.hostname||location.host.split(':')[0]).replace(/^\[|\]$/g,'');const url='http://'+(host.includes(':')?'['+host+']':host)+':8089/api/status';let result;
+        for(let attempt=0;attempt<10;attempt++){try{result=JSON.parse(await (await response(url,{cache:'no-store'},2000)).text());break;}catch(error){if(attempt===9)throw Error('Payload sent, but its result was not confirmed. Check the console before sending again.');await new Promise(resolve=>setTimeout(resolve,500));}}
+        if(!result||result.sha256!==BACKGROUND_HASH||result.operation!==operation)throw Error('Unexpected background updater result. Check the console before retrying.');
+        status.textContent=result.message;if(!result.success)throw Error('Background update refused: '+result.message);
+      }catch(error){status.textContent=error.message;}finally{buttons.forEach(button=>button.disabled=false);}
+    }
+    const apply=action('Apply jailbreak background',()=>run('PSN-HUB-Store-Background.elf','apply-background','Apply jailbreak background'));
+    const restore=action('Restore previous background',()=>run('PSN-HUB-Store-Background-Restore.elf','restore-background','Restore previous background'),'secondary');buttons.push(apply,restore);card.append(apply,restore,status);$('panel-payloads').append(card);
+  }
   function saveManagerControls() {
     if(typeof managerTabs==='undefined'||typeof selectTab!=='function')return;
-    const tab=element('button','SAVE MANAGER (WIP)','tab');tab.id='tab-save-manager';tab.type='button';tab.tabIndex=-1;
+    const tab=element('button','SAVES (WIP)','tab');tab.id='tab-save-manager';tab.type='button';tab.tabIndex=-1;
     tab.setAttribute('role','tab');tab.setAttribute('aria-selected','false');tab.setAttribute('aria-controls','panel-save-manager');
     const panel=element('div',undefined,'tab-panel');panel.id='panel-save-manager';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);
     const card=element('section',undefined,'card');card.append(element('h2','Save Manager (WIP)'),element('p','Advanced save tools are experimental. Keep independent, verified backups.','hint'),element('p','Close games before backup or import. Keep independent backups. Advanced tools use the bundled Garlic SaveMgr engine on this console.','hint'));
@@ -848,7 +870,7 @@
     saveControls={status,list,files,refresh,busy:false};card.append(refresh,status,list,files,credit);panel.append(card);updateSaveControls();managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);
     tab.addEventListener('click',()=>selectTab(tab));tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(tab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
   }
-  saveManagerControls(); restoreBrowsing(); releaseControls();
+  saveManagerControls(); backgroundControls(); restoreBrowsing(); releaseControls();
   firmwareControls();
   maintenanceControls();
   setupControls();setControllerMode(!!storeRead('controllerMode',!!ps5Version));

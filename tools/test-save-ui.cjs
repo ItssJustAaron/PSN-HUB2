@@ -21,7 +21,7 @@ const context=vm.createContext({state,element,action,managerTabs,selectTab:tab=>
     else if(url.startsWith('/api/saves/backup?'))data={id:'save-created'};
     else data={items:[{name:'slot.bin',size:16}]};return {text:async()=>JSON.stringify(data)};
   }});
-vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.indexOf('  saveManagerControls(); restoreBrowsing();'))+'\nsaveManagerControls();globalThis.controls=saveControls;',context);
+vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.indexOf('  saveManagerControls(); backgroundControls();'))+'\nsaveManagerControls();globalThis.controls=saveControls;',context);
 (async()=>{
   const controls=context.controls,tab=nodes.get('tab-save-manager');
   assert.equal(managerTabs.length,2);assert.equal(controls.refresh.disabled,true);
@@ -44,5 +44,12 @@ vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.i
   const container=element('div'),button=element('button');await context.loadSaveTools(container,button);
   assert.equal(button.hidden,true);assert.deepEqual(scriptURLs,['https://source/Manager/vendor/fflate-0.8.2.js?v=test','https://source/Manager/save-tools.js?v=test']);assert.equal(context.loadedOptions.hostname,'console');assert.equal(context.loadedOptions.canImport(),false);
   await assert.rejects(context.loadedOptions.backup({}),/8087/);
-  console.log('PASS: Save Manager native capability gates, browsing, downloads, snapshots, tab navigation and script loader.');
+  const payloadPanel=element('div');nodes.set('panel-payloads',payloadPanel);context.backgroundControls();const card=payloadPanel.children[0],apply=card.children[2],restore=card.children[3],message=card.children[4];
+  const entry={name:'PSN-HUB-Store-Background.elf',path:'payloads/PSN-HUB-Store-Background.elf'};state.catalog={payloads:[entry,{name:'PSN-HUB-Store-Background-Restore.elf',path:'payloads/PSN-HUB-Store-Background-Restore.elf'}]};let sends=0;
+  context.startTransfer=async items=>{sends++;state.transfer={completed:items,failures:[],running:false,cancelled:false};};
+  context.response=async url=>{assert.equal(url,'http://console:8089/api/status');return {text:async()=>JSON.stringify({success:true,operation:'apply-background',sha256:'43ae997fe0b0ff3dca9d50d489baa9f948caa9069815c0c443700369c1e24d85',message:'Background applied'})};};
+  await apply.events.click();assert.equal(sends,1);assert.equal(message.textContent,'Background applied');
+  await restore.events.click();assert.equal(sends,2);assert(message.textContent.includes('Unexpected background updater result'));
+  state.preview=true;await apply.events.click();assert.equal(sends,2,'Preview must never send a background payload');
+  console.log('PASS: Save Manager capability gates, script loader, snapshots and background result verification.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
