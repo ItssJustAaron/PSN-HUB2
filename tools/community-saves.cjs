@@ -6,6 +6,7 @@ const path = require('node:path');
 const {createHash, randomUUID, timingSafeEqual} = require('node:crypto');
 const {Transform} = require('node:stream');
 const {pipeline} = require('node:stream/promises');
+const {createArchive} = require('./community-save-archive.cjs');
 
 const maxBytes = 256 * 1024 ** 2;
 const maxEntries = 40;
@@ -18,12 +19,13 @@ function matches(header, token) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
-async function createServer({directory, adminToken, origins = []}) {
+async function createServer({directory, adminToken, origins = [], archive}) {
   if (!directory || !path.isAbsolute(directory) || !/^[\x21-\x7e]{24,128}$/.test(adminToken || '')) {
     throw Error('Set an absolute private data directory and a reviewer code of 24–128 printable characters without spaces.');
   }
   await fsp.mkdir(directory, {recursive: true, mode: 0o700});
   let uploading = false;
+  const reviewing = new Set();
 
   async function getEntry(id) {
     if (!idPattern.test(id)) throw failure(404, 'Save unavailable.');
@@ -57,6 +59,7 @@ async function createServer({directory, adminToken, origins = []}) {
       if (!((platform === 'ps4' && /^CUSA\d{5}$/.test(title)) || (platform === 'ps5' && /^PPSA\d{5}$/.test(title)))) {
         throw failure(400, 'Invalid title or platform.');
       }
+      if (url.searchParams.get('consent') !== 'public') throw failure(400, 'Agree to share the save publicly after review.');
       if (!Number.isSafeInteger(bytes) || bytes <= keyBytes || bytes > maxBytes || req.headers['content-type'] !== 'application/octet-stream') {
         throw failure(400, 'A raw save package of up to 256 MiB with a known size is required.');
       }
@@ -75,7 +78,7 @@ async function createServer({directory, adminToken, origins = []}) {
       }});
       await pipeline(req, meter, fs.createWriteStream(path.join(staging, 'save.bin'), {flags: 'wx', mode: 0o600}));
       if (received !== bytes) throw failure(400, 'Upload was incomplete.');
-      const entry = {id, platform, title, description, bytes, sha256: hash.digest('hex'), submitted: new Date().toISOString()};
+      const entry = {id, platform, title, description, bytes, sha256: hash.digest('hex'), submitted: new Date().toISOString(), publicConsent: true};
       await fsp.writeFile(path.join(staging, 'entry.json'), JSON.stringify(entry), {mode: 0o600});
       await fsp.rename(staging, path.join(directory, id));
       staging = undefined;
@@ -127,11 +130,23 @@ async function createServer({directory, adminToken, origins = []}) {
         return await pipeline(file.createReadStream(), res);
       }
       if (!admin || req.method !== 'POST') throw failure(403, 'Review access is required.');
-      const flag = path.join(folder, 'approved');
-      if (operation === 'approve') await fsp.writeFile(flag, '', {flag: 'a', mode: 0o600});
-      else if (operation === 'withdraw') await fsp.unlink(flag).catch(error => {if (error.code !== 'ENOENT') throw error;});
-      else throw failure(404, 'Unknown route.');
-      return json(200, {approved: operation === 'approve'});
+      if (operation === 'download') throw failure(404, 'Unknown route.');
+      if (reviewing.has(id)) throw failure(409, 'A review action is already running for this save.');
+      reviewing.add(id);
+      try {
+        const flag = path.join(folder, 'approved');
+        if (operation === 'approve') {
+          if (archive) {
+            if (!item.publicConsent) throw failure(409, 'This save must be resubmitted with public-sharing consent.');
+            await archive.publish(item, folder);
+          }
+          await fsp.writeFile(flag, '', {flag: 'a', mode: 0o600});
+        } else {
+          if (archive) await archive.withdraw(item);
+          await fsp.unlink(flag).catch(error => {if (error.code !== 'ENOENT') throw error;});
+        }
+      } finally {reviewing.delete(id);}
+      return json(200, {approved: operation === 'approve', archived: operation === 'approve' && !!archive});
     } catch (error) {
       if (res.headersSent || res.destroyed) return res.destroy();
       if (!error.status) console.error(error);
@@ -144,6 +159,7 @@ async function createServer({directory, adminToken, origins = []}) {
 if (require.main === module) {
   const env = process.env;
   createServer({directory: env.PSNHUB_COMMUNITY_DATA,
+    archive: env.PSNHUB_GITHUB_TOKEN ? createArchive(env.PSNHUB_GITHUB_TOKEN) : undefined,
     adminToken: env.PSNHUB_COMMUNITY_ADMIN, origins: env.PSNHUB_COMMUNITY_ORIGINS?.split(',').map(x => x.trim()).filter(Boolean)})
     .then(server => server.listen(Number(env.PSNHUB_COMMUNITY_PORT || 8095), env.PSNHUB_COMMUNITY_HOST || '127.0.0.1', () => {
       console.log('Community Saves library listening on', server.address());

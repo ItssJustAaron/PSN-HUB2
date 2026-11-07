@@ -12,7 +12,9 @@ Start the library with Node.js using `node tools/community-saves.cjs`. For inter
 
 Anyone can browse approved saves and submit an encrypted PS5 save image or a PS4 save image with its 96-byte companion key. Every new submission requires a one-line description of 1–240 characters and consent to share publicly. Submissions stay private until a reviewer approves them using the reviewer code. Reviewers can inspect packages and withdraw approved listings.
 
-Reviewers can publish approved saves with public-sharing consent to the separate PSN-HUB Saves archive. Follow the archive’s publishing steps to attach the ZIP to a GitHub Release and record its download URL and checksum in the catalogue. [PSN-HUB Saves archive](https://github.com/ItssJustAaron/PSN-HUB-Saves)
+Set `PSNHUB_GITHUB_TOKEN` on the Community Saves server to enable automatic publication. Use a fine-grained GitHub token restricted to `PSN-HUB-Saves` with **Contents: Read and write**. Approval publishes a release with the description, encrypted image, and PS4 key when applicable. Withdrawal removes the corresponding release. Submissions made before public consent was recorded must be resubmitted before they can be archived. [Browse approved saves](https://github.com/ItssJustAaron/PSN-HUB-Saves/releases)
+
+In Manager, choose **Submit a save for review → Choose a save on this PS5 → Load console saves** to select a game and save file. Close the game first. You can also select encrypted files on your PC using the upload form.
 
 Use a fresh data directory when opening a former private pilot to the public. Only bring over submissions whose authors agreed to public sharing.
 

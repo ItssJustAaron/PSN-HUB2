@@ -39,7 +39,7 @@
     return blob;
   }
 
-  function mount({container, element, action, gameHeading, selectShared, libraryOrigin}) {
+  function mount({container, element, action, gameHeading, selectShared, libraryOrigin, consoleSaves}) {
     const status = element('p', 'Enter the Community Saves library address to browse or submit a save.', 'hint');
     status.setAttribute('role', 'status');
     const field = (label, node, parent = container) => {
@@ -85,6 +85,49 @@
     const key = field('PS4 companion key (.bin)', element('input'), form);
     key.type = 'file';
     key.accept = '.bin';
+    let consoleTitle, consoleImage, consoleEntries = [], consoleFiles = [];
+    if (consoleSaves) {
+      const picker = element('details');
+      picker.append(element('summary', 'Choose a save on this PS5'));
+      picker.append(element('p', 'Close the game before sharing its save.', 'hint'));
+      consoleTitle = field('Console game and user', element('select'), picker);
+      consoleImage = field('Console save file', element('select'), picker);
+      const placeholder = (select, label) => {
+        const option = element('option', label);
+        option.value = '';
+        select.replaceChildren(option);
+      };
+      const appendOption = (select, label, value) => {
+        const option = element('option', label);
+        option.value = String(value);
+        select.append(option);
+      };
+      placeholder(consoleTitle, 'Upload a file from this device');
+      placeholder(consoleImage, 'Choose a console save file');
+      picker.append(action('Load console saves', () => run(async () => {
+        const data = await consoleSaves.list();
+        consoleEntries = data.items;
+        placeholder(consoleTitle, 'Upload a file from this device');
+        placeholder(consoleImage, 'Choose a console save file');
+        consoleEntries.forEach((entry, index) => appendOption(consoleTitle,
+          (entry.name || entry.title) + ' · ' + entry.platform.toUpperCase() + ' · User ' + entry.user, index));
+        status.textContent = consoleEntries.length ? 'Choose a game and save file.' : 'No console saves were found.';
+      }), 'secondary'));
+      consoleTitle.addEventListener('change', () => run(async () => {
+        placeholder(consoleImage, 'Choose a console save file');
+        consoleFiles = [];
+        if (!consoleTitle.value) return;
+        const entry = consoleEntries[Number(consoleTitle.value)];
+        platform.value = entry.platform;
+        title.value = entry.title;
+        updateKey();
+        consoleFiles = (await consoleSaves.files(entry)).items;
+        consoleFiles.forEach((file, index) => {
+          if (entry.platform === 'ps5' || file.name.startsWith('sdimg_')) appendOption(consoleImage, file.name, index);
+        });
+      }));
+      form.append(picker);
+    }
     const consent = element('input');
     consent.type = 'checkbox';
     field('I agree to share this save publicly after review. The file may contain account metadata.', consent, form);
@@ -96,9 +139,11 @@
     const run = async fn => {
       if (busy) return;
       busy = true;
+      if (consoleTitle) consoleTitle.disabled = consoleImage.disabled = true;
       container.setAttribute('aria-busy', 'true');
       try {await fn();} catch (error) {status.textContent = error.message;} finally {
         busy = false;
+        if (consoleTitle) consoleTitle.disabled = consoleImage.disabled = false;
         container.setAttribute('aria-busy', 'false');
       }
     };
@@ -165,8 +210,10 @@
         if (data.reviewer) {
           row.append(action(item.approved ? 'Withdraw' : 'Approve reviewed save', () => run(async () => {
             if (!root.confirm(item.approved ? 'Withdraw this save from the library?' : 'Publish this reviewed save for everyone?')) return;
-            await request(routeFor(item, item.approved ? 'withdraw' : 'approve'), {method: 'POST'});
+            const result = await request(routeFor(item, item.approved ? 'withdraw' : 'approve'), {method: 'POST'});
             await refresh();
+            if (result.approved) status.textContent = result.archived
+              ? 'Approved and published to GitHub.' : 'Approved in this library. GitHub publishing is not configured.';
           }), 'secondary'));
         }
         list.append(row);
@@ -174,25 +221,42 @@
       status.textContent = list.children.length ? 'Community library loaded.' : 'No saves available. Submissions appear after review.';
     }
     form.append(action('Submit for review', () => run(async () => {
-      const id = title.value.trim().toUpperCase();
+      const entry = consoleTitle?.value ? consoleEntries[Number(consoleTitle.value)] : null;
+      const selectedPlatform = entry?.platform || platform.value;
+      const id = entry?.title || title.value.trim().toUpperCase();
       const summary = description.value.trim();
       if (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary)) {
         description.focus();
         throw Error('Enter a description between 1 and 240 characters on one line.');
       }
-      const save = image.files[0];
-      const companion = platform.value === 'ps4' ? key.files[0] : null;
-      if (!consent.checked || !validTitle(id, platform.value) || !save?.size || (platform.value === 'ps4' && companion?.size !== 96)) {
+      const save = entry ? (consoleImage.value ? consoleFiles[Number(consoleImage.value)] : null) : image.files[0];
+      const companion = selectedPlatform !== 'ps4' ? null : entry
+        ? consoleFiles.find(file => file.name === save?.name.replace(/^sdimg_/, '') + '.bin') : key.files[0];
+      if (!consent.checked || !validTitle(id, selectedPlatform) || !save?.size || (selectedPlatform === 'ps4' && companion?.size !== 96)) {
         throw Error('Choose a matching title ID, save image, PS4 companion key if needed, and agree to share.');
       }
-      const packageFile = new Blob(companion ? [companion, save] : [save]);
-      if (packageFile.size > limit) throw Error('Community save packages are limited to 256 MiB.');
-      const query = new URLSearchParams({platform: platform.value, title: id, description: summary});
-      await connection()('/v1/saves?' + query, {method: 'POST', body: packageFile});
+      if (save.size + (companion?.size || 0) > limit) throw Error('Community save packages are limited to 256 MiB.');
+      const request = connection();
+      status.textContent = 'Preparing and uploading the save…';
+      const read = async file => {
+        if (!entry) return file;
+        const blob = await consoleSaves.download(entry, file.name);
+        if (blob.size !== file.size) throw Error('The console save changed. Close the game and load the save list again.');
+        return blob;
+      };
+      const packageFile = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)]);
+      const query = new URLSearchParams({platform: selectedPlatform, title: id, description: summary, consent: 'public'});
+      await request('/v1/saves?' + query, {method: 'POST', body: packageFile});
       image.value = '';key.value = '';description.value = '';consent.checked = false;
       status.textContent = 'Submitted privately. A reviewer must approve it before others can download it.';
     })));
-    container.append(review, action('Refresh community library', () => run(refresh), 'secondary'), status, form, list);
+    const archive = element('a', 'Browse approved saves on GitHub');
+    archive.href = 'https://github.com/ItssJustAaron/PSN-HUB-Saves/releases';
+    archive.target = '_blank';
+    archive.rel = 'noopener';
+    const archiveLink = element('p');
+    archiveLink.append(archive);
+    container.append(archiveLink, review, action('Refresh community library', () => run(refresh), 'secondary'), status, form, list);
     if (libraryOrigin) run(refresh);
   }
   root.PSNCommunitySaves = {mount};

@@ -34,7 +34,8 @@ async function main() {
     assert.equal((await request('?platform=ps4&title=CUSA12345', upload)).status, 400);
     assert.equal((await request('?platform=ps4&title=CUSA12345&description=%20%20', upload)).status, 400);
     assert.equal((await request('?platform=ps4&title=CUSA12345&description='+'a'.repeat(241), upload)).status, 400);
-    const submitted = await request('?platform=ps4&title=CUSA12345&description=%20Example%20', {...upload, from: 'http://other.test'});
+    assert.equal((await request('?platform=ps4&title=CUSA12345&description=Example', upload)).status, 400);
+    const submitted = await request('?platform=ps4&title=CUSA12345&description=%20Example%20&consent=public', {...upload, from: 'http://other.test'});
     assert.equal(submitted.status, 201);
     const item = await submitted.json();
     assert.equal(item.description, 'Example');

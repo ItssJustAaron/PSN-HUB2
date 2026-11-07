@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.5';
+  const UI_RELEASE = '2026.11.07.6';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -1007,7 +1007,18 @@
           script.textContent=await (await response(repositoryBase+'Manager/community-saves.js?v='+UI_RELEASE,{cache:'no-store'},20000)).text();
           document.head.append(script);
         }
-        window.PSNCommunitySaves.mount({container:community,element,action,gameHeading:saveGameHeading,selectShared:async item=>{
+        const saveQuery = ({user, platform, title}) => new URLSearchParams({user, platform, title});
+        window.PSNCommunitySaves.mount({container:community,element,action,gameHeading:saveGameHeading,
+          consoleSaves: supports('saveRead') ? {
+            list: () => saveJSON('/api/saves'),
+            files: entry => saveJSON('/api/saves/files?' + saveQuery(entry)),
+            download: (entry, name) => {
+              const query = saveQuery(entry);
+              query.set('name', name);
+              return response('/api/saves/download?' + query, {cache:'no-store'}, 300000);
+            }
+          } : undefined,
+          selectShared:async item=>{
           const session=await loadSaveTools(tools,openTools);
           if(!session)throw Error('Save tools could not load. Open Saves and try again.');
           session.selectShared(item);selectTab(tab);advanced.open=true;
