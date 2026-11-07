@@ -2,6 +2,7 @@
   'use strict';
   const limit = 256 * 1024 ** 2;
   const githubLimit = 24_900_000;
+  const slotsPerZip = 128;
   const githubRepo = 'https://github.com/ItssJustAaron/PSN-HUB-Saves';
   const githubFiles = 'https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB-Saves/main/';
   const validTitle = (title, platform) => platform === 'ps4' ? /^CUSA\d{5}$/.test(title) : platform === 'ps5' && /^PPSA\d{5}$/.test(title);
@@ -130,6 +131,9 @@
         title.value = entry.title;
         updateKey();
         consoleFiles = (await consoleSaves.files(entry)).items;
+        if (github && consoleFiles.some(file => entry.platform === 'ps5' || file.name.startsWith('sdimg_'))) {
+          appendOption(consoleImage, 'All saves for this game', 'all');
+        }
         consoleFiles.forEach((file, index) => {
           if (entry.platform === 'ps5' || file.name.startsWith('sdimg_')) appendOption(consoleImage, file.name, index);
         });
@@ -181,18 +185,22 @@
         const result = await fetch(githubFiles + 'catalog.json', {cache: 'no-store'});
         if (!result.ok) throw Error('Could not load the GitHub save catalogue.');
         const data = await result.json();
-        if (data.schemaVersion !== 1 || !Array.isArray(data.items) || data.items.length > 40) throw Error('Invalid GitHub save catalogue.');
+        if (data.schemaVersion !== 1 || !Array.isArray(data.items) || data.items.length > 40 * slotsPerZip) throw Error('Invalid GitHub save catalogue.');
         for (const item of data.items) {
           const keyBytes = item.platform === 'ps4' ? 96 : 0;
           if (!Number.isSafeInteger(item.issue) || item.issue < 1 || !validTitle(item.title, item.platform) ||
               !Number.isSafeInteger(item.bytes) || item.bytes <= keyBytes || item.bytes > 25_000_000 ||
-              !/^[a-f0-9]{64}$/.test(item.sha256) || typeof item.description !== 'string' || item.description.length > 240) continue;
+              !/^[a-f0-9]{64}$/.test(item.sha256) || typeof item.description !== 'string' || item.description.length > 240 ||
+              (item.slot !== undefined && (!Number.isInteger(item.slot) || item.slot < 1 || item.slot > slotsPerZip ||
+                typeof item.slotName !== 'string' || item.slotName.length > 256))) continue;
+          const filename = item.issue + (item.slot === undefined ? '' : '-' + item.slot) + '.bin';
           const row = element('section', undefined, 'card');
           row.append(gameHeading(item.title, item.platform.toUpperCase() + ' · ' + item.title), element('p', item.description));
+          if (item.slotName) row.append(element('p', item.slotName, 'hint'));
           row.append(action('Install & resign', () => run(() => selectShared({
             title: item.title, platform: item.platform,
             async download() {
-              const response = await fetch(githubFiles + 'saves/' + item.issue + '.bin', {cache: 'no-store'});
+              const response = await fetch(githubFiles + 'saves/' + filename, {cache: 'no-store'});
               if (!response.ok) throw Error('This save is unavailable on GitHub.');
               const blob = await readPackage(response, item);
               return {image: blob.slice(keyBytes), key: keyBytes ? blob.slice(0, keyBytes) : undefined};
@@ -260,19 +268,28 @@
       const selectedPlatform = entry?.platform || platform.value;
       const id = entry?.title || title.value.trim().toUpperCase();
       const summary = description.value.trim();
-      if (!github && (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary))) {
+      const all = github && entry && consoleImage.value === 'all';
+      if ((!github || all) && (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary))) {
         description.focus();
         throw Error('Enter a description between 1 and 240 characters on one line.');
       }
-      const save = entry ? (consoleImage.value ? consoleFiles[Number(consoleImage.value)] : null) : image.files[0];
-      const companion = selectedPlatform !== 'ps4' ? null : entry
-        ? consoleFiles.find(file => file.name === save?.name.replace(/^sdimg_/, '') + '.bin') : key.files[0];
-      if ((!github && !consent.checked) || !validTitle(id, selectedPlatform) || !save?.size || (selectedPlatform === 'ps4' && companion?.size !== 96)) {
+      const chosen = all ? consoleFiles.filter(file => selectedPlatform === 'ps5' || file.name.startsWith('sdimg_'))
+        : [entry ? consoleFiles[Number.parseInt(consoleImage.value, 10)] : image.files[0]];
+      const saves = chosen.map(save => ({save, companion: selectedPlatform !== 'ps4' ? null : entry
+        ? consoleFiles.find(file => file.name === save?.name.replace(/^sdimg_/, '') + '.bin') : key.files[0]}));
+      if ((!github && !consent.checked) || !validTitle(id, selectedPlatform) || !saves.length) {
         throw Error(github ? 'Choose a matching title ID, save image, and PS4 companion key if needed.'
           : 'Choose a matching title ID, save image, PS4 companion key if needed, and agree to share.');
       }
-      if (save.size + (companion?.size || 0) > limit) throw Error('Community save packages are limited to 256 MiB.');
-      if (github && save.size + (companion?.size || 0) > githubLimit) throw Error('GitHub submissions must fit within 25 MB.');
+      for (const {save, companion} of saves) {
+        if (!save?.size || (selectedPlatform === 'ps4' && companion?.size !== 96)) {
+          throw Error(save?.name ? 'Missing save data or a matching PS4 key for ' + save.name + '.'
+            : 'Choose a save image and its PS4 companion key if needed.');
+        }
+        const bytes = save.size + (companion?.size || 0);
+        if (bytes > limit) throw Error('Community save packages are limited to 256 MiB.');
+        if (github && bytes > githubLimit) throw Error(save.name + ' is too large for a GitHub ZIP (25 MB).');
+      }
       const request = github ? null : connection();
       status.textContent = 'Preparing and uploading the save…';
       const read = async file => {
@@ -282,22 +299,58 @@
         return blob;
       };
       if (github) {
-        const parts = {'image.bin': new Uint8Array(await (await read(save)).arrayBuffer())};
-        if (companion) parts['key.bin'] = new Uint8Array(await (await read(companion)).arrayBuffer());
-        const zip = await makeZip(parts);
-        const link = element('a', 'Download ' + id + ' save ZIP');
-        const url = URL.createObjectURL(zip);
-        link.href = url;
-        link.download = id + '-save.zip';
-        setTimeout(() => URL.revokeObjectURL(url), 300000);
-        const submit = element('a', 'Open GitHub upload form');
-        submit.href = githubRepo + '/issues/new?' + new URLSearchParams({template: 'save.yml', title: '[Save] ' + id, 'title-id': id, description: summary});
-        submit.target = '_blank';
-        submit.rel = 'noopener';
-        zipLinks.replaceChildren(element('p', 'Download the ZIP, then attach it to the GitHub form.'), link, element('p'), submit);
-        status.textContent = 'ZIP ready for GitHub.';
+        for (const link of zipLinks.querySelectorAll('a[download]')) URL.revokeObjectURL(link.href);
+        zipLinks.replaceChildren();
+        const batches = [[]];
+        let batch = batches[0];
+        let bytes = 0;
+        for (const item of saves) {
+          const size = item.save.size + (item.companion?.size || 0) + 1024;
+          if (bytes && (bytes + size > githubLimit || batch.length === slotsPerZip)) {
+            batch = [];
+            batches.push(batch);
+            bytes = 0;
+          }
+          batch.push(item);
+          bytes += size;
+        }
+        let prepared = 0;
+        const links = document.createDocumentFragment();
+        const urls = [];
+        try {
+          for (const [batchIndex, batch] of batches.entries()) {
+            const parts = {};
+            for (const [slot, {save, companion}] of batch.entries()) {
+              status.textContent = 'Preparing save ' + (++prepared) + ' of ' + saves.length + '…';
+              const prefix = all ? 'slots/' + (slot + 1) + '/' : '';
+              parts[prefix + 'image.bin'] = new Uint8Array(await (await read(save)).arrayBuffer());
+              if (companion) parts[prefix + 'key.bin'] = new Uint8Array(await (await read(companion)).arrayBuffer());
+              if (all) parts[prefix + 'name.txt'] = new TextEncoder().encode(save.name);
+            }
+            const zip = await makeZip(parts);
+            if (zip.size > 25_000_000) throw Error('A prepared ZIP exceeds GitHub’s 25 MB limit.');
+            const part = batches.length > 1 ? ' (' + (batchIndex + 1) + ' of ' + batches.length + ')' : '';
+            const link = element('a', 'Download ' + id + ' save ZIP' + part);
+            link.href = URL.createObjectURL(zip);
+            urls.push(link.href);
+            link.download = id + '-save' + (part ? '-' + (batchIndex + 1) : '') + '.zip';
+            const submit = element('a', 'Open GitHub upload form' + part);
+            submit.href = githubRepo + '/issues/new?' + new URLSearchParams({template: 'save.yml', title: '[Save] ' + id + part, 'title-id': id, description: summary});
+            submit.target = '_blank';
+            submit.rel = 'noopener';
+            const row = element('p');
+            row.append(link, ' · ', submit);
+            links.append(row);
+          }
+        } catch (error) {
+          urls.forEach(url => URL.revokeObjectURL(url));
+          throw error;
+        }
+        zipLinks.replaceChildren(element('p', 'Download each ZIP and attach it to its own GitHub submission.'), links);
+        status.textContent = saves.length + (saves.length === 1 ? ' save ready' : ' saves ready') + ' for GitHub.';
         return;
       }
+      const [{save, companion}] = saves;
       const packageFile = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)]);
       const query = new URLSearchParams({platform: selectedPlatform, title: id, description: summary, consent: 'public'});
       const result = await request('/v1/saves?' + query, {method: 'POST', body: packageFile});
