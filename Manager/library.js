@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.1';
+  const UI_RELEASE = '2026.11.07.2';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -829,7 +829,7 @@
     saveControls.refresh.hidden=!available;
     saveControls.usb.hidden=!available;
     saveControls.usbStatus.textContent=supports('saveUSB')?'Choose a connected USB drive. Automatic backup runs on the PS5 while Manager is running.':'Load the latest Manager ELF to enable USB backups.';
-    saveControls.usbButtons.forEach(button=>button.disabled=!available||!supports('saveUSB'));
+    saveControls.usbButtons.forEach(button=>button.disabled=!available||saveControls.busy||!supports('saveUSB'));
     saveControls.status.textContent=available?'Your console game saves. Close games before downloading or backing up.':'Load the latest PSN-HUB-Manager.elf to enable integrated console saves.';
     if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();saveControls.headings=[];}
     if(state.manager&&!state.preview&&$('tab-save-manager').getAttribute('aria-selected')==='true'&&!saveControls.autoLoaded){saveControls.autoLoaded=true;openConsoleSaves();}
@@ -838,14 +838,59 @@
   async function saveTask(fn) {
     if(!saveControls||saveControls.busy)return;
     if(!state.manager||state.preview||!supports('saveRead')){updateSaveControls();return;}
-    saveControls.busy=true;saveControls.refresh.disabled=true;saveControls.list.querySelectorAll('button').forEach(button=>button.disabled=true);
-    try{await fn();}catch(error){saveControls.status.textContent=error.message;}finally{saveControls.busy=false;saveControls.refresh.disabled=false;saveControls.list.querySelectorAll('button').forEach(button=>button.disabled=false);}
+    const setBusy = busy => {
+      saveControls.busy = busy;
+      const available = state.manager && !state.preview && supports('saveRead');
+      saveControls.refresh.disabled = busy || !available;
+      saveControls.list.querySelectorAll('button').forEach(button => button.disabled = busy);
+      saveControls.usbButtons.forEach(button => button.disabled = busy || !available || !supports('saveUSB'));
+    };
+    setBusy(true);
+    try{await fn();}catch(error){saveControls.status.textContent=error.message;}finally{setBusy(false);}
   }
-  async function showSaveFiles(query,label) {
+  function saveBackupAction(parent, label, working, backup) {
+    const feedback = element('div', undefined, 'save-backup-feedback');
+    const progress = element('progress');
+    progress.max = 1;
+    progress.setAttribute('aria-label', label);
+    const message = element('p', undefined, 'hint');
+    message.setAttribute('role', 'status');
+    const elapsed = element('span');
+    elapsed.setAttribute('aria-hidden', 'true');
+    feedback.hidden = true;
+    feedback.append(progress, message, elapsed);
+
+    const button = action(label, () => saveTask(async () => {
+      const started = Date.now();
+      const showElapsed = () => {
+        const seconds = Math.floor((Date.now() - started) / 1000);
+        elapsed.textContent = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0') + ' elapsed';
+      };
+      progress.removeAttribute('value');
+      progress.hidden = false;
+      feedback.hidden = false;
+      message.textContent = working;
+      showElapsed();
+      const timer = setInterval(showElapsed, 1000);
+      try {
+        message.textContent = await backup();
+        progress.value = 1;
+      } catch (error) {
+        progress.hidden = true;
+        message.textContent = error.message;
+      } finally {
+        clearInterval(timer);
+        showElapsed();
+      }
+    }), 'secondary');
+    parent.append(button, feedback);
+    return button;
+  }
+  async function showSaveFiles(query,label,scroll=true) {
     const data=await saveJSON('/api/saves/files?'+query);saveControls.files.replaceChildren(element('h3',label));
     if(!data.items.length)saveControls.files.append(element('p','No raw files found.','hint'));
     for(const file of data.items){const link=element('a','Download '+file.name+' ('+file.size+' bytes)');link.href='/api/saves/download?'+query+'&name='+encodeURIComponent(file.name);link.download=file.name;const row=element('p');row.append(link);saveControls.files.append(row);}
-    if(typeof saveControls.files.scrollIntoView==='function')saveControls.files.scrollIntoView({block:'start',behavior:'smooth'});
+    if(scroll&&typeof saveControls.files.scrollIntoView==='function')saveControls.files.scrollIntoView({block:'start',behavior:'smooth'});
   }
   async function refreshSaves() {
     saveControls.status.textContent='Reading save folders…';saveControls.files.replaceChildren();
@@ -855,8 +900,22 @@
     for(const item of data.items){const query='user='+encodeURIComponent(item.user)+'&platform='+encodeURIComponent(item.platform)+'&title='+encodeURIComponent(item.title);const label=item.platform.toUpperCase()+' · '+item.title+' · User '+item.user;
       const heading=saveGameHeading(item.title,label);saveControls.headings.push({node:heading,item,detail:label});
       const row=element('section',undefined,'card');row.append(heading,action('View saves / download',()=>saveTask(()=>showSaveFiles(query,label)),'secondary'));
-      if(supports('saveBackup'))row.append(action('Back up title',()=>saveTask(async()=>{saveControls.status.textContent='Copying and verifying raw files. Keep the game closed…';const result=await saveJSON('/api/saves/backup?'+query,true);await showSaveFiles('id='+encodeURIComponent(result.id),result.id);saveControls.status.textContent='Snapshot saved on console: '+result.id+'. Download every listed file, including PS4 .bin keys. This is raw data, not a verified restorable export.';}),'secondary'));
-      if(supports('saveUSB'))row.append(action('Back up save to USB',()=>saveTask(async()=>{const usb=saveControls.usbSelect.value;if(!usb)throw Error('Connect a USB drive and refresh USB devices first.');saveControls.status.textContent='Copying and verifying this save on USB. Keep the game closed…';const result=await saveJSON('/api/saves/usb/export?usb='+encodeURIComponent(usb)+'&'+query,true);saveControls.status.textContent='Save copied to '+result.path;}),'secondary'));
+      if (supports('saveBackup')) saveBackupAction(row, 'Back up title', 'Copying and verifying raw files. Keep the game closed…', async () => {
+        const result = await saveJSON('/api/saves/backup?' + query, true);
+        const saved = 'Snapshot saved on console: ' + result.id + '.';
+        try {
+          await showSaveFiles('id=' + encodeURIComponent(result.id), result.id, false);
+        } catch (_) {
+          return saved + ' Refresh the save list to open its files.';
+        }
+        return saved + ' Download the raw files below, including any PS4 .bin keys.';
+      });
+      if (supports('saveUSB')) saveBackupAction(row, 'Back up save to USB', 'Copying and verifying this save on USB. Keep the game closed…', async () => {
+        const usb = saveControls.usbSelect.value;
+        if (!usb) throw Error('Connect an exFAT USB drive and refresh USB devices first.');
+        const result = await saveJSON('/api/saves/usb/export?usb=' + encodeURIComponent(usb) + '&' + query, true);
+        return 'Save copied to ' + result.path;
+      });
       saveControls.list.append(row);
     }
     saveControls.list.append(element('h3','Raw snapshots on this console'));
@@ -923,10 +982,15 @@
     const auto=element('input');auto.type='checkbox';const autoLabel=element('label','Automatically back up changed saves to USB ');autoLabel.append(auto);
     const minutes=element('select');minutes.setAttribute('aria-label','Automatic backup interval');for(const value of [15,30,60,180,1440]){const option=element('option',value+' minutes');option.value=String(value);minutes.append(option);}minutes.value='30';
     const refreshUSB=action('Refresh USB devices',()=>saveTask(refreshSaveUSB),'secondary');
-    const allUSB=action('Back up all changed saves to USB',()=>saveTask(async()=>{if(!usbSelect.value)throw Error('Connect a USB drive first.');saveControls.status.textContent='Backing up changed saves to USB. Keep games closed…';const result=await saveJSON('/api/saves/usb/all?usb='+encodeURIComponent(usbSelect.value),true);await refreshSaveUSB();saveControls.status.textContent=result.exported+' save folders copied to USB; '+result.unchanged+' unchanged.';}),'secondary');
+    const allUSB = element('div');
+    const allUSBButton = saveBackupAction(allUSB, 'Back up all changed saves to USB', 'Backing up changed saves to USB. Keep games closed…', async () => {
+      if (!usbSelect.value) throw Error('Connect an exFAT USB drive and refresh USB devices first.');
+      const result = await saveJSON('/api/saves/usb/all?usb=' + encodeURIComponent(usbSelect.value), true);
+      return result.exported + ' save folders copied to USB. ' + result.unchanged + ' unchanged.';
+    });
     const configUSB=action('Save automatic backup settings',()=>saveTask(async()=>{const id=usbSelect.value||'usb0';await saveJSON('/api/saves/usb/config?usb='+encodeURIComponent(id)+'&enabled='+(auto.checked?'1':'0')+'&minutes='+encodeURIComponent(minutes.value),true);await refreshSaveUSB();saveControls.status.textContent='USB automatic backup settings saved on this console.';}),'secondary');
     usb.append(element('h3','USB save backups'),usbStatus,usbSelect,refreshUSB,allUSB,autoLabel,minutes,configUSB);
-    saveControls={status,list,files,refresh,usb,usbStatus,usbSelect,auto,minutes,usbButtons:[refreshUSB,allUSB,configUSB],busy:false,autoLoaded:false,headings:[]};card.append(status,refresh,usb,list,files,advanced,credit);panel.append(card);managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);updateSaveControls();
+    saveControls={status,list,files,refresh,usb,usbStatus,usbSelect,auto,minutes,usbButtons:[refreshUSB,allUSBButton,configUSB],busy:false,autoLoaded:false,headings:[]};card.append(status,refresh,usb,list,files,advanced,credit);panel.append(card);managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);updateSaveControls();
     tab.addEventListener('click',async()=>{selectTab(tab);await openConsoleSaves();});tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(tab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
     const communityTab=element('button','COMMUNITY SAVES','tab');
     communityTab.id='tab-community-saves';communityTab.type='button';communityTab.tabIndex=-1;

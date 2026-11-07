@@ -7,6 +7,7 @@ class Node {
   append(...children){this.children.push(...children);}after(){}
   replaceChildren(...children){this.children=children;}
   setAttribute(name,value){this[name]=value;}
+  removeAttribute(name){delete this[name];}
   getAttribute(name){return this[name];}
   addEventListener(event,fn){this.events[event]=fn;}
   querySelectorAll(){return this.children.flatMap(child=>[...(child.tag==='button'?[child]:[]),...child.querySelectorAll()]);}
@@ -15,15 +16,17 @@ class Node {
 const element=(tag,text)=>new Node(tag,text),action=(text,fn)=>{const node=element('button',text);node.events.click=fn;return node;};
 const original=element('button');original.id='tab-emulators';nodes.set('panel-emulators',element('div'));
 const state={manager:true,preview:false,backend:{}},managerTabs=[original];let selected;
-const context=vm.createContext({state,element,action,managerTabs,location:{hostname:'console'},selectTab:tab=>{selected=tab;tab.setAttribute('aria-selected','true');},$:id=>nodes.get(id),supports:key=>state.backend[key]===true,encodeURIComponent,
+const context=vm.createContext({state,element,action,managerTabs,location:{hostname:'console'},selectTab:tab=>{selected=tab;tab.setAttribute('aria-selected','true');},$:id=>nodes.get(id),supports:key=>state.backend[key]===true,encodeURIComponent,setInterval,clearInterval,
   response:async(url,options)=>{calls.push({url,options});let data;
     if(url==='/api/saves')data={items:[{user:'00000001',platform:'ps5',title:'PPSA00001',name:'Example Game',hasIcon:true}]};
     else if(url.startsWith('/api/saves/usb/config')||url==='/api/saves/usb')data={volumes:['usb0'],enabled:false,usb:'usb0',minutes:30,lastRun:0};
-    else if(url.startsWith('/api/saves/usb/all'))data={exported:1,unchanged:2};
+    else if(url.startsWith('/api/saves/usb/all'))data=await pendingUSB;
     else if(url==='/api/saves/backups')data={items:[{id:'save-existing'}]};
     else if(url.startsWith('/api/saves/backup?'))data={id:'save-created'};
     else data={items:[{name:'slot.bin',size:16}]};return {text:async()=>JSON.stringify(data)};
   }});
+let finishUSB;
+const pendingUSB = new Promise(resolve => {finishUSB = resolve;});
 vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.indexOf('  saveManagerControls(); backgroundControls();'))+'\nsaveManagerControls();globalThis.controls=saveControls;',context);
 (async()=>{
   const controls=context.controls,tab=nodes.get('tab-save-manager');
@@ -41,8 +44,20 @@ vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.i
   assert(controls.files.children[1].children[0].href.includes('name=slot.bin'));
   await controls.list.children[0].children[2].events.click();
   const backup=calls.find(call=>call.options.method==='POST');assert(backup);assert.equal(backup.options.headers['X-PSNHUB-Request'],'1');
-  assert(controls.status.textContent.includes('save-created'));assert(controls.status.textContent.includes('not a verified restorable export'));
+  assert(controls.list.children[0].children[3].children[1].textContent.includes('save-created'));
   state.backend.saveUSB=true;await controls.refresh.events.click();assert.equal(controls.usbSelect.value,'usb0');
+  const bulk = controls.usb.children.find(child => child.children.includes(controls.usbButtons[1]));
+  const [bar, backupMessage, elapsed] = bulk.children[1].children;
+  const copying = controls.usbButtons[1].events.click();
+  assert.equal(bar.hidden,false);
+  assert.equal(bar.value,undefined);
+  assert.equal(elapsed.textContent,'0:00 elapsed');
+  assert.equal(controls.usbButtons[1].disabled,true);
+  finishUSB({exported:1,unchanged:2});
+  await copying;
+  assert.equal(bar.value,1);
+  assert.match(backupMessage.textContent,/1 save folders copied to USB\. 2 unchanged/);
+  assert.equal(controls.usbButtons[1].disabled,false);
   controls.auto.checked=true;await controls.usbButtons[2].events.click();
   assert(calls.some(call=>call.url.includes('/api/saves/usb/config?usb=usb0&enabled=1&minutes=30')&&call.options.method==='POST'));
   state.backend.saveUSB=false;
