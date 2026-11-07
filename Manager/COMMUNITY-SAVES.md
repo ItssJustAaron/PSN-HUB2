@@ -10,11 +10,11 @@ Start the library with Node.js using `node tools/community-saves.cjs`. For inter
 | `PSNHUB_COMMUNITY_HOST` | Bind address. Defaults to loopback. Use the PC's LAN address for a private network test. |
 | `PSNHUB_COMMUNITY_PORT` | Listening port. Defaults to 8095. |
 
-Anyone can browse approved saves and submit an encrypted PS5 save image or a PS4 save image with its 96-byte companion key. Every new submission requires a one-line description of 1–240 characters and consent to share publicly. Submissions stay private until a reviewer approves them using the reviewer code. Reviewers can inspect packages and withdraw approved listings.
+Anyone can browse published saves and submit an encrypted PS5 save image or a PS4 save image with its 96-byte companion key. Every new submission requires a one-line description of 1–240 characters and consent to share publicly. New uploads publish automatically. Administrators can withdraw a listing or retry a failed publication.
 
-Set `PSNHUB_GITHUB_TOKEN` on the Community Saves server to enable automatic publication. Use a fine-grained GitHub token restricted to `PSN-HUB-Saves` with **Contents: Read and write**. Approval publishes a release with the description, encrypted image, and PS4 key when applicable. Withdrawal removes the corresponding release. Submissions made before public consent was recorded must be resubmitted before they can be archived. [Browse approved saves](https://github.com/ItssJustAaron/PSN-HUB-Saves/releases)
+Set `PSNHUB_GITHUB_TOKEN` on the Community Saves server to publish new uploads to GitHub. Use a fine-grained GitHub token restricted to `PSN-HUB-Saves` with **Contents: Read and write**. The server creates a release with the description, encrypted image, and PS4 key when applicable. Withdrawal removes the corresponding release. Without a token, uploads publish to the local library. Existing pending submissions keep their previous status. [Browse published saves](https://github.com/ItssJustAaron/PSN-HUB-Saves/releases)
 
-In Manager, choose **Submit a save for review → Choose a save on this PS5 → Load console saves** to select a game and save file. Close the game first. You can also select encrypted files on your PC using the upload form.
+In Manager, choose **Upload a save → Choose a save on this PS5 → Load console saves** to select a game and save file. Close the game first. You can also select encrypted files on your PC using the upload form.
 
 Use a fresh data directory when opening a former private pilot to the public. Only bring over submissions whose authors agreed to public sharing.
 

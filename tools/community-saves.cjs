@@ -27,6 +27,14 @@ async function createServer({directory, adminToken, origins = [], archive}) {
   let uploading = false;
   const reviewing = new Set();
 
+  async function approve(item, folder) {
+    if (archive) {
+      if (!item.publicConsent) throw failure(409, 'This save must be resubmitted with public-sharing consent.');
+      await archive.publish(item, folder);
+    }
+    await fsp.writeFile(path.join(folder, 'approved'), '', {flag: 'a', mode: 0o600});
+  }
+
   async function getEntry(id) {
     if (!idPattern.test(id)) throw failure(404, 'Save unavailable.');
     const folder = path.join(directory, id);
@@ -59,7 +67,7 @@ async function createServer({directory, adminToken, origins = [], archive}) {
       if (!((platform === 'ps4' && /^CUSA\d{5}$/.test(title)) || (platform === 'ps5' && /^PPSA\d{5}$/.test(title)))) {
         throw failure(400, 'Invalid title or platform.');
       }
-      if (url.searchParams.get('consent') !== 'public') throw failure(400, 'Agree to share the save publicly after review.');
+      if (url.searchParams.get('consent') !== 'public') throw failure(400, 'Agree to share the save publicly.');
       if (!Number.isSafeInteger(bytes) || bytes <= keyBytes || bytes > maxBytes || req.headers['content-type'] !== 'application/octet-stream') {
         throw failure(400, 'A raw save package of up to 256 MiB with a known size is required.');
       }
@@ -80,9 +88,19 @@ async function createServer({directory, adminToken, origins = [], archive}) {
       if (received !== bytes) throw failure(400, 'Upload was incomplete.');
       const entry = {id, platform, title, description, bytes, sha256: hash.digest('hex'), submitted: new Date().toISOString(), publicConsent: true};
       await fsp.writeFile(path.join(staging, 'entry.json'), JSON.stringify(entry), {mode: 0o600});
-      await fsp.rename(staging, path.join(directory, id));
-      staging = undefined;
-      return {...entry, approved: false};
+      const folder = path.join(directory, id);
+      reviewing.add(id);
+      try {
+        await fsp.rename(staging, folder);
+        staging = undefined;
+        try {
+          await approve(entry, folder);
+          return {...entry, approved: true, archived: !!archive};
+        } catch (error) {
+          console.error('Could not publish submission ' + id + ': ' + error.message);
+          return {...entry, approved: false, archived: false};
+        }
+      } finally {reviewing.delete(id);}
     } finally {
       try {
         if (staging) await fsp.rm(staging, {recursive: true, force: true});
@@ -136,11 +154,7 @@ async function createServer({directory, adminToken, origins = [], archive}) {
       try {
         const flag = path.join(folder, 'approved');
         if (operation === 'approve') {
-          if (archive) {
-            if (!item.publicConsent) throw failure(409, 'This save must be resubmitted with public-sharing consent.');
-            await archive.publish(item, folder);
-          }
-          await fsp.writeFile(flag, '', {flag: 'a', mode: 0o600});
+          await approve(item, folder);
         } else {
           if (archive) await archive.withdraw(item);
           await fsp.unlink(flag).catch(error => {if (error.code !== 'ENOENT') throw error;});

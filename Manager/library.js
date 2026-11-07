@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.6';
+  const UI_RELEASE = '2026.11.07.7';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -998,7 +998,7 @@
     const communityPanel=element('div',undefined,'tab-panel');communityPanel.id='panel-community-saves';communityPanel.hidden=true;
     communityPanel.setAttribute('role','tabpanel');communityPanel.setAttribute('aria-labelledby',communityTab.id);
     const community=element('section',undefined,'card save-tools');
-    community.append(element('h2','Community Saves'),element('p','Anyone can submit a save with a description. Approved saves can be downloaded and prepared for a local PS5 profile.','hint'));
+    community.append(element('h2','Community Saves'),element('p','Upload a save with a description to share it immediately. Published saves can be downloaded and prepared for a local PS5 profile.','hint'));
     const openCommunity=action('Open community library',async()=>{
       openCommunity.disabled=true;
       try{

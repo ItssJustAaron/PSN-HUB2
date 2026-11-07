@@ -66,7 +66,7 @@
       status.textContent = 'Refresh to connect with the new library details.';
     });
     const form = element('details');
-    form.append(element('summary', 'Submit a save for review'));
+    form.append(element('summary', 'Upload a save'));
     const platform = field('Platform', element('select'), form);
     for (const value of ['ps5', 'ps4']) {
       const option = element('option', value.toUpperCase());
@@ -130,7 +130,7 @@
     }
     const consent = element('input');
     consent.type = 'checkbox';
-    field('I agree to share this save publicly after review. The file may contain account metadata.', consent, form);
+    field('I agree to publish this save for anyone to download. The file may contain account metadata.', consent, form);
     const updateKey = () => {key.parentNode.hidden = platform.value !== 'ps4';};
     platform.addEventListener('change', updateKey);
     updateKey();
@@ -191,7 +191,7 @@
           }}))));
         }
         if (data.reviewer) {
-          row.append(element('p', item.approved ? 'Approved' : 'Pending review', 'hint'));
+          row.append(element('p', item.approved ? 'Published in this library' : 'Awaiting publication', 'hint'));
         }
         if (data.reviewer || (item.approved && !selectShared)) {
           row.append(action(data.reviewer ? 'Download for review' : 'Download save files', () => run(async () => {
@@ -208,8 +208,8 @@
           }), 'secondary'));
         }
         if (data.reviewer) {
-          row.append(action(item.approved ? 'Withdraw' : 'Approve reviewed save', () => run(async () => {
-            if (!root.confirm(item.approved ? 'Withdraw this save from the library?' : 'Publish this reviewed save for everyone?')) return;
+          row.append(action(item.approved ? 'Withdraw' : 'Publish save', () => run(async () => {
+            if (!root.confirm(item.approved ? 'Withdraw this save from the library?' : 'Publish this save for everyone?')) return;
             const result = await request(routeFor(item, item.approved ? 'withdraw' : 'approve'), {method: 'POST'});
             await refresh();
             if (result.approved) status.textContent = result.archived
@@ -218,9 +218,9 @@
         }
         list.append(row);
       }
-      status.textContent = list.children.length ? 'Community library loaded.' : 'No saves available. Submissions appear after review.';
+      status.textContent = list.children.length ? 'Community library loaded.' : 'No saves available yet.';
     }
-    form.append(action('Submit for review', () => run(async () => {
+    form.append(action('Upload and publish', () => run(async () => {
       const entry = consoleTitle?.value ? consoleEntries[Number(consoleTitle.value)] : null;
       const selectedPlatform = entry?.platform || platform.value;
       const id = entry?.title || title.value.trim().toUpperCase();
@@ -246,9 +246,12 @@
       };
       const packageFile = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)]);
       const query = new URLSearchParams({platform: selectedPlatform, title: id, description: summary, consent: 'public'});
-      await request('/v1/saves?' + query, {method: 'POST', body: packageFile});
+      const result = await request('/v1/saves?' + query, {method: 'POST', body: packageFile});
       image.value = '';key.value = '';description.value = '';consent.checked = false;
-      status.textContent = 'Submitted privately. A reviewer must approve it before others can download it.';
+      if (result.approved) await refresh().catch(() => {});
+      status.textContent = result.archived ? 'Published to the library and GitHub.'
+        : result.approved ? 'Published to this library. GitHub publishing is not configured.'
+        : 'Upload saved, but publication failed. An administrator can retry it.';
     })));
     const archive = element('a', 'Browse approved saves on GitHub');
     archive.href = 'https://github.com/ItssJustAaron/PSN-HUB-Saves/releases';
