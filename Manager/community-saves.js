@@ -39,8 +39,8 @@
     return blob;
   }
 
-  function mount({container, element, action, gameHeading, selectShared}) {
-    const status = element('p', 'Enter your private library address and access code.', 'hint');
+  function mount({container, element, action, gameHeading, selectShared, libraryOrigin}) {
+    const status = element('p', 'Enter the Community Saves library address to browse or submit a save.', 'hint');
     status.setAttribute('role', 'status');
     const field = (label, node, parent = container) => {
       const wrapper = element('label', label);
@@ -51,7 +51,13 @@
     const address = field('Library address', element('input'));
     address.type = 'url';
     address.placeholder = 'https://saves.example.org';
-    const code = field('Access or review code', element('input'));
+    if (libraryOrigin) {
+      address.value = libraryOrigin;
+      address.parentNode.hidden = true;
+    }
+    const review = element('details');
+    review.append(element('summary', 'Reviewer access'));
+    const code = field('Reviewer code', element('input'), review);
     code.type = 'password';
     code.autocomplete = 'off';
     const list = element('div');
@@ -70,8 +76,9 @@
     const title = field('Title ID', element('input'), form);
     title.type = 'text';
     title.maxLength = 9;
-    const description = field('Description (optional)', element('input'), form);
+    const description = field('Description (required)', element('input'), form);
     description.type = 'text';
+    description.required = true;
     description.maxLength = 240;
     const image = field('Encrypted save image', element('input'), form);
     image.type = 'file';
@@ -80,7 +87,7 @@
     key.accept = '.bin';
     const consent = element('input');
     consent.type = 'checkbox';
-    field('I am sharing this save with reviewers and approved library members. The file may contain account metadata.', consent, form);
+    field('I agree to share this save publicly after review. The file may contain account metadata.', consent, form);
     const updateKey = () => {key.parentNode.hidden = platform.value !== 'ps4';};
     platform.addEventListener('change', updateKey);
     updateKey();
@@ -98,13 +105,13 @@
     const connection = () => {
       const origin = libraryURL(address.value);
       const token = code.value.trim();
-      if (!/^[\x21-\x7e]{24,128}$/.test(token)) throw Error('Enter the library access code.');
+      if (token && !/^[\x21-\x7e]{24,128}$/.test(token)) throw Error('Enter a valid reviewer code or leave it blank.');
       return async (route, {method = 'GET', body, read = response => response.json()} = {}) => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 300000);
         try {
           const response = await fetch(origin + route, {method, body, cache: 'no-store', credentials: 'omit', redirect: 'error',
-            headers: {Authorization: 'Bearer ' + token, ...(body ? {'Content-Type': 'application/octet-stream'} : {})}, signal: controller.signal});
+            headers: {...(token ? {Authorization: 'Bearer ' + token} : {}), ...(body ? {'Content-Type': 'application/octet-stream'} : {})}, signal: controller.signal});
           if (!response.ok) {
             const error = await response.json().catch(() => ({}));
             throw Error(error.error || 'Library HTTP ' + response.status);
@@ -132,7 +139,7 @@
         row.append(gameHeading(item.title, item.platform.toUpperCase() + ' · ' + item.title));
         if (item.description) row.append(element('p', item.description));
         const download = () => request(routeFor(item, 'download'), {read: response => readPackage(response, item)});
-        if (item.approved) {
+        if (item.approved && selectShared) {
           row.append(action('Install & resign', () => run(() => selectShared({title: item.title, platform: item.platform, async download() {
             const packageFile = await download();
             return {image: packageFile.slice(keyBytes), key: keyBytes ? packageFile.slice(0, keyBytes) : undefined};
@@ -140,7 +147,9 @@
         }
         if (data.reviewer) {
           row.append(element('p', item.approved ? 'Approved' : 'Pending review', 'hint'));
-          row.append(action('Download for review', () => run(async () => {
+        }
+        if (data.reviewer || (item.approved && !selectShared)) {
+          row.append(action(data.reviewer ? 'Download for review' : 'Download save files', () => run(async () => {
             const packageFile = await download();
             const reviewFiles = [[item.title + '-image.bin', packageFile.slice(keyBytes)]];
             if (keyBytes) reviewFiles.push([item.title + '-key.bin', packageFile.slice(0, keyBytes)]);
@@ -152,8 +161,10 @@
               setTimeout(() => URL.revokeObjectURL(link.href), 120000);
             }
           }), 'secondary'));
+        }
+        if (data.reviewer) {
           row.append(action(item.approved ? 'Withdraw' : 'Approve reviewed save', () => run(async () => {
-            if (!root.confirm(item.approved ? 'Withdraw this save from the library?' : 'Approve this reviewed save for library members?')) return;
+            if (!root.confirm(item.approved ? 'Withdraw this save from the library?' : 'Publish this reviewed save for everyone?')) return;
             await request(routeFor(item, item.approved ? 'withdraw' : 'approve'), {method: 'POST'});
             await refresh();
           }), 'secondary'));
@@ -164,6 +175,11 @@
     }
     form.append(action('Submit for review', () => run(async () => {
       const id = title.value.trim().toUpperCase();
+      const summary = description.value.trim();
+      if (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary)) {
+        description.focus();
+        throw Error('Enter a description between 1 and 240 characters on one line.');
+      }
       const save = image.files[0];
       const companion = platform.value === 'ps4' ? key.files[0] : null;
       if (!consent.checked || !validTitle(id, platform.value) || !save?.size || (platform.value === 'ps4' && companion?.size !== 96)) {
@@ -171,12 +187,13 @@
       }
       const packageFile = new Blob(companion ? [companion, save] : [save]);
       if (packageFile.size > limit) throw Error('Community save packages are limited to 256 MiB.');
-      const query = new URLSearchParams({platform: platform.value, title: id, description: description.value.trim()});
+      const query = new URLSearchParams({platform: platform.value, title: id, description: summary});
       await connection()('/v1/saves?' + query, {method: 'POST', body: packageFile});
-      image.value = '';key.value = '';consent.checked = false;
+      image.value = '';key.value = '';description.value = '';consent.checked = false;
       status.textContent = 'Submitted privately. A reviewer must approve it before others can download it.';
     })));
-    container.append(action('Refresh community library', () => run(refresh), 'secondary'), status, form, list);
+    container.append(review, action('Refresh community library', () => run(refresh), 'secondary'), status, form, list);
+    if (libraryOrigin) run(refresh);
   }
   root.PSNCommunitySaves = {mount};
 })(window);

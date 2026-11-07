@@ -8,7 +8,7 @@ PSN-HUB is a Relapse jailbreak host for supported PS5 firmware. After jailbreak,
 
 ## Current release
 
-**Manager 0.4.1** adds game names and icons to the Saves tab and introduces the private Community Saves pilot. Console save browsing, USB backups, advanced save tools, and shortcut artwork are included in one `PSN-HUB-Manager.elf`. The [build manifest](Manager/build.json) records the current UI release, catalogue version, and ELF SHA-256.
+**Manager 0.4.1** adds game names and icons to the Saves tab and introduces Community Saves. Console save browsing, USB backups, advanced save tools, and shortcut artwork are included in one `PSN-HUB-Manager.elf`. The [build manifest](Manager/build.json) records the current UI release, catalogue version, and ELF SHA-256.
 
 ## Getting started
 
@@ -44,7 +44,7 @@ Each HEN, mod menu, and emulator has its own requirements. Manager hides known i
 | **Emulators** | View prerequisites and send the PS5SX2 installer. |
 | **My Library** | Access favourites and recent actions. |
 | **Saves** | Browse console saves, download encrypted files, take snapshots, back up to USB, and open advanced save tools. |
-| **Community Saves** | Submit an encrypted save to a private library or prepare an approved save for installation. A library operator must configure the backend. |
+| **Community Saves** | Submit an encrypted save with a required description or prepare an approved save for installation. A library operator must configure the backend. |
 
 Choose the active HEN and confirm the destination before installing cheats. The unified Manager supports `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`, with files grouped by format. It also provides installed-file inventory and cheat backup and restore. Console profiles and display preferences are stored in the browser.
 
@@ -58,7 +58,7 @@ The built-in Garlic SaveMgr engine handles decryption, encryption, resigning, an
 
 ### Community Saves
 
-The pilot uses a separate private library with member and reviewer codes. Reviewers approve submissions before members can download them. To install an approved save, choose **Install & resign**, select the receiving console user, and review the import. The console checks that the save matches the listed title and assigns ownership during installation. [Library setup and testing](Manager/COMMUNITY-SAVES.md)
+Anyone can submit a save with a description. Reviewers approve submissions before they appear publicly. The library runs on a separate server. To install an approved save, choose **Install & resign**, select the receiving console user, and review the import. The console checks that the save matches the listed title and assigns ownership during installation. [Library setup and testing](Manager/COMMUNITY-SAVES.md)
 
 ### Home-screen shortcut and artwork
 

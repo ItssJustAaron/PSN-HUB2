@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PSN-HUB Community Saves</title>
+  <style>
+    body { background: #180925; color: #f3eafa; font: 1rem/1.5 system-ui, sans-serif; margin: 0; }
+    main { max-width: 720px; margin: auto; padding: 24px 16px; }
+    h1, a { color: #baff82; }
+    .card, details { border: 1px solid #59347c; border-radius: 12px; padding: 12px; margin: 12px 0; }
+    label { display: block; margin: 10px 0; }
+    input:not([type="checkbox"]), select { display: block; max-width: 100%; }
+    input, select, button { font: inherit; }
+    button { margin: 6px 8px 6px 0; padding: 6px 10px; }
+    .card a { display: block; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>PSN-HUB Community Saves</h1>
+    <p>Browse approved saves or submit your own. Include what the save contains so others know what they’re downloading.</p>
+    <section id="community"></section>
+  </main>
+  <script src="/community-saves.js"></script>
+  <script>
+    function element(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+    function action(label, handler) {
+      const button = element('button', label);
+      button.type = 'button';
+      button.addEventListener('click', handler);
+      return button;
+    }
+    PSNCommunitySaves.mount({
+      container: document.getElementById('community'),
+      libraryOrigin: location.origin,
+      element,
+      action,
+      gameHeading: (title, detail) => element('h3', detail)
+    });
+  </script>
+</body>
+</html>

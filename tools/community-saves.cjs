@@ -1,4 +1,4 @@
-/* Private Community Saves pilot. Run behind HTTPS when serving beyond the LAN. */
+/* Public submissions and downloads. Run behind HTTPS when serving beyond the LAN. */
 const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -18,10 +18,9 @@ function matches(header, token) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
-async function createServer({directory, token, adminToken, origins}) {
-  if (!directory || !path.isAbsolute(directory) || !token || !adminToken ||
-      token.length < 24 || adminToken.length < 24 || token === adminToken || !origins?.length) {
-    throw Error('Set an absolute private data directory, distinct 24+ character codes and allowed Manager origins.');
+async function createServer({directory, adminToken, origins = []}) {
+  if (!directory || !path.isAbsolute(directory) || !/^[\x21-\x7e]{24,128}$/.test(adminToken || '')) {
+    throw Error('Set an absolute private data directory and a reviewer code of 24–128 printable characters without spaces.');
   }
   await fsp.mkdir(directory, {recursive: true, mode: 0o700});
   let uploading = false;
@@ -52,13 +51,17 @@ async function createServer({directory, token, adminToken, origins}) {
       const description = (url.searchParams.get('description') || '').trim();
       const bytes = Number(req.headers['content-length']);
       const keyBytes = platform === 'ps4' ? 96 : 0;
-      if (!((platform === 'ps4' && /^CUSA\d{5}$/.test(title)) || (platform === 'ps5' && /^PPSA\d{5}$/.test(title))) ||
-          description.length > 240 || /[\x00-\x1f\x7f]/.test(description)) throw failure(400, 'Invalid title, platform or description.');
+      if (!description || description.length > 240 || /[\x00-\x1f\x7f]/.test(description)) {
+        throw failure(400, 'Enter a description between 1 and 240 characters on one line.');
+      }
+      if (!((platform === 'ps4' && /^CUSA\d{5}$/.test(title)) || (platform === 'ps5' && /^PPSA\d{5}$/.test(title)))) {
+        throw failure(400, 'Invalid title or platform.');
+      }
       if (!Number.isSafeInteger(bytes) || bytes <= keyBytes || bytes > maxBytes || req.headers['content-type'] !== 'application/octet-stream') {
         throw failure(400, 'A raw save package of up to 256 MiB with a known size is required.');
       }
       if ((await fsp.readdir(directory)).filter(id => idPattern.test(id) || id.startsWith('.incoming-')).length >= maxEntries) {
-        throw failure(507, 'The test library is full.');
+        throw failure(507, 'The library is full.');
       }
       const id = randomUUID();
       staging = await fsp.mkdtemp(path.join(directory, '.incoming-'));
@@ -93,15 +96,21 @@ async function createServer({directory, token, adminToken, origins}) {
     res.setHeader('Vary', 'Origin');
     const json = (status, body) => res.writeHead(status, {'Content-Type': 'application/json'}).end(JSON.stringify(body));
     try {
-      if (origin && !origins.includes(origin)) throw failure(403, 'This Manager address is not allowed.');
-      if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
+      const reviewOrigin = !origin || origins.includes(origin);
+      res.setHeader('Access-Control-Allow-Origin', origin && reviewOrigin ? origin : '*');
       if (req.method === 'OPTIONS') {
         res.writeHead(204, {'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type'}).end();
         return;
       }
       const url = new URL(req.url, 'http://localhost');
-      const admin = matches(req.headers.authorization, adminToken);
-      if (!admin && !matches(req.headers.authorization, token)) throw failure(401, 'Enter a valid library access code.');
+      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/community-saves.js')) {
+        const page = url.pathname === '/';
+        const file = page ? 'community-saves.html' : 'community-saves.js';
+        const content = await fsp.readFile(path.join(__dirname, '..', 'Manager', file));
+        return res.writeHead(200, {'Content-Type': page ? 'text/html; charset=utf-8' : 'text/javascript; charset=utf-8'}).end(content);
+      }
+      const admin = reviewOrigin && matches(req.headers.authorization, adminToken);
+      if (req.headers.authorization && !admin) throw failure(403, 'The reviewer code or origin is not authorised.');
       if (url.pathname === '/v1/saves' && req.method === 'GET') {
         const entries = await Promise.all((await fsp.readdir(directory)).filter(id => idPattern.test(id)).map(getEntry));
         return json(200, {reviewer: admin, items: entries.map(entry => entry.item).filter(item => admin || item.approved).sort((a, b) => b.submitted.localeCompare(a.submitted))});
@@ -134,10 +143,10 @@ async function createServer({directory, token, adminToken, origins}) {
 
 if (require.main === module) {
   const env = process.env;
-  createServer({directory: env.PSNHUB_COMMUNITY_DATA, token: env.PSNHUB_COMMUNITY_CODE,
+  createServer({directory: env.PSNHUB_COMMUNITY_DATA,
     adminToken: env.PSNHUB_COMMUNITY_ADMIN, origins: env.PSNHUB_COMMUNITY_ORIGINS?.split(',').map(x => x.trim()).filter(Boolean)})
     .then(server => server.listen(Number(env.PSNHUB_COMMUNITY_PORT || 8095), env.PSNHUB_COMMUNITY_HOST || '127.0.0.1', () => {
-      console.log('Private Community Saves library listening on', server.address());
+      console.log('Community Saves library listening on', server.address());
     })).catch(error => {console.error(error.message);process.exitCode = 1;});
 }
 module.exports = {createServer};
