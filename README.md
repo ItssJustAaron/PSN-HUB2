@@ -98,7 +98,7 @@ Use `node tools/preview-manager.cjs` to preview the dashboard at `http://127.0.0
 
 ## Credits
 
-- **PSN-HUB site and Manager** — AKAY Blunt / ItssJustAaron.
+- **PSN-HUB site and Manager** — ItssJustAaron.
 - **Relapse jailbreak** — Karo, Zecoxao, ChendoChap, flat_z, TheFlow, itsPLK, and the Relapse contributors and testers.
 - **PS5 tools and build tooling** — John Törnblom and the ps5-payload-dev contributors for [elfldr](https://github.com/ps5-payload-dev/elfldr), [ftpsrv](https://github.com/ps5-payload-dev/ftpsrv), [klogsrv](https://github.com/ps5-payload-dev/klogsrv), and the [PS5 Payload SDK](https://github.com/ps5-payload-dev/sdk). Thanks to drakmor for [ShadowMountPlus](https://github.com/drakmor/ShadowMountPlus) and the [SQLite contributors](https://sqlite.org/crew.html).
 - **Homebrew enablers** — cragson for [PS5-HEN](https://github.com/cragson/ps5-hen), LightningMods and the [etaHEN team](https://github.com/etaHEN/etaHEN), and aydencharles for [onionHEN](https://github.com/aydencharles/onionHEN).
