@@ -152,6 +152,9 @@
     const zipLinks = element('div');
     const uploadStatus = element('p', '', 'hint');
     uploadStatus.setAttribute('role', 'status');
+    let saveDownload;
+    const cancelDownload = action('Cancel save preparation', () => saveDownload?.abort(), 'secondary');
+    cancelDownload.hidden = true;
     const updateKey = () => {key.parentNode.hidden = platform.value !== 'ps4';};
     platform.addEventListener('change', updateKey);
     updateKey();
@@ -309,7 +312,9 @@
     const prepare = forMega => run(async () => {
       const feedback = forMega ? uploadStatus : status;
       if (forMega) {
-        for (const link of zipLinks.querySelectorAll('a[download]')) URL.revokeObjectURL(link.href);
+        for (const link of zipLinks.querySelectorAll('a[download]')) {
+          if (link.href.startsWith('blob:')) URL.revokeObjectURL(link.href);
+        }
         zipLinks.replaceChildren();
         feedback.textContent = 'Checking the selected save…';
       } else uploadStatus.textContent = '';
@@ -361,11 +366,59 @@
         feedback.textContent = entry ? 'Reading the save from your PS5. Large saves can take a few minutes…'
           : 'Preparing the MEGA upload file…';
         const [{save, companion}] = saves;
-        const packageFile = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)],
-          {type: 'application/octet-stream'});
         const slot = save.name.replace(/[^A-Za-z0-9_-]+/g, '-').slice(0, 64) || 'save';
         const download = element('a', 'Download ' + id + ' save package');
-        download.href = URL.createObjectURL(packageFile);
+        const direct = entry && !companion && consoleSaves.downloadURL;
+        if (direct) {
+          download.href = consoleSaves.downloadURL(entry, save.name);
+        } else {
+          let imageFile = save;
+          let keyFile = companion;
+          if (entry) {
+            const controller = new AbortController();
+            saveDownload = controller;
+            cancelDownload.hidden = false;
+            const timer = setTimeout(() => controller.abort(), 600000);
+            let received = 0;
+            const total = save.size + (companion?.size || 0);
+            const stream = async file => {
+              const result = await consoleSaves.download(entry, file.name, controller.signal);
+              if (!result.ok) throw Error('Console download failed (HTTP ' + result.status + ').');
+              const reader = result.body.getReader();
+              const chunks = [];
+              let size = 0;
+              try {
+                for (;;) {
+                  const {done, value} = await reader.read();
+                  if (done) break;
+                  size += value.byteLength;
+                  if (size > file.size) throw Error('The console save changed. Reload the save list and try again.');
+                  received += value.byteLength;
+                  chunks.push(value);
+                  feedback.textContent = 'Reading the save from your PS5… ' + Math.floor(received * 100 / total) + '%';
+                }
+                if (size !== file.size) throw Error('The console sent an incomplete save. Reload the save list and try again.');
+                return new Blob(chunks);
+              } finally {
+                if (size !== file.size) await reader.cancel().catch(() => {});
+                reader.releaseLock();
+              }
+            };
+            try {
+              if (companion) keyFile = await stream(companion);
+              imageFile = await stream(save);
+            } catch (error) {
+              if (controller.signal.aborted) throw Error('Save preparation was cancelled or timed out.');
+              throw error;
+            } finally {
+              clearTimeout(timer);
+              cancelDownload.hidden = true;
+              saveDownload = undefined;
+            }
+          }
+          const packageFile = new Blob(keyFile ? [keyFile, imageFile] : [imageFile], {type: 'application/octet-stream'});
+          download.href = URL.createObjectURL(packageFile);
+        }
         download.download = id + '-' + slot + '.bin';
         const upload = element('a', 'Open MEGA upload page');
         upload.href = megaRequest;
@@ -373,7 +426,9 @@
         upload.rel = 'noopener noreferrer';
         const steps = element('p');
         steps.append(download, ' · ', upload);
-        zipLinks.replaceChildren(element('p', 'Download the package, then select it on the MEGA upload page. MEGA submissions require separate catalogue publication.'), steps);
+        zipLinks.replaceChildren(element('p', direct
+          ? 'Download the save directly from your PS5. Your browser shows progress and can cancel the download. Then select the file on MEGA.'
+          : 'Download the package, then select it on the MEGA upload page. MEGA submissions require separate catalogue publication.'), steps);
         feedback.textContent = 'Save package ready for MEGA.';
         return;
       }
@@ -527,7 +582,7 @@
         : 'Upload saved, but publication failed. An administrator can retry it.';
     }, forMega ? uploadStatus : status);
     form.append(action(github && !largeUploadOrigin ? 'Prepare ZIP for GitHub' : 'Upload or prepare ZIP', () => prepare(false)));
-    if (megaRequest) form.append(action('Prepare save for MEGA', () => prepare(true), 'secondary'), uploadStatus);
+    if (megaRequest) form.append(action('Prepare save for MEGA', () => prepare(true), 'secondary'), uploadStatus, cancelDownload);
     form.append(zipLinks);
     const archive = element('a', 'Browse approved saves on GitHub');
     archive.href = githubRepo + (github ? '/issues' : '/releases');

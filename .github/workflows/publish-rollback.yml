@@ -1,0 +1,29 @@
+name: Publish Manager rollback
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Full SHA of the validated Manager build to preserve
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Verify and publish rollback ELF
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVISION: ${{ inputs.revision }}
+        run: |
+          python tools/package-rollback.py "$REVISION" "$RUNNER_TEMP/rollback"
+          git merge-base --is-ancestor "$REVISION" origin/main
+          cd "$RUNNER_TEMP/rollback"
+          sha256sum --check PSN-HUB-Manager.elf.sha256
+          gh release create "manager-rollback-${REVISION:0:12}" --repo "$GITHUB_REPOSITORY" \
+            --target "$REVISION" --latest=false --title "Manager rollback ${REVISION:0:12}" \
+            --notes-file notes.md PSN-HUB-Manager.elf PSN-HUB-Manager.elf.sha256
