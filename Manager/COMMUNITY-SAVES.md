@@ -6,6 +6,10 @@ Once GitHub processes the submission, refresh the library in Manager. Choose **I
 
 ## Large uploads
 
+The default GitHub workflow accepts individual encrypted saves up to 1 GiB without paid hosting. Select a single save and choose **Prepare ZIP for GitHub**. For a large save, download all numbered ZIPs and attach them to the same GitHub issue. GitHub Actions checks and reassembles the parts and publishes the result as a release asset. In Manager, download the release file, select that file on the same listing, and choose **Install & resign**. Separate batches produced by **All saves for this game** still use one issue per batch.
+
+## Optional hosted large uploads
+
 Deploy the included Render Blueprint to a public HTTPS service with a persistent disk and set `PSNHUB_GITHUB_TOKEN` in the host's environment. Verify that `/v1/saves` returns `largeUploadBytes: 1073741824`, then set `largeUploadOrigin` in `Manager/community-saves-config.json` to that service's origin. Leave `libraryOrigin` empty to retain GitHub issue submissions alongside the hosted large-save catalogue.
 
 Manager sends a single oversized encrypted save package of up to 1 GiB in 8 MiB chunks. After an interruption, keep Manager open and choose **Upload or prepare ZIP** again with the same selection to resume. Unfinished sessions expire after 24 hours of inactivity. A successful upload appears in the shared catalogue and as a GitHub release, with an individual **Install & resign** action in Manager.

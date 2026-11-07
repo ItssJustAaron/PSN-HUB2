@@ -3,6 +3,7 @@
   const limit = 256 * 1024 ** 2;
   const largeLimit = 1024 ** 3;
   const githubLimit = 24_900_000;
+  const partBytes = 24_000_000;
   const slotsPerZip = 128;
   const githubRepo = 'https://github.com/ItssJustAaron/PSN-HUB-Saves';
   const githubFiles = 'https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB-Saves/main/';
@@ -190,8 +191,9 @@
         if (data.schemaVersion !== 1 || !Array.isArray(data.items) || data.items.length > 40 * slotsPerZip) throw Error('Invalid GitHub save catalogue.');
         for (const item of data.items) {
           const keyBytes = item.platform === 'ps4' ? 96 : 0;
+          const release = typeof item.release === 'string' && item.release === 'issue-' + item.issue + '-' + item.sha256;
           if (!Number.isSafeInteger(item.issue) || item.issue < 1 || !validTitle(item.title, item.platform) ||
-              !Number.isSafeInteger(item.bytes) || item.bytes <= keyBytes || item.bytes > 25_000_000 ||
+              !Number.isSafeInteger(item.bytes) || item.bytes <= keyBytes || item.bytes > (release ? largeLimit : 25_000_000) ||
               !/^[a-f0-9]{64}$/.test(item.sha256) || typeof item.description !== 'string' || item.description.length > 240 ||
               (item.slot !== undefined && (!Number.isInteger(item.slot) || item.slot < 1 || item.slot > slotsPerZip ||
                 typeof item.slotName !== 'string' || item.slotName.length > 256))) continue;
@@ -199,6 +201,23 @@
           const row = element('section', undefined, 'card');
           row.append(gameHeading(item.title, item.platform.toUpperCase() + ' · ' + item.title), element('p', item.description));
           if (item.slotName) row.append(element('p', item.slotName, 'hint'));
+          if (release) {
+            const download = element('a', 'Download save from GitHub');
+            download.href = githubRepo + '/releases/download/' + item.release + '/save.bin';
+            const file = field('Select the downloaded save to resign', element('input'), row);
+            file.type = 'file';
+            file.accept = '.bin';
+            row.append(action('Install & resign', () => run(() => {
+              const blob = file.files[0];
+              if (!blob || blob.size !== item.bytes) throw Error('Select the complete save downloaded from GitHub.');
+              return selectShared({title: item.title, platform: item.platform, async download() {
+                return {image: blob.slice(keyBytes), key: keyBytes ? blob.slice(0, keyBytes) : undefined};
+              }});
+            })));
+            row.prepend(download);
+            list.append(row);
+            continue;
+          }
           row.append(action('Install & resign', () => run(() => selectShared({
             title: item.title, platform: item.platform,
             async download() {
@@ -285,7 +304,7 @@
       const id = entry?.title || title.value.trim().toUpperCase();
       const summary = description.value.trim();
       const all = github && entry && consoleImage.value === 'all';
-      if ((!github || all || largeUploadOrigin) && (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary))) {
+      if (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary)) {
         description.focus();
         throw Error('Enter a description between 1 and 240 characters on one line.');
       }
@@ -305,10 +324,9 @@
         }
         const bytes = save.size + (companion?.size || 0);
         if (github && bytes > githubLimit) {
-          if (!largeUploadOrigin) throw Error(save.name + ' exceeds the 25 MB GitHub ZIP limit. Large uploads are unavailable.');
           if (all) throw Error(save.name + ' needs a large upload. Select that slot individually.');
           if (bytes > largeLimit) throw Error(save.name + ' exceeds the 1 GiB upload limit.');
-          if (!consent.checked) throw Error('Agree to share the save publicly before uploading.');
+          if (largeUploadOrigin && !consent.checked) throw Error('Agree to share the save publicly before uploading.');
           large = true;
         }
         if (!github && bytes > limit) throw Error('Community save packages are limited to 256 MiB.');
@@ -321,7 +339,7 @@
         if (blob.size !== file.size) throw Error('The console save changed. Close the game and load the save list again.');
         return blob;
       };
-      if (large) {
+      if (large && largeUploadOrigin) {
         const [{save, companion}] = saves;
         const request = connection(largeUploadOrigin);
         const metadata = new URLSearchParams({platform: selectedPlatform, title: id, description: summary,
@@ -365,6 +383,52 @@
       if (github) {
         for (const link of zipLinks.querySelectorAll('a[download]')) URL.revokeObjectURL(link.href);
         zipLinks.replaceChildren();
+        if (large) {
+          const [{save, companion}] = saves;
+          status.textContent = 'Reading the save…';
+          const body = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)]);
+          const count = Math.ceil(body.size / partBytes);
+          const upload = Array.from(root.crypto.getRandomValues(new Uint8Array(16)),
+            byte => byte.toString(16).padStart(2, '0')).join('');
+          const submit = element('a', 'Open one GitHub submission for all ' + count + ' parts');
+          submit.href = githubRepo + '/issues/new?' + new URLSearchParams({template: 'save.yml',
+            title: '[Save] ' + id, 'title-id': id, description: summary});
+          submit.target = '_blank';
+          submit.rel = 'noopener';
+          zipLinks.append(element('p', 'Download all ' + count + ' numbered ZIPs and attach them to the same GitHub submission.'), submit);
+          for (let index = 0; index < count; index++) {
+            const row = element('p');
+            const link = element('a', 'Download part ' + (index + 1) + ' of ' + count);
+            link.download = id + '-part-' + String(index + 1).padStart(2, '0') + '.zip';
+            link.href = '#';
+            let preparing = false;
+            link.addEventListener('click', async event => {
+              if (link.getAttribute('href') !== '#') return;
+              event.preventDefault();
+              if (preparing) return;
+              preparing = true;
+              try {
+                const part = body.slice(index * partBytes, (index + 1) * partBytes);
+                const manifest = {upload, index, count, bytes: body.size, title: id};
+                const zip = await makeZip({'part.bin': new Uint8Array(await part.arrayBuffer()),
+                  'manifest.json': new TextEncoder().encode(JSON.stringify(manifest))});
+                if (!link.isConnected) return;
+                const url = URL.createObjectURL(zip);
+                link.href = url;
+                link.click();
+                setTimeout(() => {
+                  URL.revokeObjectURL(url);
+                  if (link.href === url) link.href = '#';
+                }, 60000);
+              } catch (error) {status.textContent = error.message;}
+              finally {preparing = false;}
+            });
+            row.append(link);
+            zipLinks.append(row);
+          }
+          status.textContent = count + ' download links ready. Attach every part before submitting.';
+          return;
+        }
         const batches = [[]];
         let batch = batches[0];
         let bytes = 0;
