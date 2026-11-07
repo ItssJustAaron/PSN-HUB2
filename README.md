@@ -64,7 +64,7 @@ Anyone can submit a save with a description. Reviewers approve submissions befor
 
 Manager can set the Store shortcut to **PSN-HUB JAILBREAK**, apply the mascot artwork, and hide the duplicate Media shortcut after a successful replacement. The artwork controls can update the background for an installed PSN-HUB Store shortcut. Backup and restore details are in the [shortcut guide](native/shortcut/README.md) and [background guide](native/shortcut/BACKGROUND.md).
 
-Use the existing Store artwork to make a PSN-HUB home-screen theme with the PS5 Themes editor by Blaze414. [Download the artwork kit](releases/PSN-HUB-Theme-Artwork.zip) · [Setup guide](Manager/PS5-THEME.md)
+Use the existing Store artwork to make a PSN-HUB home-screen theme with the PS5 Themes editor. [Download the artwork kit](releases/PSN-HUB-Theme-Artwork.zip) · [Setup guide](Manager/PS5-THEME.md)
 
 ## Offline use
 
@@ -99,6 +99,8 @@ Use `node tools/preview-manager.cjs` to preview the dashboard at `http://127.0.0
 | `.github/workflows/` | Build, validation, and release automation |
 
 ## Credits
+
+- **Theme builder** — Blaze414 and contributors. [PS5 Themes](https://github.com/Blaze414/ps5-theme)
 
 - **PSN-HUB site and Manager** — ItssJustAaron.
 - **Relapse jailbreak** — Karo, Zecoxao, ChendoChap, flat_z, TheFlow, itsPLK, and the Relapse contributors and testers.

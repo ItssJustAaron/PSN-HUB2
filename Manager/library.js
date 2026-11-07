@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.4';
+  const UI_RELEASE = '2026.11.07.5';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -1038,14 +1038,14 @@
     panel.setAttribute('aria-labelledby', tab.id);
 
     const card = element('section', undefined, 'card');
-    card.append(element('h2', 'PS5 Themes'), element('p', 'Start Blaze414’s PS5 Themes payload on this console, then open the builder below. Upload your artwork, save the theme, and export its ZIP from the editor’s library.', 'hint'));
+    card.append(element('h2', 'PS5 Themes'), element('p', 'Start the PS5 Themes payload on this console, then open the builder below. Upload your artwork, save the theme, and export its ZIP from the editor’s library.', 'hint'));
     const url = new URL(location.href);
     url.port = '8095';
     url.pathname = '/';
     url.search = '';
     url.hash = '';
     const frame = element('iframe', undefined, 'theme-builder');
-    frame.title = 'PS5 Themes builder by Blaze414';
+    frame.title = 'PS5 Themes builder';
     frame.hidden = true;
     const launch = action('Open theme builder', () => {
       frame.src = url.href;
