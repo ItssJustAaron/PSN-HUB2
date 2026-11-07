@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
   const limit = 256 * 1024 ** 2;
+  const largeLimit = 1024 ** 3;
   const githubLimit = 24_900_000;
   const slotsPerZip = 128;
   const githubRepo = 'https://github.com/ItssJustAaron/PSN-HUB-Saves';
@@ -46,7 +47,7 @@
     return blob;
   }
 
-  function mount({container, element, action, gameHeading, selectShared, libraryOrigin, consoleSaves, makeZip}) {
+  function mount({container, element, action, gameHeading, selectShared, libraryOrigin, largeUploadOrigin, consoleSaves, makeZip}) {
     const github = !!makeZip && !libraryOrigin;
     const status = element('p', github ? 'Loading public saves…' : 'Enter the Community Saves library address to browse or submit a save.', 'hint');
     status.setAttribute('role', 'status');
@@ -142,7 +143,8 @@
     }
     const consent = element('input');
     consent.type = 'checkbox';
-    if (!github) field('I agree to publish this save for anyone to download. The file may contain account metadata.', consent, form);
+    if (!github || largeUploadOrigin) field('I agree to publish this save for anyone to download. The file may contain account metadata.', consent, form);
+    let pendingUpload;
     const zipLinks = element('div');
     const updateKey = () => {key.parentNode.hidden = platform.value !== 'ps4';};
     platform.addEventListener('change', updateKey);
@@ -160,13 +162,13 @@
         container.setAttribute('aria-busy', 'false');
       }
     };
-    const connection = () => {
-      const origin = libraryURL(address.value);
+    const connection = (endpoint = address.value) => {
+      const origin = libraryURL(endpoint);
       const token = code.value.trim();
       if (token && !/^[\x21-\x7e]{24,128}$/.test(token)) throw Error('Enter a valid reviewer code or leave it blank.');
       return async (route, {method = 'GET', body, read = response => response.json()} = {}) => {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 300000);
+        const timeout = setTimeout(() => controller.abort(), route.endsWith('/finish') ? 720000 : 300000);
         try {
           const response = await fetch(origin + route, {method, body, cache: 'no-store', credentials: 'omit', redirect: 'error',
             headers: {...(token ? {Authorization: 'Bearer ' + token} : {}), ...(body ? {'Content-Type': 'application/octet-stream'} : {})}, signal: controller.signal});
@@ -208,24 +210,38 @@
           }))));
           list.append(row);
         }
-        status.textContent = list.children.length ? 'GitHub saves loaded.' : 'No public save submissions yet.';
-        return;
+        if (!largeUploadOrigin) {
+          status.textContent = list.children.length ? 'GitHub saves loaded.' : 'No public save submissions yet.';
+          return;
+        }
       }
       const enteredAddress = address.value;
       const enteredCode = code.value;
-      const request = connection();
-      const data = await request('/v1/saves');
+      const request = connection(largeUploadOrigin || address.value);
+      const data = await request('/v1/saves').catch(error => {
+        if (!github) throw error;
+        status.textContent = 'Large-save library unavailable. GitHub ZIP submissions are still available.';
+        return null;
+      });
+      if (!data) return;
       if (address.value !== enteredAddress || code.value !== enteredCode) return;
       if (!Array.isArray(data.items) || data.items.length > 40) throw Error('Invalid library listing.');
-      list.replaceChildren();
+      if (!github) list.replaceChildren();
       for (const item of data.items) {
         const keyBytes = item.platform === 'ps4' ? 96 : 0;
         if (!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(item.id) || !validTitle(item.title, item.platform) ||
-            !Number.isSafeInteger(item.bytes) || item.bytes <= keyBytes || item.bytes > limit || !/^[a-f0-9]{64}$/.test(item.sha256) ||
+            !Number.isSafeInteger(item.bytes) || item.bytes <= keyBytes || item.bytes > (item.resumable === true ? largeLimit : limit) || !/^[a-f0-9]{64}$/.test(item.sha256) ||
             typeof item.approved !== 'boolean' || typeof item.description !== 'string' || item.description.length > 240) continue;
         const row = element('section', undefined, 'card');
         row.append(gameHeading(item.title, item.platform.toUpperCase() + ' · ' + item.title));
         if (item.description) row.append(element('p', item.description));
+        if (item.resumable === true) {
+          const release = element('a', 'Download from GitHub');
+          release.href = githubRepo + '/releases/tag/save-' + item.id;
+          release.target = '_blank';
+          release.rel = 'noopener';
+          row.append(release);
+        }
         const download = () => request(routeFor(item, 'download'), {read: response => readPackage(response, item)});
         if (item.approved && selectShared) {
           row.append(action('Install & resign', () => run(() => selectShared({title: item.title, platform: item.platform, async download() {
@@ -263,13 +279,13 @@
       }
       status.textContent = list.children.length ? 'Community library loaded.' : 'No saves available yet.';
     }
-    form.append(action(github ? 'Prepare ZIP for GitHub' : 'Upload and publish', () => run(async () => {
+    form.append(action(github && !largeUploadOrigin ? 'Prepare ZIP for GitHub' : 'Upload or prepare ZIP', () => run(async () => {
       const entry = consoleTitle?.value ? consoleEntries[Number(consoleTitle.value)] : null;
       const selectedPlatform = entry?.platform || platform.value;
       const id = entry?.title || title.value.trim().toUpperCase();
       const summary = description.value.trim();
       const all = github && entry && consoleImage.value === 'all';
-      if ((!github || all) && (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary))) {
+      if ((!github || all || largeUploadOrigin) && (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary))) {
         description.focus();
         throw Error('Enter a description between 1 and 240 characters on one line.');
       }
@@ -281,14 +297,21 @@
         throw Error(github ? 'Choose a matching title ID, save image, and PS4 companion key if needed.'
           : 'Choose a matching title ID, save image, PS4 companion key if needed, and agree to share.');
       }
+      let large = false;
       for (const {save, companion} of saves) {
         if (!save?.size || (selectedPlatform === 'ps4' && companion?.size !== 96)) {
           throw Error(save?.name ? 'Missing save data or a matching PS4 key for ' + save.name + '.'
             : 'Choose a save image and its PS4 companion key if needed.');
         }
         const bytes = save.size + (companion?.size || 0);
-        if (bytes > limit) throw Error('Community save packages are limited to 256 MiB.');
-        if (github && bytes > githubLimit) throw Error(save.name + ' is too large for a GitHub ZIP (25 MB).');
+        if (github && bytes > githubLimit) {
+          if (!largeUploadOrigin) throw Error(save.name + ' exceeds the 25 MB GitHub ZIP limit. Large uploads are unavailable.');
+          if (all) throw Error(save.name + ' needs a large upload. Select that slot individually.');
+          if (bytes > largeLimit) throw Error(save.name + ' exceeds the 1 GiB upload limit.');
+          if (!consent.checked) throw Error('Agree to share the save publicly before uploading.');
+          large = true;
+        }
+        if (!github && bytes > limit) throw Error('Community save packages are limited to 256 MiB.');
       }
       const request = github ? null : connection();
       status.textContent = 'Preparing and uploading the save…';
@@ -298,6 +321,47 @@
         if (blob.size !== file.size) throw Error('The console save changed. Close the game and load the save list again.');
         return blob;
       };
+      if (large) {
+        const [{save, companion}] = saves;
+        const request = connection(largeUploadOrigin);
+        const metadata = new URLSearchParams({platform: selectedPlatform, title: id, description: summary,
+          consent: 'public', bytes: String(save.size + (companion?.size || 0))});
+        const signature = metadata.toString();
+        if (!pendingUpload || pendingUpload.signature !== signature || pendingUpload.entry !== entry ||
+            pendingUpload.save !== save || pendingUpload.companion !== companion) {
+          status.textContent = 'Reading the save from ' + (entry ? 'the console' : 'this device') + '…';
+          const body = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)]);
+          const hex = Array.from(root.crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+          const session = hex.replace(/^(........)(....)(....)(....)(............)$/, '$1-$2-$3-$4-$5');
+          pendingUpload = {signature, entry, save, companion, body, session};
+        }
+        const {body, session} = pendingUpload;
+        const route = '/v1/uploads/' + session;
+        metadata.set('id', session);
+        try {
+          const {chunkBytes} = await request('/v1/uploads?' + metadata, {method: 'POST'});
+          let {offset} = await request(route);
+          if (!Number.isSafeInteger(chunkBytes) || chunkBytes <= 0 || chunkBytes > 8 * 1024 ** 2 ||
+              !Number.isSafeInteger(offset) || offset < 0 || offset > body.size) throw Error('Invalid upload position.');
+          while (offset < body.size) {
+            status.textContent = 'Uploading to Community Saves… ' + Math.floor(offset * 100 / body.size) + '%';
+            const end = Math.min(offset + chunkBytes, body.size);
+            const result = await request(route + '?offset=' + offset, {method: 'POST', body: body.slice(offset, end)});
+            if (result.offset !== end) throw Error('The server did not confirm the uploaded chunk.');
+            offset = end;
+          }
+          status.textContent = 'Upload complete. Publishing to GitHub…';
+          const result = await request(route + '/finish', {method: 'POST'});
+          if (!result.archived) throw Error('GitHub publication was not confirmed.');
+        } catch (error) {
+          throw Error(error.message + ' Select Upload or prepare ZIP again to retry.');
+        }
+        pendingUpload = undefined;
+        consent.checked = false;
+        await refresh().catch(() => {});
+        status.textContent = 'Published to Community Saves and GitHub.';
+        return;
+      }
       if (github) {
         for (const link of zipLinks.querySelectorAll('a[download]')) URL.revokeObjectURL(link.href);
         zipLinks.replaceChildren();

@@ -9,7 +9,7 @@ function createArchive(token, request = fetch) {
     const result = await request(url, {
       ...options,
       redirect: 'error',
-      signal: AbortSignal.timeout(240000),
+      signal: AbortSignal.timeout(options.body instanceof fs.ReadStream ? 600000 : 60000),
       headers: {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', ...options.headers}
     });
     if (missingOK && result.status === 404) return null;

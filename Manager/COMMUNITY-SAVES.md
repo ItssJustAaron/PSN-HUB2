@@ -4,6 +4,12 @@ Manager uses the public GitHub library by default. Choose **Upload a save**, sel
 
 Once GitHub processes the submission, refresh the library in Manager. Choose **Install & resign**, select the receiving console user, and confirm the staged import. Downloads are also available from the submission issue. [Browse saves](https://github.com/ItssJustAaron/PSN-HUB-Saves/issues)
 
+## Large uploads
+
+Deploy the included Render Blueprint to a public HTTPS service with a persistent disk and set `PSNHUB_GITHUB_TOKEN` in the host's environment. Verify that `/v1/saves` returns `largeUploadBytes: 1073741824`, then set `largeUploadOrigin` in `Manager/community-saves-config.json` to that service's origin. Leave `libraryOrigin` empty to retain GitHub issue submissions alongside the hosted large-save catalogue.
+
+Manager sends a single oversized encrypted save package of up to 1 GiB in 8 MiB chunks. After an interruption, keep Manager open and choose **Upload or prepare ZIP** again with the same selection to resume. Unfinished sessions expire after 24 hours of inactivity. A successful upload appears in the shared catalogue and as a GitHub release, with an individual **Install & resign** action in Manager.
+
 ## Optional hosted library
 
 Start the library with Node.js using `node tools/community-saves.cjs`. For internet access, run it on a host with persistent storage and a public HTTPS endpoint. The server's homepage offers uploads and downloads. In PSN-HUB Manager, enter the same endpoint under **Community Saves** to prepare approved saves for installation.
@@ -32,4 +38,4 @@ To install an approved save, choose **Install & resign**, select a console user 
 
 Start the integrated save engine if prompted. Keep the target game closed during import. Game names and icons come from console metadata when available, with catalogue and title ID fallbacks. Community listings use the catalogue.
 
-The library accepts 40 packages up to 256 MiB each. An operator can remove unwanted entries by stopping the service and deleting their corresponding UUID directories. LAN HTTP is unencrypted. Use an HTTPS endpoint for access beyond a trusted LAN.
+The hosted library accepts up to 40 packages, subject to available disk space. The legacy single-request endpoint accepts up to 256 MiB per package. An operator can remove unwanted entries by stopping the service and deleting their corresponding UUID directories. LAN HTTP is unencrypted. Use an HTTPS endpoint for access beyond a trusted LAN.

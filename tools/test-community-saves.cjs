@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const {createHash} = require('node:crypto');
+const {createHash, randomUUID} = require('node:crypto');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -57,7 +57,40 @@ async function main() {
     assert.equal((await moderate('withdraw')).status, 200);
     assert.ok(!archived.has(item.id));
     assert.equal((await request('/'+item.id+'/download')).status, 404);
-    console.log('PASS: Public Community Saves upload, automatic archive publication, package integrity and withdrawal.');
+
+    const session = randomUUID();
+    const base = 'http://127.0.0.1:' + server.address().port + '/v1/uploads';
+    const bytes = 257 * 1024 ** 2;
+    const params = new URLSearchParams({id: session, platform: 'ps5', title: 'PPSA12345',
+      description: 'Resumable test', consent: 'public', bytes: String(bytes)});
+    const start = await fetch(base + '?' + params, {method: 'POST'});
+    assert.equal(start.status, 201);
+    const {chunkBytes} = await start.json();
+    const endpoint = base + '/' + session;
+    const send = (offset, chunk) => fetch(endpoint + '?offset=' + offset, {method: 'POST', body: chunk,
+      headers: {'Content-Type': 'application/octet-stream'}});
+    assert.equal((await fetch(endpoint + '/finish', {method: 'POST'})).status, 409);
+    const chunk = Buffer.alloc(chunkBytes, 9);
+    assert.equal((await send(0, chunk)).status, 200);
+    assert.equal((await send(0, chunk)).status, 409);
+    assert.equal((await (await fetch(endpoint)).json()).offset, chunkBytes);
+    const hash = createHash('sha256').update(chunk);
+    for (let offset = chunkBytes; offset < bytes; offset += chunkBytes) {
+      const part = chunk.subarray(0, Math.min(chunkBytes, bytes - offset));
+      hash.update(part);
+      assert.equal((await send(offset, part)).status, 200);
+    }
+    const finish = () => fetch(endpoint + '/finish', {method: 'POST'});
+    const published = await (await finish()).json();
+    assert.equal(published.archived, true);
+    assert.equal(published.bytes, bytes);
+    assert.equal(published.sha256, hash.digest('hex'));
+    assert.notEqual(published.id, session);
+    assert.equal((await (await finish()).json()).id, published.id);
+    assert.equal((await fetch(base + '/' + published.id)).status, 404);
+    assert.equal((await request('/' + published.id + '/withdraw', {method: 'POST', code: adminToken})).status, 200);
+    assert.equal((await finish()).status, 410);
+    console.log('PASS: Public uploads, archive publication, resumable 257 MiB upload, integrity, retries and withdrawal.');
   } finally {
     await new Promise(resolve => server.close(resolve));
     await fs.rm(directory, {recursive: true, force: true});

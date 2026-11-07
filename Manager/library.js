@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.10';
+  const UI_RELEASE = '2026.11.07.11';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -1012,8 +1012,10 @@
           .then(blob => blob.text()).then(JSON.parse).catch(() => null);
         const publicLibrary = typeof config?.libraryOrigin === 'string' && /^https:\/\/[^/?#@\s]+\/?$/.test(config.libraryOrigin)
           ? config.libraryOrigin : undefined;
+        const largeUploadOrigin = !publicLibrary && typeof config?.largeUploadOrigin === 'string' &&
+          /^https:\/\/[^/?#@\s]+\/?$/.test(config.largeUploadOrigin) ? config.largeUploadOrigin : undefined;
         window.PSNCommunitySaves.mount({container:community,element,action,gameHeading:saveGameHeading,
-          libraryOrigin: publicLibrary,
+          libraryOrigin: publicLibrary, largeUploadOrigin,
           makeZip: async files => {
             await loadSaveTools(tools, openTools);
             if (!window.fflate) throw Error('Could not load the ZIP tools.');
