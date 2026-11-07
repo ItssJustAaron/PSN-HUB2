@@ -6,6 +6,7 @@
 #include "dashboard.h"
 #include "integrated.h"
 #include "save_engine.h"
+#include "theme_engine.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <ctype.h>
@@ -89,9 +90,16 @@ static int query(const Request *r,const char *key,char *out,size_t cap) {
 static int destination(const Request *r) {char value[32];int q=query(r,"destination",value,sizeof(value));if(q<0)return -1;if(!q)return 0;for(int i=0;i<2;i++)if(!strcmp(value,destinations[i]))return i;return -1;}
 static int is_payload(const char *name){const char *ext=strrchr(name,'.');return hub_name(name)&&ext&&(!strcasecmp(ext,".elf")||!strcasecmp(ext,".bin"));}
 static int internal_payload(const char *name){return !strcmp(name,"PSN-HUB-Manager.elf")||!strcmp(name,"PSN-HUB-Save-Service.elf")||!strcmp(name,"PSN-HUB-HD-Icons.elf")||!strncmp(name,"PSN-HUB-Store-",14)||!strcmp(name,"garlic-savemgr_08c24b5.elf");}
-static int start_save_engine(void){
- int sock=socket(AF_INET,SOCK_STREAM,0);if(sock<0)return -1;struct timeval timeout={10,0};setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons((uint16_t)loader_port);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
- int result=connect(sock,(struct sockaddr *)&a,sizeof(a));if(result==0)result=hub_write(sock,save_engine,sizeof(save_engine));close(sock);return result;
+static int connect_local(unsigned port){
+ int sock=socket(AF_INET,SOCK_STREAM,0);if(sock<0)return -1;struct timeval timeout={10,0};setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));struct sockaddr_in a;memset(&a,0,sizeof(a));a.sin_family=AF_INET;a.sin_port=htons((uint16_t)port);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
+ if(connect(sock,(struct sockaddr *)&a,sizeof(a))<0){close(sock);return -1;}return sock;
+}
+static int start_embedded(const unsigned char *data,size_t size){
+ int sock=connect_local(loader_port);if(sock<0)return -1;
+ int result=hub_write(sock,data,size);close(sock);return result;
+}
+static int theme_running(void){
+ int sock=connect_local(8095);if(sock<0)return 0;close(sock);return 1;
 }
 static int prepare_restart(void){
  int file=openat(payloads,"PSN-HUB-Manager.elf",O_RDONLY|O_NOFOLLOW|O_NONBLOCK);if(file<0)return -1;struct stat st;unsigned char magic[4];
@@ -163,7 +171,18 @@ static void handle(int fd,Request *r) {
 #endif
       buf_add(&b,"{\"version\":\"%s\",\"layout\":\"PSNHUB_UNIFIED_V1\",\"firmware\":\"%s\",\"capabilities\":{\"destinations\":[\"etahen\",\"onionhen\"],\"cheatInventory\":true,\"cheatBackup\":true,\"cheatRestore\":true,\"backupList\":true,\"saveRead\":true,\"saveBackup\":true,\"saveUSB\":true,\"shortcuts\":true,\"artwork\":true,\"saveEngine\":true,\"unified\":true}",HUB_VERSION,firmware);
       hub_shortcuts_status(&b);buf_add(&b,"}");
-    }else if(post&&!strcmp(path,"/api/save-engine/start")){result=start_save_engine();if(result==0)buf_add(&b,"{\"sent\":true,\"embedded\":true}");}
+    }else if(post&&!strcmp(path,"/api/save-engine/start")){result=start_embedded(save_engine,sizeof(save_engine));if(result==0)buf_add(&b,"{\"sent\":true,\"embedded\":true}");}
+    else if(get&&!strcmp(path,"/api/theme-engine/status")){
+      buf_add(&b,"{\"running\":%s}",theme_running()?"true":"false");
+    }else if(post&&!strcmp(path,"/api/theme-engine/start")){
+      static time_t last_start;
+      time_t now=time(NULL);
+      if(!theme_running()&&(!last_start||now-last_start>=25)){
+        result=start_embedded(theme_engine,sizeof(theme_engine));
+        if(result==0)last_start=now;
+      }
+      if(result==0)buf_add(&b,"{\"ok\":true}");
+    }
     else if(post&&!strcmp(path,"/api/artwork")){
 #ifdef HUB_UNIFIED_PREVIEW
       error_reply(fd,403,"Artwork writes are disabled in the preflight build");return;

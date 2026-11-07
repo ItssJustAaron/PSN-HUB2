@@ -13,3 +13,8 @@ Uncompressed SHA-256:
 PSN-HUB supplies the Manager interface and integration. The engine retains its
 original identity and attribution; PSN-HUB does not claim its cryptography as
 its own. See `Manager/SAVE-TOOLS.md` for capabilities and current limits.
+
+The Manager also embeds the unchanged **PS5 Themes v1.80** ELF by Blaze414.
+The Themes tab starts it through the console's ELF loader when needed.
+The pinned binary and corresponding source are available in the
+[upstream release](https://github.com/Blaze414/ps5-theme/releases/tag/v1.80).

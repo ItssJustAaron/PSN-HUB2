@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.14';
+  const UI_RELEASE = '2026.11.07.15';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -1061,7 +1061,7 @@
     panel.setAttribute('aria-labelledby', tab.id);
 
     const card = element('section', undefined, 'card');
-    card.append(element('h2', 'PS5 Themes'), element('p', 'Start the PS5 Themes payload on this console, then open the builder below. Upload your artwork, save the theme, and export its ZIP from the editor’s library.', 'hint'));
+    card.append(element('h2', 'PS5 Themes'), element('p', 'Open the builder to upload artwork, save a theme, or export its ZIP. On a phone or PC, pair with the code shown on the console when prompted.', 'hint'));
     const url = new URL(location.href);
     url.port = '8095';
     url.pathname = '/';
@@ -1070,10 +1070,31 @@
     const frame = element('iframe', undefined, 'theme-builder');
     frame.title = 'PS5 Themes builder';
     frame.hidden = true;
-    const launch = action('Open theme builder', () => {
-      frame.src = url.href;
-      frame.hidden = false;
-      launch.textContent = 'Reload theme builder';
+    const feedback = element('p', '', 'hint');
+    feedback.setAttribute('role', 'status');
+    const running = async () => JSON.parse(await (await response('/api/theme-engine/status', {cache: 'no-store'}, 4000)).text()).running === true;
+    const launch = action('Open theme builder', async () => {
+      launch.disabled = true;
+      feedback.textContent = 'Checking the theme builder…';
+      try {
+        if (!await running()) {
+          feedback.textContent = 'Starting the built-in theme builder…';
+          await response('/api/theme-engine/start', {method: 'POST', headers: requestHeaders()}, 15000);
+          const deadline = Date.now() + 25000;
+          while (!await running()) {
+            if (Date.now() >= deadline) throw Error('The theme builder did not start. Check that elfldr is running, then try again.');
+            await new Promise(resolve => setTimeout(resolve, 700));
+          }
+        }
+        frame.src = url.href;
+        frame.hidden = false;
+        launch.textContent = 'Reload theme builder';
+        feedback.textContent = 'Theme builder ready.';
+      } catch (error) {
+        feedback.textContent = error.message.startsWith('HTTP 404') ? 'Load the latest PSN-HUB Manager ELF to start the built-in theme builder.'
+          : error.message.startsWith('HTTP 500') ? 'Could not start the theme builder. Check that elfldr is running, then try again.'
+          : error.message;
+      } finally {launch.disabled = false;}
     }, 'secondary');
     const direct = element('a', 'Open editor in a separate tab');
     direct.href = url.href;
@@ -1089,7 +1110,7 @@
     artwork.href = repositoryBase + 'releases/PSN-HUB-Theme-Artwork.zip';
     const downloadSection = element('p');
     downloadSection.append(artwork);
-    card.append(launch, links, frame, element('h3', 'Downloads'), downloadSection);
+    card.append(launch, feedback, links, frame, element('h3', 'Downloads'), downloadSection);
     panel.append(card);
     const lastTab = managerTabs[managerTabs.length - 1];
     lastTab.after(tab);

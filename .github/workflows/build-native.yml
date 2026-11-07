@@ -25,6 +25,7 @@ jobs:
           python tools/build-shortcut-icon.py
           python tools/build-shortcut-background.py
           python tools/build-icon-header.py
+          curl --fail --location --retry 3 -o native/build/blaze414-ps5-theme-v1.80.elf https://github.com/Blaze414/ps5-theme/releases/download/v1.80/ps5-theme.elf
           python tools/build-unified-assets.py
       - name: Compile portable server with sanitizers
         run: gcc -std=c11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -DHUB_HOST_TEST -DHUB_EMBEDDED -Inative/src -Inative/build native/src/*.c native/shortcut/background.c native/shortcut/icons.c native/shortcut/patch.c native/shortcut/media.c -lsqlite3 -o native/build/manager-host
