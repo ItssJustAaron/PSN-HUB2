@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.06.8';
+  const UI_RELEASE = '2026.11.07.1';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -771,6 +771,7 @@
       const data = await loadCatalog();
       for (const key of ['hens', 'modMenus', 'cheats']) if (!Array.isArray(data[key])) throw new Error('Invalid catalogue');
       state.catalog = data;
+      if(saveControls) updateSaveGameHeadings();
       renderPayloads($('hen-catalog'), data.hens); renderPayloads($('mod-menu-catalog'), data.modMenus); renderPayloads($('emulator-catalog'), data.emulators || []);
       $('download-all-cheats').disabled = false; applyFilters(false); renderPersonal(); restoreTab();
       if(typeof location!=='undefined'&&location.hash==='#console-saves')selectTab($('tab-save-manager'));
@@ -792,6 +793,30 @@
   payloadLibrary.hidden=true;
   const payloadCards=element('div');payloadCards.id='payload-library';payloadLibrary.append(payloadCards);$('panel-payloads').prepend(payloadLibrary);
   let saveControls=null;
+  function fillSaveGameHeading(node, title, detail, item) {
+    const metadata=state.catalog?.games?.[title];
+    const name=item?.name||metadata?.name;
+    const icon=element('span',title.slice(0,4),'save-game-icon');
+    const cover=metadata?.cover && /^Manager\/covers\/(?:CUSA|PPSA)\d{5}\.(?:jpg|png|webp)$/.test(metadata.cover)
+      ?repositoryBase+metadata.cover:null;
+    const nativeIcon=item?.hasIcon===true?'/api/saves/icon?title='+encodeURIComponent(title):null;
+    if(nativeIcon||cover){
+      const img=element('img');img.alt='';img.loading='lazy';
+      img.addEventListener('error',()=>{
+        if(nativeIcon&&cover&&img.getAttribute('src')===nativeIcon)img.src=cover;
+        else img.hidden=true;
+      });
+      img.src=nativeIcon||cover;icon.append(img);
+    }
+    const text=element('div');text.append(element('strong',name||title),element('small',detail));
+    node.replaceChildren(icon,text);
+  }
+  function saveGameHeading(title, detail) {
+    const node=element('div',undefined,'save-game-heading');fillSaveGameHeading(node,title,detail);return node;
+  }
+  function updateSaveGameHeadings(){
+    for(const record of saveControls.headings)fillSaveGameHeading(record.node,record.item.title,record.detail,record.item);
+  }
   async function openConsoleSaves() {
     if(!saveControls||!state.manager||state.preview)return;
     if(supports('saveRead'))return saveTask(refreshSaves);
@@ -806,7 +831,7 @@
     saveControls.usbStatus.textContent=supports('saveUSB')?'Choose a connected USB drive. Automatic backup runs on the PS5 while Manager is running.':'Load the latest Manager ELF to enable USB backups.';
     saveControls.usbButtons.forEach(button=>button.disabled=!available||!supports('saveUSB'));
     saveControls.status.textContent=available?'Your console game saves. Close games before downloading or backing up.':'Load the latest PSN-HUB-Manager.elf to enable integrated console saves.';
-    if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();}
+    if(!available){saveControls.list.replaceChildren();saveControls.files.replaceChildren();saveControls.headings=[];}
     if(state.manager&&!state.preview&&$('tab-save-manager').getAttribute('aria-selected')==='true'&&!saveControls.autoLoaded){saveControls.autoLoaded=true;openConsoleSaves();}
   }
   async function saveJSON(path,post=false) {return JSON.parse(await (await response(path,post?{method:'POST',headers:{'X-PSNHUB-Request':'1'}}:{cache:'no-store'},post?300000:30000)).text());}
@@ -825,9 +850,11 @@
   async function refreshSaves() {
     saveControls.status.textContent='Reading save folders…';saveControls.files.replaceChildren();
     const data=await saveJSON('/api/saves'),backups=await saveJSON('/api/saves/backups');saveControls.list.replaceChildren();
+    saveControls.headings=[];
     if(!data.items.length)saveControls.list.append(element('p','No PS4 or PS5 save folders found for the users on this console.','hint'));
-    for(const item of data.items){const query='user='+encodeURIComponent(item.user)+'&platform='+encodeURIComponent(item.platform)+'&title='+encodeURIComponent(item.title);const known=state.catalog&&state.catalog.cheats&&state.catalog.cheats.find(game=>game.id===item.title&&game.title&&game.title!==item.title);const label=(known?known.title+' · ':'')+item.platform.toUpperCase()+' · '+item.title+' · User '+item.user;
-      const row=element('section',undefined,'card');row.append(element('strong',label),action('View saves / download',()=>saveTask(()=>showSaveFiles(query,label)),'secondary'));
+    for(const item of data.items){const query='user='+encodeURIComponent(item.user)+'&platform='+encodeURIComponent(item.platform)+'&title='+encodeURIComponent(item.title);const label=item.platform.toUpperCase()+' · '+item.title+' · User '+item.user;
+      const heading=saveGameHeading(item.title,label);saveControls.headings.push({node:heading,item,detail:label});
+      const row=element('section',undefined,'card');row.append(heading,action('View saves / download',()=>saveTask(()=>showSaveFiles(query,label)),'secondary'));
       if(supports('saveBackup'))row.append(action('Back up title',()=>saveTask(async()=>{saveControls.status.textContent='Copying and verifying raw files. Keep the game closed…';const result=await saveJSON('/api/saves/backup?'+query,true);await showSaveFiles('id='+encodeURIComponent(result.id),result.id);saveControls.status.textContent='Snapshot saved on console: '+result.id+'. Download every listed file, including PS4 .bin keys. This is raw data, not a verified restorable export.';}),'secondary'));
       if(supports('saveUSB'))row.append(action('Back up save to USB',()=>saveTask(async()=>{const usb=saveControls.usbSelect.value;if(!usb)throw Error('Connect a USB drive and refresh USB devices first.');saveControls.status.textContent='Copying and verifying this save on USB. Keep the game closed…';const result=await saveJSON('/api/saves/usb/export?usb='+encodeURIComponent(usb)+'&'+query,true);saveControls.status.textContent='Save copied to '+result.path;}),'secondary'));
       saveControls.list.append(row);
@@ -836,6 +863,7 @@
     for(const item of backups.items)saveControls.list.append(action(item.id,()=>saveTask(()=>showSaveFiles('id='+encodeURIComponent(item.id),item.id)),'secondary'));
     saveControls.status.textContent=data.items.length+' game save folders found on this console. Select View saves / download to download their files. '+backups.items.length+' snapshots. These are raw encrypted console files; download PS4 companion .bin files too.';
     if(supports('saveUSB'))await refreshSaveUSB();
+    updateSaveGameHeadings();
   }
   async function refreshSaveUSB(){
     const data=await saveJSON('/api/saves/usb');const selected=saveControls.usbSelect.value;saveControls.usbSelect.replaceChildren();
@@ -845,6 +873,8 @@
     saveControls.usbStatus.textContent=(data.volumes.length?'Backups go to USB /PSN-HUB/Saves, organised by user, platform and game.':'No mounted USB drive detected. Connect an exFAT drive and refresh.')+(data.enabled?' Automatic backup is enabled every '+data.minutes+' minutes while the save service runs.':' Automatic backup is off.')+(data.lastRun?' Last run: '+(data.lastSuccess?'completed':'failed; check USB storage')+'. '+data.exported+' copied, '+data.skipped+' unchanged.':'');
   }
   async function loadSaveTools(container,button) {
+    if(saveControls.saveToolSession)return saveControls.saveToolSession;
+    if(button.disabled)return;
     button.disabled=true;button.textContent='Loading save tools…';container.textContent='';
     try{
       for(const [path,ready] of [['Manager/vendor/fflate-0.8.2.js',()=>window.fflate],['Manager/save-tools.js',()=>window.PSNSaveTools]]){
@@ -852,12 +882,12 @@
       }
       const nativeJSON=async(path,post=false)=>JSON.parse(await (await response(path,post?{method:'POST',headers:requestHeaders()}:{cache:'no-store'},300000)).text());
       const canImport=()=>state.manager&&!state.preview&&supports('saveRead')&&supports('saveBackup');
-      window.PSNSaveTools.mount({container,element,action,fflate:window.fflate,fetch:(...args)=>fetch(...args),hostname:location.hostname,
+      saveControls.saveToolSession=window.PSNSaveTools.mount({container,element,action,fflate:window.fflate,fetch:(...args)=>fetch(...args),hostname:location.hostname,
         canStart:()=>state.manager&&!state.preview&&!!state.catalog&&!(state.transfer&&state.transfer.running),canImport,
         startEngine:async()=>{if(!supports('saveEngine'))throw Error('Load the latest unified Manager ELF to start the built-in save engine.');await nativeJSON('/api/save-engine/start',true);},
         backup:async selection=>{if(!canImport())throw Error('Load the latest Manager ELF for backed-up imports.');const list=await nativeJSON('/api/saves');if(!list.items.some(item=>item.user===selection.user&&item.platform===selection.platform&&item.title===selection.title))return {newTitle:true};const query='user='+encodeURIComponent(selection.user)+'&platform='+selection.platform+'&title='+selection.title;return nativeJSON('/api/saves/backup?'+query,true);},
         snapshotSource:{list:()=>nativeJSON('/api/saves/backups'),files:id=>nativeJSON('/api/saves/files?id='+encodeURIComponent(id)),download:(id,name)=>response('/api/saves/download?id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name),{cache:'no-store'},300000)}
-      });button.hidden=true;
+      });button.hidden=true;return saveControls.saveToolSession;
     }catch(error){button.disabled=false;button.textContent='Retry loading save tools';container.textContent=error.message;}
   }
   const BACKGROUND_HASH='43ae997fe0b0ff3dca9d50d489baa9f948caa9069815c0c443700369c1e24d85';
@@ -896,8 +926,37 @@
     const allUSB=action('Back up all changed saves to USB',()=>saveTask(async()=>{if(!usbSelect.value)throw Error('Connect a USB drive first.');saveControls.status.textContent='Backing up changed saves to USB. Keep games closed…';const result=await saveJSON('/api/saves/usb/all?usb='+encodeURIComponent(usbSelect.value),true);await refreshSaveUSB();saveControls.status.textContent=result.exported+' save folders copied to USB; '+result.unchanged+' unchanged.';}),'secondary');
     const configUSB=action('Save automatic backup settings',()=>saveTask(async()=>{const id=usbSelect.value||'usb0';await saveJSON('/api/saves/usb/config?usb='+encodeURIComponent(id)+'&enabled='+(auto.checked?'1':'0')+'&minutes='+encodeURIComponent(minutes.value),true);await refreshSaveUSB();saveControls.status.textContent='USB automatic backup settings saved on this console.';}),'secondary');
     usb.append(element('h3','USB save backups'),usbStatus,usbSelect,refreshUSB,allUSB,autoLabel,minutes,configUSB);
-    saveControls={status,list,files,refresh,usb,usbStatus,usbSelect,auto,minutes,usbButtons:[refreshUSB,allUSB,configUSB],busy:false,autoLoaded:false};card.append(status,refresh,usb,list,files,advanced,credit);panel.append(card);managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);updateSaveControls();
+    saveControls={status,list,files,refresh,usb,usbStatus,usbSelect,auto,minutes,usbButtons:[refreshUSB,allUSB,configUSB],busy:false,autoLoaded:false,headings:[]};card.append(status,refresh,usb,list,files,advanced,credit);panel.append(card);managerTabs[managerTabs.length-1].after(tab);$('panel-emulators').after(panel);managerTabs.push(tab);updateSaveControls();
     tab.addEventListener('click',async()=>{selectTab(tab);await openConsoleSaves();});tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(tab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
+    const communityTab=element('button','COMMUNITY SAVES','tab');
+    communityTab.id='tab-community-saves';communityTab.type='button';communityTab.tabIndex=-1;
+    communityTab.setAttribute('role','tab');communityTab.setAttribute('aria-selected','false');communityTab.setAttribute('aria-controls','panel-community-saves');
+    const communityPanel=element('div',undefined,'tab-panel');communityPanel.id='panel-community-saves';communityPanel.hidden=true;
+    communityPanel.setAttribute('role','tabpanel');communityPanel.setAttribute('aria-labelledby',communityTab.id);
+    const community=element('section',undefined,'card save-tools');
+    community.append(element('h2','Community Saves'),element('p','Private test library. Reviewed saves can be downloaded and prepared for a local PS5 profile.','hint'));
+    const openCommunity=action('Open community library',async()=>{
+      openCommunity.disabled=true;
+      try{
+        if(!window.PSNCommunitySaves){
+          const script=element('script');
+          script.textContent=await (await response(repositoryBase+'Manager/community-saves.js?v='+UI_RELEASE,{cache:'no-store'},20000)).text();
+          document.head.append(script);
+        }
+        window.PSNCommunitySaves.mount({container:community,element,action,gameHeading:saveGameHeading,selectShared:async item=>{
+          const session=await loadSaveTools(tools,openTools);
+          if(!session)throw Error('Save tools could not load. Open Saves and try again.');
+          session.selectShared(item);selectTab(tab);advanced.open=true;
+          advanced.scrollIntoView?.({block:'start'});
+        }});
+        openCommunity.hidden=true;
+      }catch(error){openCommunity.textContent='Retry community library';communityMessage.textContent=error.message;openCommunity.disabled=false;}
+    },'secondary');
+    const communityMessage=element('p',undefined,'hint');communityMessage.setAttribute('role','status');
+    community.append(openCommunity,communityMessage);communityPanel.append(community);
+    tab.after(communityTab);panel.after(communityPanel);managerTabs.push(communityTab);
+    communityTab.addEventListener('click',()=>selectTab(communityTab));
+    communityTab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(communityTab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
   }
   saveManagerControls(); backgroundControls(); restoreBrowsing(); releaseControls();
   firmwareControls();

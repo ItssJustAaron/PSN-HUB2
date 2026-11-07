@@ -48,7 +48,9 @@ jobs:
       - name: Build matching dashboard, catalogue and cache
         run: python tools/build-manager.py
       - name: Validate site, loader and library behaviour
-        run: node tools/check-site.cjs
+        run: |
+          node tools/check-site.cjs
+          node tools/test-community-saves.cjs
       - name: Commit generated assets on main
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         shell: bash

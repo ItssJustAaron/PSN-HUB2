@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 manager = ROOT / "Manager"
 metadata = json.loads((manager / "descriptions.json").read_text(encoding="utf-8"))
-catalog = {"hens": [], "modMenus": [], "emulators": [], "payloads": [], "cheats": []}
+catalog = {"hens": [], "modMenus": [], "emulators": [], "payloads": [], "cheats": [], "games": {}}
 artwork_file = manager / "artwork.json"
 artwork = json.loads(artwork_file.read_text(encoding="utf-8")) if artwork_file.exists() else {"games": {}}
 
@@ -93,6 +93,14 @@ for entry in catalog["cheats"]:
     if cover and cover.startswith("Manager/covers/") and (ROOT / cover).is_file():
         entry["cover"] = cover
 
+for title_id, item in artwork['games'].items():
+    cover = item.get('path', '')
+    if re.fullmatch(r'(?:CUSA|PPSA)\d{5}', title_id) and re.fullmatch(r'Manager/covers/' + title_id + r'\.(?:jpg|png|webp)', cover) and (ROOT / cover).is_file():
+        catalog['games'][title_id] = {'cover': cover}
+for entry in catalog['cheats']:
+    if re.fullmatch(r'(?:CUSA|PPSA)\d{5}', entry['id']) and entry['title'] and entry['title'] != entry['id']:
+        catalog['games'].setdefault(entry['id'], {}).setdefault('name', entry['title'])
+
 catalogue_version = hashlib.sha256(json.dumps(catalog, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:12]
 previous_catalogue = json.loads((manager / "catalog.json").read_text(encoding="utf-8")) if (manager / "catalog.json").exists() else {}
 old_metadata = previous_catalogue.get("metadata", {})
@@ -104,10 +112,12 @@ ui_hash = hashlib.sha256(ui_source.encode()).hexdigest()
 css_hash = hashlib.sha256((manager / "library.css").read_text(encoding="utf-8").encode()).hexdigest()
 save_tools_hash = hashlib.sha256((manager / "save-tools.js").read_text(encoding="utf-8").encode()).hexdigest()
 zip_library_hash = hashlib.sha256((manager / "vendor/fflate-0.8.2.js").read_bytes()).hexdigest()
+community_hash = hashlib.sha256((manager / 'community-saves.js').read_text(encoding='utf-8').encode()).hexdigest()
 template = (manager / "dashboard.html").read_text(encoding="utf-8")
-build_id = hashlib.sha256((template + ui_hash + css_hash + save_tools_hash + zip_library_hash + catalogue_version).encode()).hexdigest()[:12]
+build_id = hashlib.sha256((template + ui_hash + css_hash + save_tools_hash + zip_library_hash + community_hash + catalogue_version).encode()).hexdigest()[:12]
 build = {"buildId": build_id, "uiRelease": ui_release, "uiSha256": ui_hash, "cssSha256": css_hash, "saveToolsSha256": save_tools_hash, "zipLibrarySha256": zip_library_hash, "catalogueVersion": catalogue_version, "catalogueUpdatedAt": updated_at}
 catalog["metadata"] = {"version": catalogue_version, "updatedAt": updated_at, "buildId": build_id}
+build['communitySavesSha256'] = community_hash
 html = "\n".join(line.strip() for line in template.splitlines())
 embedded_build = {key: build[key] for key in ("buildId", "uiRelease", "catalogueVersion", "catalogueUpdatedAt")}
 html = html.replace("__MANAGER_BUILD__", json.dumps(embedded_build, separators=(",", ":")))

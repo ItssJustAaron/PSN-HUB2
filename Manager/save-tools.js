@@ -75,12 +75,13 @@
       if(type==='ps5'){const contents=Object.create(null);for(const item of data.items)contents[item.name]=new Uint8Array(await item.blob.arrayBuffer());const packed=this.fflate.zipSync(contents,{level:0});const result=await this.request('/api/encrypt_upload'+(owner?'?aid='+owner:''),new Blob([packed]));if(result.ok!==true)throw Error('Encryption did not complete.');this.owned=false;return {url:this.url('/api/encrypt_download?name=encrypted-save'),name:'encrypted-save'};}
       await this.create(data,type);return {url:this.url('/api/download_new?name=encrypted-save'+(owner?'&aid='+owner:'')),name:'encrypted-save.zip',mounted:true};});}
     async create(data,type){if(data.zero)throw Error('Importing a decrypted save requires a real SFO. Encrypt the preserved PS5 archive first, then import the encrypted image.');const size=Math.max(32*1024**2,Math.ceil((data.total*1.25+4*1024**2)/32768)*32768);const result=await this.request('/api/create_pfs?size='+size+(type==='ps4'?'&ps4=1':''));if(result.ok!==true)throw Error('Creating the save image failed.');let count=0;for(const item of data.items){if(/^PS5(?:PARAM(?:_SIZE)?|KEY|IMAGE)$/.test(item.name))continue;this.progress('Uploading '+(++count)+'/'+data.items.length+': '+item.name);const result=await this.request('/api/upload_file?name='+encodeURIComponent(item.name),item.blob);if(result.ok!==true||result.size!==item.blob.size)throw Error('Uploading '+item.name+' failed or was incomplete.');}}
-    async prepareImport({type,image,key,zip,files,uid}){return this.exclusive(async()=>{user(uid);platform(type);if(typeof this.backup!=='function')throw Error('Imports require the experimental Manager backup API on port 8087.');let staged;
+    async prepareImport({type,image,key,zip,files,uid,expectedTitle}){return this.exclusive(async()=>{user(uid);platform(type);if(typeof this.backup!=='function')throw Error('Imports require the Manager backup API.');let staged;
       if(image){await this.encryptedInput(type,image,key);this.progress('Staging encrypted save…');staged=await this.request('/api/import_encrypted?uid='+encodeURIComponent(uid)+(type==='ps4'?'&ps4=1':''),image);if(staged.ok!==true)throw Error('Staging the encrypted save failed.');}
       else{const data=await prepareFiles({zip,files,fflate:this.fflate,type});if(data.zero)throw Error('Encrypt the preserved PS5 archive first, then import its encrypted image.');await this.begin();await this.create(data,type);staged={};}
       const preview=await this.request('/api/import_check?uid='+encodeURIComponent(uid));const title=preview.title_id||staged.title_id,dir=preview.dir_name||staged.dir_name;
       if(staged.sfo_zeroed||!new RegExp(type==='ps4'?'^CUSA\\d{5}$':'^PPSA\\d{5}$').test(title||'')||!/^[A-Za-z0-9][A-Za-z0-9._ -]{0,126}$/.test(dir||''))throw Error('Save metadata is missing, unsafe or does not match the selected platform.');
-      this.progress('Backing up existing title data before review…');const backup=await this.backup({user:uid,platform:type,title});if(!backup||(!backup.id&&!backup.newTitle))throw Error('The pre-import backup did not complete.');
+      if(expectedTitle && (title!==expectedTitle || preview.title_id!==expectedTitle))throw Error('The save title does not match the community listing. Release the session before trying another save.');
+      this.progress('Backing up existing title data before review…');const backup=await this.backup({user:uid,platform:type,title});if(!backup||(!backup.id&&(!backup.newTitle||preview.exists)))throw Error('The pre-import backup did not complete.');
       this.pending={uid,type,title,dir,exists:!!preview.exists,saveAid:staged.save_aid||'',userAid:staged.user_aid||'',backup};return {...this.pending};});}
     async finishImport(){return this.exclusive(async()=>{const pending=this.pending;if(!pending)throw Error('Prepare and review a save first.');if(this.uncertain||pending.commitAttempted)throw Error('The previous install needs checking on the console. It will not be sent again automatically.');const current=await this.request('/api/import_check?uid='+encodeURIComponent(pending.uid));if(current.title_id!==pending.title||current.dir_name!==pending.dir||!!current.exists!==pending.exists)throw Error('The staged save or destination changed. Cancel and prepare it again.');this.progress('Installing save and registering its metadata…');pending.commitAttempted=true;const result=await this.request('/api/import_finish?uid='+encodeURIComponent(pending.uid));if(result.ok!==true)throw Error('Import did not complete. No force-import was attempted. Check the console before trying another import.');this.pending=null;this.owned=false;return {...result,backup:pending.backup};});}
     async release(){return this.exclusive(async()=>{if(this.uncertain)throw Error('Reconnect first. Do not interrupt an engine operation that may still be running.');if(this.owned){const result=await this.request('/api/unmount');if(result.ok!==true)throw Error('Could not release the engine session.');}this.pending=null;this.owned=false;});}
@@ -89,7 +90,7 @@
     hostname=hostname.replace(/^\[|\]$/g,'');const base='http://'+(hostname.includes(':')?'['+hostname+']':hostname)+':8082';
     const section=element('section',undefined,'card save-tools');section.append(element('h3','Decrypt, encrypt, resign and import'),element('p','Powered by Garlic SaveMgr on this PS5. Close games before importing. Use one save-tool session at a time. Files are sent to this console; no cloud service is required.','hint'));
     const status=element('p','Start the save engine, then check its connection.','hint');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-    const client=new Client({base,fetch:fetcher,fflate,backup,onProgress:text=>status.textContent=text});let ready=false,busy=false;
+    const client=new Client({base,fetch:fetcher,fflate,backup,onProgress:text=>status.textContent=text});let ready=false,busy=false,shared=null;
     const field=(title,node)=>{const label=element('label',title);label.append(node);section.append(label);return node;};
     const select=(title,options)=>{const node=element('select');for(const [value,text] of options){const item=element('option',text);item.value=value;node.append(item);}node.value=options[0][0];return field(title,node);};
     const start=action('Start save engine',()=>run(async()=>{if(!canStart())throw Error('Open Manager on the PS5 to send the engine.');await startEngine(ENGINE_NAME);status.textContent='Check the transfer report, then choose Check engine after it starts.';}),'secondary');
@@ -98,6 +99,7 @@
     const operation=select('Operation',[['decrypt','Decrypt an encrypted image'],['encrypt','Encrypt a decrypted save'],['resign','Resign an encrypted image'],['import','Import / restore a save']]);
     const type=select('Platform',[['ps5','PS5'],['ps4','PS4']]);
     const source=select('Input format',[['encrypted','Encrypted image'],['zip','Decrypted ZIP'],['folder','Decrypted folder'],['snapshot','Raw Manager snapshot']]);
+    const sharedOption=element('option','Community save');sharedOption.value='community';sharedOption.hidden=true;source.append(sharedOption);
     const image=field('Encrypted save image',element('input'));image.type='file';
     const key=field('PS4 companion .bin key (96 bytes)',element('input'));key.type='file';key.accept='.bin';
     const zip=field('Decrypted save ZIP (up to 128 MiB compressed)',element('input'));zip.type='file';zip.accept='.zip';
@@ -114,7 +116,7 @@
     const confirm=action('Install reviewed save',()=>run(async()=>{if(!closed.checked)throw Error('Close games and review the destination first.');const result=await client.finishImport();review.hidden=true;closed.checked=false;output.replaceChildren(element('p',result.warning?'Import returned a warning: '+result.warning:'Save imported and registered by the engine. Verify it in the game.'));status.textContent='Backup retained: '+(result.backup.id||'new title — no previous title files');}));confirm.disabled=true;
     review.append(closedLabel,confirm);section.append(output,review);
     const release=action('Cancel / release this tool session',()=>run(async()=>{await client.release();review.hidden=true;closed.checked=false;output.replaceChildren();status.textContent='Tool session released.';}),'secondary');section.append(release);
-    section.append(element('p','Raw images: up to 2 GiB. PS4 downloads include the companion key in a ZIP. Download results before starting another operation. Imports require Manager’s backup API on port 8087.','hint'));
+    section.append(element('p','Raw images: up to 2 GiB. PS4 downloads include the companion key in a ZIP. Download results before starting another operation.','hint'));
     function visibility(node,show){node.hidden=!show;const parent=node.parentNode;if(parent)parent.hidden=!show;}
     function update(){const op=operation.value,format=source.value,locked=busy||!!client.pending;
       for(const node of [operation,type,source,image,key,zip,folder,snapshot,snapshotFile,aid,uid])node.disabled=locked;
@@ -122,14 +124,21 @@
       confirm.disabled=busy||!client.pending||client.pending.commitAttempted||!closed.checked||client.uncertain;release.disabled=busy||(!client.owned&&!client.pending)||client.uncertain;
       visibility(image,format==='encrypted');visibility(key,type.value==='ps4'&&format==='encrypted');visibility(zip,format==='zip');visibility(folder,format==='folder');visibility(snapshot,format==='snapshot');visibility(snapshotFile,format==='snapshot');loadSnapshots.hidden=format!=='snapshot';loadSnapshots.disabled=locked||!snapshotSource;
       visibility(aid,op==='resign'||op==='encrypt');visibility(uid,op==='import');
+      if(format==='community'){operation.disabled=true;type.disabled=true;}
+      submit.textContent=format==='community'?'Prepare shared save':'Run selected operation';
     }
     async function run(fn){if(busy)return;busy=true;update();try{await fn();}catch(error){status.textContent=error.message;}finally{busy=false;update();}}
     async function perform(){
       const op=operation.value,format=source.value;if((op==='decrypt'||op==='resign')&&!['encrypted','snapshot'].includes(format))throw Error('This operation requires an encrypted image.');if(op==='encrypt'&&!['zip','folder'].includes(format))throw Error('Encryption requires a decrypted ZIP or folder.');
       if(client.pending||client.owned)throw Error('Download the current result and release this session before another operation.');
-      if(op==='import'&&!canImport())throw Error('Open the experimental Manager on port 8087 for backed-up imports.');
+      if(op==='import'&&!canImport())throw Error('Load the latest Manager ELF for backed-up imports.');
       const params={type:type.value,aid:aid.value.trim(),uid:uid.value};
-      if(format==='encrypted'){params.image=image.files[0];params.key=key.files[0];}
+      if(format==='community'){
+        if(op!=='import'||!shared)throw Error('Select a community save first.');
+        user(params.uid);
+        status.textContent='Downloading the shared save…';
+        Object.assign(params,await shared.download(),{expectedTitle:shared.title,type:shared.platform});
+      }else if(format==='encrypted'){params.image=image.files[0];params.key=key.files[0];}
       else if(format==='zip')params.zip=zip.files[0];else if(format==='folder')params.files=folder.files;
       else{if(!snapshotSource||!snapshot.value||!snapshotFile.value)throw Error('Choose a snapshot and image first.');const item=snapshotItems.find(item=>item.name===snapshotFile.value);if(!item||item.size>IMAGE_LIMIT)throw Error('Snapshot image exceeds the engine’s 2 GiB limit.');params.image=await snapshotSource.download(snapshot.value,item.name);if(type.value==='ps4'){const name=item.name.replace(/^sdimg_/,'')+'.bin';if(!snapshotItems.some(file=>file.name===name&&file.size===96))throw Error('Matching PS4 companion key is missing from this snapshot.');params.key=await snapshotSource.download(snapshot.value,name);}}
       output.replaceChildren();
@@ -137,7 +146,13 @@
       else{const result=await client[op](params);const link=element('a','Download '+result.name);link.href=result.url;link.download=result.name;output.append(link);if(result.warning)output.append(element('p',result.warning));status.textContent='Result ready. Download it before releasing this session or starting another operation.';}
     }
     for(const control of [operation,type,source,closed])control.addEventListener('change',()=>{if(control===operation&&operation.value==='encrypt')source.value='zip';if(control===operation&&(operation.value==='decrypt'||operation.value==='resign'))source.value='encrypted';update();});
-    container.append(section);update();return {client,section,update};
+    container.append(section);update();return {client,section,update,selectShared(item){
+      if(busy||client.pending||client.owned||client.uncertain)throw Error('Finish or release the current save operation first.');
+      if(!canImport())throw Error('Connect to your PS5 Manager before installing a shared save.');
+      shared=item;sharedOption.hidden=false;operation.value='import';type.value=item.platform;source.value='community';
+      status.textContent='Selected '+item.title+'. Start the engine if needed, check its connection and choose the receiving console user.';
+      update();
+    }};
   }
   return {Client,ENGINE_NAME,account,user,safePath,metadata,checkZip,prepareFiles,mount};
 });

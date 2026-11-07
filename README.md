@@ -1,14 +1,14 @@
 # PSN-HUB — Manager
 PSN-HUB2 is a community PS5 jailbreak and payload hub with a companion PS5 Manager. The site is a static project intended for GitHub Pages. It does not require PHP, a database, or a custom web server.
 
-## Current release: unified Manager 0.4.0
+## Current release: unified Manager 0.4.1
 
 [Download PSN-HUB-Manager.elf](payloads/PSN-HUB-Manager.elf). This is the one
 current Manager ELF; it includes saves, USB backup support, artwork operations
 and the pinned advanced-save engine. The normal jailbreak sends this file and
 opens Manager on port 8085. Separate PSN-HUB helper downloads are retired.
 
-[Release notes](Manager/RELEASE-2026.11.06.8.md) · [Save tools](Manager/SAVE-TOOLS.md).
+[Release notes](Manager/RELEASE-2026.11.06.8.md) · [Save tools](Manager/SAVE-TOOLS.md) · [Community Saves pilot](Manager/COMMUNITY-SAVES.md).
 Existing installations should reboot and jailbreak with the updated ELF to clear
 older helper services. Advanced transforms/imports remain WIP; physical USB
 writes still need validation with a connected drive.

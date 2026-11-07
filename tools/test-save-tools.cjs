@@ -47,8 +47,20 @@ function mock({backup=async()=>({id:'save-backup'}),override=()=>undefined}={}){
   }
   {
     const backups=[];const {client,calls}=mock({backup:async selection=>{backups.push(selection);return {id:'save-original'};}});await assert.rejects(client.finishImport(),/Prepare/);
-    const preview=await client.prepareImport({type:'ps5',image,uid:'00000001'});assert.equal(preview.backup.id,'save-original');assert.equal(preview.userAid,'0000000000000002');assert.deepEqual(backups,[{user:'00000001',platform:'ps5',title:'PPSA00001'}]);assert(!calls.some(call=>call.path==='/api/import_finish'),'Review must not install anything');
+    const preview=await client.prepareImport({type:'ps5',image,uid:'00000001',expectedTitle:'PPSA00001'});assert.equal(preview.backup.id,'save-original');assert.equal(preview.userAid,'0000000000000002');assert.deepEqual(backups,[{user:'00000001',platform:'ps5',title:'PPSA00001'}]);assert(!calls.some(call=>call.path==='/api/import_finish'),'Review must not install anything');
     const result=await client.finishImport();assert.equal(result.backup.id,'save-original');assert.equal(calls.at(-1).query.get('uid'),'00000001');assert(!calls.at(-1).query.has('force'));await assert.rejects(client.finishImport(),/Prepare/);assert.equal(calls.filter(call=>call.path==='/api/import_finish').length,1);
+  }
+  {
+    const {client}=mock({backup:async()=>assert.fail('Mismatched titles must fail before backup')});
+    await assert.rejects(client.prepareImport({type:'ps5',image,uid:'00000001',expectedTitle:'PPSA00002'}),/does not match/);
+    await assert.rejects(client.finishImport(),/Prepare/);
+    await client.release();
+  }
+  {
+    const {client}=mock({backup:async()=>({newTitle:true})});
+    await assert.rejects(client.prepareImport({type:'ps5',image,uid:'00000001'}),/backup did not complete/);
+    await assert.rejects(client.finishImport(),/Prepare/);
+    await client.release();
   }
   {
     const {client,calls}=mock({backup:async()=>{throw Error('disk full');}});await assert.rejects(client.prepareImport({type:'ps5',image,uid:'00000001'}),/disk full/);await assert.rejects(client.finishImport(),/Prepare/);assert(!calls.some(call=>call.path==='/api/import_finish'));await client.release();

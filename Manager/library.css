@@ -1,4 +1,8 @@
 html.library-wide main{width:min(1760px,100%)}
+.save-game-heading{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.save-game-heading small{display:block;color:#c7bdd4}
+.save-game-icon{position:relative;display:grid;place-items:center;width:64px;height:64px;flex:0 0 64px;border-radius:10px;overflow:hidden;background:#130321;color:#b98bdf;font-weight:bold}
+.save-game-icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #panel-payloads #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 #panel-payloads #list>.item{min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between}
 #panel-payloads #list>.empty{grid-column:1/-1}

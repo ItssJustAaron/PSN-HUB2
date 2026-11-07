@@ -23,6 +23,8 @@ for relative in ("payloads/PSN-HUB-Manager.elf", "cache.appcache", "index.html",
 notes = "PSN-HUB Manager " + build["uiRelease"] + " — build " + build["buildId"] + "\n\n"
 notes += "Extract into the existing PSN-HUB2 checkout, preserving folder paths. The only current Manager download is payloads/PSN-HUB-Manager.elf.\n\n"
 notes += (root / 'Manager/RELEASE-2026.11.06.8.md').read_text(encoding='utf-8')
+if build.get('communitySavesSha256'):
+    notes += "\n\nThis build adds the private Community Saves pilot and game names and icons in Saves. See Manager/COMMUNITY-SAVES.md for setup and testing.\n"
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=5) as archive:
     for file in sorted(files):
         archive.write(file, file.relative_to(root).as_posix())
@@ -31,7 +33,7 @@ with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
     assert "payloads/PSN-HUB-Manager.elf" in archive.namelist()
     assert "Manager/library.js" in archive.namelist()
-    for asset in ("Manager/save-tools.js", "Manager/vendor/fflate-0.8.2.js", "Manager/vendor/fflate-LICENSE.txt", "native/vendor/garlic-savemgr_08c24b5.elf.gz"):
+    for asset in ("Manager/save-tools.js", "Manager/community-saves.js", "tools/community-saves.cjs", "Manager/vendor/fflate-0.8.2.js", "Manager/vendor/fflate-LICENSE.txt", "native/vendor/garlic-savemgr_08c24b5.elf.gz"):
         assert asset in archive.namelist()
 print(output)
 print(f"{output.stat().st_size:,} bytes; {len(files)} files; archive verified.")

@@ -17,7 +17,7 @@ const original=element('button');original.id='tab-emulators';nodes.set('panel-em
 const state={manager:true,preview:false,backend:{}},managerTabs=[original];let selected;
 const context=vm.createContext({state,element,action,managerTabs,location:{hostname:'console'},selectTab:tab=>{selected=tab;tab.setAttribute('aria-selected','true');},$:id=>nodes.get(id),supports:key=>state.backend[key]===true,encodeURIComponent,
   response:async(url,options)=>{calls.push({url,options});let data;
-    if(url==='/api/saves')data={items:[{user:'00000001',platform:'ps5',title:'PPSA00001'}]};
+    if(url==='/api/saves')data={items:[{user:'00000001',platform:'ps5',title:'PPSA00001',name:'Example Game',hasIcon:true}]};
     else if(url.startsWith('/api/saves/usb/config')||url==='/api/saves/usb')data={volumes:['usb0'],enabled:false,usb:'usb0',minutes:30,lastRun:0};
     else if(url.startsWith('/api/saves/usb/all'))data={exported:1,unchanged:2};
     else if(url==='/api/saves/backups')data={items:[{id:'save-existing'}]};
@@ -27,13 +27,16 @@ const context=vm.createContext({state,element,action,managerTabs,location:{hostn
 vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.indexOf('  saveManagerControls(); backgroundControls();'))+'\nsaveManagerControls();globalThis.controls=saveControls;',context);
 (async()=>{
   const controls=context.controls,tab=nodes.get('tab-save-manager');
-  assert.equal(managerTabs.length,2);assert.equal(controls.refresh.disabled,true);
+  assert.equal(managerTabs.length,3);assert.equal(controls.refresh.disabled,true);
   await controls.refresh.events.click();assert.equal(calls.length,0,'Unsupported stable engine must receive no save calls');
   await tab.events.click();assert(controls.status.textContent.includes('latest PSN-HUB-Manager.elf'));assert.equal(calls.length,0,'Old engines must not receive nonexistent save calls');
   state.backend={saveRead:true,saveBackup:true};vm.runInContext('updateSaveControls()',context);
   await new Promise(setImmediate);
   assert.equal(controls.refresh.disabled,false);await controls.refresh.events.click();
-  assert.equal(controls.list.children[0].children[0].textContent,'PS5 · PPSA00001 · User 00000001');
+  const heading=controls.list.children[0].children[0];
+  assert.equal(heading.children[1].children[0].textContent,'Example Game');
+  assert.equal(heading.children[0].children[0].src,'/api/saves/icon?title=PPSA00001');
+  assert.equal(heading.children[1].children[1].textContent,'PS5 · PPSA00001 · User 00000001');
   await controls.list.children[0].children[1].events.click();
   assert(controls.files.children[1].children[0].href.includes('name=slot.bin'));
   await controls.list.children[0].children[2].events.click();
@@ -44,7 +47,7 @@ vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.i
   assert(calls.some(call=>call.url.includes('/api/saves/usb/config?usb=usb0&enabled=1&minutes=30')&&call.options.method==='POST'));
   state.backend.saveUSB=false;
   await tab.events.click();assert.equal(selected,tab);
-  tab.events.keydown({key:'ArrowRight',preventDefault(){}});assert.equal(selected,original);
+  tab.events.keydown({key:'ArrowRight',preventDefault(){}});assert.equal(selected,nodes.get('tab-community-saves'));
   state.backend={};vm.runInContext('updateSaveControls()',context);assert.equal(controls.refresh.disabled,true);assert.equal(controls.files.children.length,0);
   context.window={};context.repositoryBase='https://source/';context.UI_RELEASE='test';context.location={hostname:'console'};context.requestHeaders=()=>({});context.fetch=()=>{};
   context.document={head:{append(script){vm.runInContext(script.textContent,context);}}};const scriptURLs=[];

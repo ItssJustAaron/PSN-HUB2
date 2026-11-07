@@ -20,6 +20,7 @@ const embeddedJSON = JSON.stringify(embedded).replace(/</g, '\\u003c').replace(/
 const version = require('node:crypto').createHash('sha256').update(read('Manager/library.js')).digest('hex').slice(0,12);
 const build=JSON.parse(read('Manager/build.json'));
 assert.equal(build.saveToolsSha256,require('node:crypto').createHash('sha256').update(read('Manager/save-tools.js')).digest('hex'));
+assert.equal(build.communitySavesSha256,require('node:crypto').createHash('sha256').update(read('Manager/community-saves.js')).digest('hex'));
 assert.equal(build.zipLibrarySha256,require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(root,'Manager/vendor/fflate-0.8.2.js'))).digest('hex'));
 const embeddedBuild=Object.fromEntries(['buildId','uiRelease','catalogueVersion','catalogueUpdatedAt'].map(key=>[key,build[key]]));
 const expected = read('Manager/dashboard.html').split(/\r?\n/).map(line => line.trim()).join('\n').trimEnd().replace('__MANAGER_BUILD__',JSON.stringify(embeddedBuild)).replace('__LIBRARY_VERSION__',version).replace('const builtinCatalog = null;', 'const builtinCatalog = ' + embeddedJSON + ';');
