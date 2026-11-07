@@ -8,8 +8,8 @@
   "catalogueVersion": "877d33d86476",
   "catalogueUpdatedAt": "2026-11-07T11:39:04+00:00",
   "communitySavesSha256": "66fc29668250b36a82b87d947bbc3fb8ed99a858363f243872a6984480840162",
-  "elfSha256": "1fd67dc9e3892236dd22ddd23be15137b0f9bd9ff94c59ab948b8bc446c4123f",
-  "elfBytes": 5045656,
+  "elfSha256": "85d73ee856485cd99439f3591eb8d947781c404efa36111c3915c191460d2df0",
+  "elfBytes": 6323768,
   "nativeVersion": "0.4.1",
   "engine": "unified"
 }
