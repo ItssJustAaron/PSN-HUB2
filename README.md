@@ -122,7 +122,16 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
 - The site and Manager are community software. Review payload sources and compatibility notes before use.
 - The Manager is intended for a trusted local network. It has no user accounts or transport encryption; do not expose port `8085` directly to the public internet.
 - Manager library downloads require internet. A cached jailbreak page does not make remote library files available offline.
-- Credits for the original exploit chain and payload authors are retained in the site and project files.
+
+## Credits
+
+- **PSN-HUB site and Manager** — AKAY Blunt / ItssJustAaron.
+- **Relapse jailbreak** — Karo, Zecoxao, ChendoChap, flat_z, TheFlow, itsPLK, and the Relapse contributors and testers.
+- **PS5 tools and build tooling** — John Törnblom and the ps5-payload-dev contributors for [elfldr](https://github.com/ps5-payload-dev/elfldr), [ftpsrv](https://github.com/ps5-payload-dev/ftpsrv), [klogsrv](https://github.com/ps5-payload-dev/klogsrv), and the [PS5 Payload SDK](https://github.com/ps5-payload-dev/sdk). Thanks to drakmor for [ShadowMountPlus](https://github.com/drakmor/ShadowMountPlus) and the [SQLite contributors](https://sqlite.org/crew.html).
+- **Homebrew enablers** — cragson for [PS5-HEN](https://github.com/cragson/ps5-hen), LightningMods and the [etaHEN team](https://github.com/etaHEN/etaHEN), and aydencharles for [onionHEN](https://github.com/aydencharles/onionHEN).
+- **Mods and emulators** — RaringM for the [GTA V mod menu](https://github.com/RaringM/ps5-gtav-menu), Swordpdf for [PS5SX2](https://github.com/Swordpdf/PS5SX2), and the [PCSX2 contributors](https://github.com/PCSX2/pcsx2).
+- **Save tools** — earthonion and contributors for [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr), earthonion for the [Garlic Worker](https://github.com/earthonion/garlic-worker) research reference, and Arjun Barrett (101arrowz) for [fflate](https://github.com/101arrowz/fflate).
+- **Cheats and cover art** — the cheat authors credited on individual Manager entries and in the original files. Thanks to TeeKay87 and the [HEN Cheats Collection](https://hencheats.vercel.app/) for catalogue inspiration and cover metadata. Cover images come from the PlayStation CDN and belong to their respective rights holders.
 
   <img width="1280" height="720" alt="PSNHUB-JB" src="https://github.com/user-attachments/assets/100f14d6-91f1-4e2b-9274-5da3466783dc" />
 
