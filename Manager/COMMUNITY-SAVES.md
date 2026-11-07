@@ -2,6 +2,8 @@
 
 Start the library with Node.js using `node tools/community-saves.cjs`. For internet access, run it on a host with persistent storage and a public HTTPS endpoint. The server's homepage offers uploads and downloads. In PSN-HUB Manager, enter the same endpoint under **Community Saves** to prepare approved saves for installation.
 
+The repository includes a Render Blueprint for a Starter web service with a persistent disk. Set the GitHub token in the host's secret settings. Once the service is reachable, set `libraryOrigin` in `Manager/community-saves-config.json` to its public HTTPS origin. Manager will open that library automatically. Keep this setting empty until the public endpoint is ready.
+
 | Variable | Purpose |
 | --- | --- |
 | `PSNHUB_COMMUNITY_DATA` | Private directory for packages and review status. Keep it outside public hosting and version control. |

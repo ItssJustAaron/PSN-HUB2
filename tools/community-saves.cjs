@@ -172,10 +172,12 @@ async function createServer({directory, adminToken, origins = [], archive}) {
 
 if (require.main === module) {
   const env = process.env;
+  const origins = (env.PSNHUB_COMMUNITY_ORIGINS || '').split(',').map(origin => origin.trim()).filter(Boolean);
+  if (env.RENDER_EXTERNAL_URL) origins.push(new URL(env.RENDER_EXTERNAL_URL).origin);
   createServer({directory: env.PSNHUB_COMMUNITY_DATA,
     archive: env.PSNHUB_GITHUB_TOKEN ? createArchive(env.PSNHUB_GITHUB_TOKEN) : undefined,
-    adminToken: env.PSNHUB_COMMUNITY_ADMIN, origins: env.PSNHUB_COMMUNITY_ORIGINS?.split(',').map(x => x.trim()).filter(Boolean)})
-    .then(server => server.listen(Number(env.PSNHUB_COMMUNITY_PORT || 8095), env.PSNHUB_COMMUNITY_HOST || '127.0.0.1', () => {
+    adminToken: env.PSNHUB_COMMUNITY_ADMIN, origins})
+    .then(server => server.listen(Number(env.PSNHUB_COMMUNITY_PORT || env.PORT || 8095), env.PSNHUB_COMMUNITY_HOST || '127.0.0.1', () => {
       console.log('Community Saves library listening on', server.address());
     })).catch(error => {console.error(error.message);process.exitCode = 1;});
 }

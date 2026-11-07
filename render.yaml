@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: psn-hub-community-saves
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./tools/community-saves.Dockerfile
+    healthCheckPath: /v1/saves
+    disk:
+      name: community-saves
+      mountPath: /var/data
+      sizeGB: 12
+    envVars:
+      - key: PSNHUB_COMMUNITY_HOST
+        value: 0.0.0.0
+      - key: PSNHUB_COMMUNITY_DATA
+        value: /var/data/packages
+      - key: PSNHUB_COMMUNITY_ADMIN
+        generateValue: true
+      - key: PSNHUB_GITHUB_TOKEN
+        sync: false

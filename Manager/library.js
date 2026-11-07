@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.7';
+  const UI_RELEASE = '2026.11.07.8';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -1008,7 +1008,12 @@
           document.head.append(script);
         }
         const saveQuery = ({user, platform, title}) => new URLSearchParams({user, platform, title});
+        const config = await response(repositoryBase+'Manager/community-saves-config.json', {cache:'no-store'}, 5000)
+          .then(blob => blob.text()).then(JSON.parse).catch(() => null);
+        const publicLibrary = typeof config?.libraryOrigin === 'string' && /^https:\/\/[^/?#@\s]+\/?$/.test(config.libraryOrigin)
+          ? config.libraryOrigin : undefined;
         window.PSNCommunitySaves.mount({container:community,element,action,gameHeading:saveGameHeading,
+          libraryOrigin: publicLibrary,
           consoleSaves: supports('saveRead') ? {
             list: () => saveJSON('/api/saves'),
             files: entry => saveJSON('/api/saves/files?' + saveQuery(entry)),

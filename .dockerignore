@@ -1,0 +1,8 @@
+**
+!tools/
+!tools/community-saves.Dockerfile
+!tools/community-saves.cjs
+!tools/community-save-archive.cjs
+!Manager/
+!Manager/community-saves.html
+!Manager/community-saves.js
