@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.2';
+  const UI_RELEASE = '2026.11.07.3';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -1022,7 +1022,70 @@
     communityTab.addEventListener('click',()=>selectTab(communityTab));
     communityTab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=managerTabs[(managerTabs.indexOf(communityTab)+(event.key==='ArrowRight'?1:-1)+managerTabs.length)%managerTabs.length];selectTab(next);next.focus();}});
   }
-  saveManagerControls(); backgroundControls(); restoreBrowsing(); releaseControls();
+  function themeManagerControls() {
+    if (typeof managerTabs === 'undefined' || typeof selectTab !== 'function') return;
+    const tab = element('button', 'THEMES', 'tab');
+    tab.id = 'tab-themes';
+    tab.type = 'button';
+    tab.tabIndex = -1;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', 'false');
+    tab.setAttribute('aria-controls', 'panel-themes');
+    const panel = element('div', undefined, 'tab-panel');
+    panel.id = 'panel-themes';
+    panel.hidden = true;
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', tab.id);
+
+    const card = element('section', undefined, 'card');
+    card.append(element('h2', 'PS5 Themes'), element('p', 'Start Blaze414’s PS5 Themes payload on this console, then open the builder below. Upload your artwork, save the theme, and export its ZIP from the editor’s library.', 'hint'));
+    const url = new URL(location.href);
+    url.port = '8095';
+    url.pathname = '/';
+    url.search = '';
+    url.hash = '';
+    const frame = element('iframe', undefined, 'theme-builder');
+    frame.title = 'PS5 Themes builder by Blaze414';
+    frame.hidden = true;
+    const launch = action('Open theme builder', () => {
+      frame.src = url.href;
+      frame.hidden = false;
+      launch.textContent = 'Reload theme builder';
+    }, 'secondary');
+    const direct = element('a', 'Open editor in a separate tab');
+    direct.href = url.href;
+    direct.target = '_blank';
+    direct.rel = 'noopener';
+    const downloads = element('a', 'Theme downloads and GIF tools');
+    downloads.href = 'https://itssjustaaron.github.io/PSN-HUB2/themes.html';
+    downloads.target = '_blank';
+    downloads.rel = 'noopener';
+    const links = element('p');
+    links.append(direct, document.createTextNode(' · '), downloads);
+    const artwork = element('a', 'Download PSN-HUB artwork kit');
+    artwork.href = repositoryBase + 'releases/PSN-HUB-Theme-Artwork.zip';
+    const downloadSection = element('p');
+    downloadSection.append(artwork);
+    card.append(launch, links, frame, element('h3', 'Downloads'), downloadSection);
+    panel.append(card);
+    const lastTab = managerTabs[managerTabs.length - 1];
+    lastTab.after(tab);
+    $(lastTab.getAttribute('aria-controls')).after(panel);
+    managerTabs.push(tab);
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      event.preventDefault();
+      const next = event.key === 'ArrowRight' ? managerTabs[0] : lastTab;
+      selectTab(next);
+      next.focus();
+    });
+    return tab;
+  }
+  saveManagerControls(); backgroundControls();
+  const themeTab = themeManagerControls();
+  restoreBrowsing(); releaseControls();
+  if (themeTab && location.hash === '#themes') selectTab(themeTab);
   firmwareControls();
   maintenanceControls();
   setupControls();setControllerMode(!!storeRead('controllerMode',!!ps5Version));

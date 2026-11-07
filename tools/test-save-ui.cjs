@@ -27,7 +27,7 @@ const context=vm.createContext({state,element,action,managerTabs,location:{hostn
   }});
 let finishUSB;
 const pendingUSB = new Promise(resolve => {finishUSB = resolve;});
-vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.indexOf('  saveManagerControls(); backgroundControls();'))+'\nsaveManagerControls();globalThis.controls=saveControls;',context);
+vm.runInContext(source.slice(source.indexOf('  let saveControls=null;'),source.indexOf('  function themeManagerControls()'))+'\nsaveManagerControls();globalThis.controls=saveControls;',context);
 (async()=>{
   const controls=context.controls,tab=nodes.get('tab-save-manager');
   assert.equal(managerTabs.length,3);assert.equal(controls.refresh.disabled,true);

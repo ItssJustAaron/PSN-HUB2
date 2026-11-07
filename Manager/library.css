@@ -7,6 +7,7 @@ html.library-wide main{width:min(1760px,100%)}
 .save-backup-feedback progress{width:100%;height:14px;accent-color:#8efa35}
 .save-backup-feedback p{margin:4px 0}
 .save-backup-feedback span{font-size:.85rem;color:#c7bdd4}
+.theme-builder{width:100%;height:80vh;min-height:420px;border:1px solid #59347c;border-radius:12px;background:#180925}
 #panel-payloads #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 #panel-payloads #list>.item{min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between}
 #panel-payloads #list>.empty{grid-column:1/-1}

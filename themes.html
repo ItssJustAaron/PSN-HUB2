@@ -29,7 +29,7 @@
       <form id="open-editor">
         <label for="console-ip">PS5 local IP address</label>
         <input id="console-ip" name="console-ip" placeholder="192.168.1.20" required maxlength="15" spellcheck="false" autocomplete="off">
-        <button type="submit">Open theme editor</button>
+        <button type="submit">Open PSN-HUB theme builder</button>
       </form>
       <ol>
         <li>Create a theme and upload a PNG, JPEG, or WebP in the Background editor.</li>
@@ -65,7 +65,7 @@
         input.reportValidity();
         return;
       }
-      location.assign('http://' + parts.join('.') + ':8095/');
+      location.assign('http://' + parts.join('.') + ':8085/#themes');
     });
     const gif = document.getElementById('gif');
     const gifStatus = document.getElementById('gif-status');
