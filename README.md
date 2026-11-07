@@ -64,6 +64,8 @@ The pilot uses a separate private library with member and reviewer codes. Review
 
 Manager can set the Store shortcut to **PSN-HUB JAILBREAK**, apply the mascot artwork, and hide the duplicate Media shortcut after a successful replacement. The artwork controls can update the background for an installed PSN-HUB Store shortcut. Backup and restore details are in the [shortcut guide](native/shortcut/README.md) and [background guide](native/shortcut/BACKGROUND.md).
 
+Use the existing Store artwork to make a PSN-HUB home-screen theme with the PS5 Themes editor by Blaze414. [Download the artwork kit](releases/PSN-HUB-Theme-Artwork.zip) · [Setup guide](Manager/PS5-THEME.md)
+
 ## Offline use
 
 On PS5 browsers that support Application Cache, open the jailbreak page while online and wait for the cache to finish installing. **Check Site Update** refreshes the site's cache. Manager catalogue downloads, artwork fetched from GitHub, and online update checks still need an internet connection.
