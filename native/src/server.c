@@ -174,6 +174,15 @@ static void handle(int fd,Request *r) {
       else if(!strcmp(operation,"store-apply")||!strcmp(operation,"store-restore")||!strcmp(operation,"store-rename"))hub_store_run(integrated_root,!strcmp(operation,"store-restore"),!strcmp(operation,"store-rename"),&b);
       else{error_reply(fd,400,"Unknown artwork action");return;}
 #endif
+    }else if(get&&!strcmp(path,"/api/saves/icon")){
+      char title[16];int icon=query(r,"title",title,sizeof(title))==1?hub_save_icon(title):-1;
+      struct stat st;if(icon<0||fstat(icon,&st)<0||!S_ISREG(st.st_mode)||st.st_size<8||st.st_size>2*1024*1024){if(icon>=0)close(icon);error_reply(fd,404,"Game icon unavailable");return;}
+      size_t size=(size_t)st.st_size,used=0;unsigned char *png=malloc(size);
+      while(png&&used<size){ssize_t got=read(icon,png+used,size-used);if(got<0&&errno==EINTR)continue;if(got<=0)break;used+=(size_t)got;}
+      close(icon);
+      if(used==size&&!memcmp(png,"\x89PNG\r\n\x1a\n",8))reply(fd,200,"image/png",png,size);
+      else error_reply(fd,404,"Game icon unavailable");
+      free(png);return;
     }else if(get&&!strcmp(path,"/api/saves/usb"))result=hub_usb_status(&b);
     else if(post&&(!strcmp(path,"/api/saves/usb/export")||!strcmp(path,"/api/saves/usb/all")||!strcmp(path,"/api/saves/usb/config"))){
       char usb[16];if(query(r,"usb",usb,sizeof(usb))!=1){error_reply(fd,400,"Choose a USB device");return;}
