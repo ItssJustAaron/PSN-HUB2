@@ -39,7 +39,7 @@ body {
   z-index: 1; pointer-events: none;
 }
 
-/* Made By AKAY Blunt */
+/* Creator badge */
 .blunt-badge {
   position: absolute; top: 14px; right: 18px;
   z-index: 10; display: flex; align-items: center;
@@ -52,41 +52,18 @@ body {
   100% { transform: rotate(-4deg) translateY(-4px); }
 }
 .blunt-smoke {
-  position: absolute; left: -22px; top: -12px;
-  width: 22px; height: 22px;
-  background: radial-gradient(circle, rgba(220, 220, 220, 0.75) 0%, rgba(255, 255, 255, 0) 70%);
-  border-radius: 50%;
-  animation: smokePuff 2.2s infinite ease-out;
+  fill: none; stroke: #dacbea; stroke-width: 2.4; stroke-linecap: round;
+  transform-origin: 37px 38px;
+  animation: smokePuff 2.6s ease-out infinite;
   pointer-events: none;
 }
 @keyframes smokePuff {
-  0% { transform: scale(0.6) translate(0, 0); opacity: 0.8; }
-  50% { opacity: 0.5; }
-  100% { transform: scale(2.2) translate(-14px, -24px); opacity: 0; }
+  0% { transform: translate(2px, 4px); opacity: 0; }
+  25% { opacity: .72; }
+  100% { transform: translate(-9px, -10px) scale(1.16); opacity: 0; }
 }
-.blunt-body {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(180deg, #6b3512 0%, #441d08 100%);
-  border: 3.5px solid #000; border-radius: 6px 20px 20px 6px;
-  padding: 6px 18px 6px 24px; box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2);
-}
-.blunt-tip {
-  position: absolute; left: -10px; width: 10px; height: calc(100% + 7px);
-  background: radial-gradient(circle at center, #ff8400 0%, #ff2a00 65%, #3d1c10 100%);
-  border: 3.5px solid #000; border-right: none; border-radius: 12px 0 0 12px;
-  box-shadow: -2px 0px 8px rgba(255, 77, 0, 0.8);
-}
-.blunt-ash {
-  position: absolute; left: -15px; width: 7px; height: 55%;
-  background: #737373; border-radius: 4px 0 0 4px;
-  border: 2px solid #000; border-right: none;
-}
-.blunt-text {
-  font-family: var(--font-comic);
-  color: var(--yellow-accent);
-  font-size: 0.95rem; letter-spacing: 1.5px;
-  white-space: nowrap; text-shadow: 2px 2px 0px #000;
-}
+.blunt-art { display: block; width: 236px; max-width: 88vw; height: auto; overflow: visible; }
+.blunt-text { font-family: var(--font-comic); font-size: 15px; font-weight: 700; fill: #302016; }
 
 .content-wrapper {
   position: relative; z-index: 2;
@@ -185,12 +162,32 @@ footer a { color: #c6ff8d; }
 
 <canvas id="bg-canvas"></canvas>
 
-<!-- Made By AKAY Blunt -->
 <div class="blunt-badge">
-  <div class="blunt-smoke"></div>
-  <div class="blunt-ash"></div>
-  <div class="blunt-tip"></div>
-  <div class="blunt-body"><span class="blunt-text">MADE BY AKAY</span></div>
+  <svg class="blunt-art" viewBox="0 0 252 66" role="img" aria-label="Made By ItssJustAaron">
+    <defs>
+      <linearGradient id="joint-paper" x2="0" y2="100%">
+        <stop stop-color="#fff4d9"/>
+        <stop offset="1" stop-color="#c59762"/>
+      </linearGradient>
+      <linearGradient id="joint-ember" x2="0" y2="100%">
+        <stop stop-color="#ffcf61"/>
+        <stop offset=".55" stop-color="#ff651f"/>
+        <stop offset="1" stop-color="#a62d17"/>
+      </linearGradient>
+    </defs>
+    <path class="blunt-smoke" d="M40 36c-15-3-17-9-11-15 5-5 1-10-7-12m16 24c-8-4-6-9-1-12"/>
+    <g stroke="#140c10" stroke-width="3" stroke-linejoin="round">
+      <path fill="url(#joint-paper)" d="M48 23l182 7q12 1 12 12t-12 12L48 60z"/>
+      <path fill="#ab7848" d="M213 29l17 1q12 1 12 12t-12 12l-17 1q7-12 0-26z"/>
+      <path fill="url(#joint-ember)" d="M40 24l12-1 4 10-4 9 3 9-5 9-11-2z"/>
+      <path fill="#6e6568" d="M32 27l11-4 3 9-4 9 4 9-5 9-11-4-3-9 2-11z"/>
+    </g>
+    <path fill="none" stroke="#fff8e6" stroke-opacity=".6" stroke-linecap="round" d="M61 29l141 6M221 34l10 1"/>
+    <path fill="none" stroke="#a49598" stroke-width="2" stroke-linecap="round" d="M34 31l4 4-5 6m1 6l4 6"/>
+    <circle cx="48" cy="36" r="1.7" fill="#ffeab0"/>
+    <circle cx="48" cy="50" r="1.2" fill="#ffd062"/>
+    <text class="blunt-text" x="133" y="43" text-anchor="middle" dominant-baseline="middle">Made By ItssJustAaron</text>
+  </svg>
 </div>
 
 <div class="content-wrapper">
