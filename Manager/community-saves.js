@@ -48,8 +48,10 @@
     return blob;
   }
 
-  function mount({container, element, action, gameHeading, selectShared, libraryOrigin, largeUploadOrigin, consoleSaves, makeZip}) {
+  function mount({container, element, action, gameHeading, selectShared, libraryOrigin, largeUploadOrigin, megaFileRequest, consoleSaves, makeZip}) {
     const github = !!makeZip && !libraryOrigin;
+    const megaRequest = typeof megaFileRequest === 'string' && /^https:\/\/mega\.nz\/filerequest\/[A-Za-z0-9_-]+$/.test(megaFileRequest)
+      ? megaFileRequest : null;
     const status = element('p', github ? 'Loading public saves…' : 'Enter the Community Saves library address to browse or submit a save.', 'hint');
     status.setAttribute('role', 'status');
     const field = (label, node, parent = container) => {
@@ -298,13 +300,13 @@
       }
       status.textContent = list.children.length ? 'Community library loaded.' : 'No saves available yet.';
     }
-    form.append(action(github && !largeUploadOrigin ? 'Prepare ZIP for GitHub' : 'Upload or prepare ZIP', () => run(async () => {
+    const prepare = forMega => run(async () => {
       const entry = consoleTitle?.value ? consoleEntries[Number(consoleTitle.value)] : null;
       const selectedPlatform = entry?.platform || platform.value;
       const id = entry?.title || title.value.trim().toUpperCase();
       const summary = description.value.trim();
       const all = github && entry && consoleImage.value === 'all';
-      if (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary)) {
+      if (!forMega && (!summary || summary.length > 240 || /[\x00-\x1f\x7f]/.test(summary))) {
         description.focus();
         throw Error('Enter a description between 1 and 240 characters on one line.');
       }
@@ -312,7 +314,8 @@
         : [entry ? consoleFiles[Number.parseInt(consoleImage.value, 10)] : image.files[0]];
       const saves = chosen.map(save => ({save, companion: selectedPlatform !== 'ps4' ? null : entry
         ? consoleFiles.find(file => file.name === save?.name.replace(/^sdimg_/, '') + '.bin') : key.files[0]}));
-      if ((!github && !consent.checked) || !validTitle(id, selectedPlatform) || !saves.length) {
+      if (forMega && all) throw Error('Select an individual save to prepare it for MEGA.');
+      if ((!forMega && !github && !consent.checked) || !validTitle(id, selectedPlatform) || !saves.length) {
         throw Error(github ? 'Choose a matching title ID, save image, and PS4 companion key if needed.'
           : 'Choose a matching title ID, save image, PS4 companion key if needed, and agree to share.');
       }
@@ -323,15 +326,16 @@
             : 'Choose a save image and its PS4 companion key if needed.');
         }
         const bytes = save.size + (companion?.size || 0);
-        if (github && bytes > githubLimit) {
+        if (!forMega && github && bytes > githubLimit) {
           if (all) throw Error(save.name + ' needs a large upload. Select that slot individually.');
           if (bytes > largeLimit) throw Error(save.name + ' exceeds the 1 GiB upload limit.');
           if (largeUploadOrigin && !consent.checked) throw Error('Agree to share the save publicly before uploading.');
           large = true;
         }
-        if (!github && bytes > limit) throw Error('Community save packages are limited to 256 MiB.');
+        if (!forMega && !github && bytes > limit) throw Error('Community save packages are limited to 256 MiB.');
+        if (forMega && bytes > largeLimit) throw Error('MEGA save preparation supports packages up to 1 GiB.');
       }
-      const request = github ? null : connection();
+      const request = github || forMega ? null : connection();
       status.textContent = 'Preparing and uploading the save…';
       const read = async file => {
         if (!entry) return file;
@@ -339,6 +343,26 @@
         if (blob.size !== file.size) throw Error('The console save changed. Close the game and load the save list again.');
         return blob;
       };
+      if (forMega) {
+        status.textContent = 'Preparing the MEGA upload file…';
+        const [{save, companion}] = saves;
+        const packageFile = new Blob(companion ? [await read(companion), await read(save)] : [await read(save)],
+          {type: 'application/octet-stream'});
+        for (const link of zipLinks.querySelectorAll('a[download]')) URL.revokeObjectURL(link.href);
+        const slot = save.name.replace(/[^A-Za-z0-9_-]+/g, '-').slice(0, 64) || 'save';
+        const download = element('a', 'Download ' + id + ' save package');
+        download.href = URL.createObjectURL(packageFile);
+        download.download = id + '-' + slot + '.bin';
+        const upload = element('a', 'Open MEGA upload page');
+        upload.href = megaRequest;
+        upload.target = '_blank';
+        upload.rel = 'noopener noreferrer';
+        const steps = element('p');
+        steps.append(download, ' · ', upload);
+        zipLinks.replaceChildren(element('p', 'Download the package, then select it on the MEGA upload page. MEGA submissions require separate catalogue publication.'), steps);
+        status.textContent = 'Save package ready for MEGA.';
+        return;
+      }
       if (large && largeUploadOrigin) {
         const [{save, companion}] = saves;
         const request = connection(largeUploadOrigin);
@@ -487,7 +511,10 @@
       status.textContent = result.archived ? 'Published to the library and GitHub.'
         : result.approved ? 'Published to this library. GitHub publishing is not configured.'
         : 'Upload saved, but publication failed. An administrator can retry it.';
-    })), zipLinks);
+    });
+    form.append(action(github && !largeUploadOrigin ? 'Prepare ZIP for GitHub' : 'Upload or prepare ZIP', () => prepare(false)));
+    if (megaRequest) form.append(action('Prepare save for MEGA', () => prepare(true), 'secondary'));
+    form.append(zipLinks);
     const archive = element('a', 'Browse approved saves on GitHub');
     archive.href = githubRepo + (github ? '/issues' : '/releases');
     archive.target = '_blank';
