@@ -1,127 +1,100 @@
-# PSN-HUB — Manager
-PSN-HUB2 is a community PS5 jailbreak and payload hub with a companion PS5 Manager. The site is a static project intended for GitHub Pages. It does not require PHP, a database, or a custom web server.
+# PSN-HUB
 
-## Current release: unified Manager 0.4.1
+PSN-HUB is a Relapse jailbreak host for supported PS5 firmware. After jailbreak, it starts PSN-HUB Manager, a dashboard served by the console that you can open on your PS5, phone, or computer.
 
-[Download PSN-HUB-Manager.elf](payloads/PSN-HUB-Manager.elf). This is the one
-current Manager ELF; it includes saves, USB backup support, artwork operations
-and the pinned advanced-save engine. The normal jailbreak sends this file and
-opens Manager on port 8085. Separate PSN-HUB helper downloads are retired.
+[Open PSN-HUB](https://itssjustaaron.github.io/PSN-HUB2/) · [Download Manager ELF](https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/payloads/PSN-HUB-Manager.elf) · [Report an issue](https://github.com/ItssJustAaron/PSN-HUB2/issues)
 
-[Release notes](Manager/RELEASE-2026.11.06.8.md) · [Save tools](Manager/SAVE-TOOLS.md) · [Community Saves pilot](Manager/COMMUNITY-SAVES.md).
-Existing installations should reboot and jailbreak with the updated ELF to clear
-older helper services. Advanced transforms/imports remain WIP; physical USB
-writes still need validation with a connected drive.
+<img width="1280" height="720" alt="PSN-HUB jailbreak home page" src="https://github.com/user-attachments/assets/100f14d6-91f1-4e2b-9274-5da3466783dc" />
 
-## Contents
+## Current release
 
-- [Website](#website)
-- [Firmware support](#firmware-support)
-- [PSN-HUB Manager](#psn-hub-manager)
-- [Local network setup](#local-network-setup)
-- [Offline use](#offline-use)
-- [Hosting on GitHub Pages](#hosting-on-github-pages)
-- [Updating the Manager library](#updating-the-manager-library)
-- [Repository layout](#repository-layout)
-- [Important notes](#important-notes)
+**Manager 0.4.1** adds game names and icons to the Saves tab and introduces the private Community Saves pilot. Console save browsing, USB backups, advanced save tools, and shortcut artwork are included in one `PSN-HUB-Manager.elf`. The [build manifest](Manager/build.json) records the current UI release, catalogue version, and ELF SHA-256.
 
-## Website
+## Getting started
 
-`index.html` is the PSN-HUB home page. It links to the jailbreak flow in `relapse.html` and contains the PAYLOADS navigation entry.
+1. On a supported PS5, open the [PSN-HUB jailbreak page](https://itssjustaaron.github.io/PSN-HUB2/).
+2. If you have used an older build, choose **Check Site Update** and follow the page status before choosing **Jailbreak Now**. Fully restart the PS5 first if an older Manager is still running.
+3. After jailbreak, the page sends the Manager ELF automatically and opens its dashboard once it is reachable.
+4. To use Manager on another device, open `http://<PS5-IP>:8085/` from a phone or computer on the same trusted local network.
 
-`relapse.html` runs the PS5 browser jailbreak flow and displays its payload menu. On a successful run, the current flow can start the PSN-HUB Manager automatically. If the console is already jailbroken in the same browser session, the home page PAYLOADS link opens sender-only mode. Sender-only mode checks for elfldr and sends payloads without rerunning the exploit.
+If a transfer fails, follow the retry instructions on the jailbreak page. If the dashboard still looks old, check the native engine and loaded UI versions in Manager's maintenance panel. Manager serves HTTP on port **8085**, and elfldr receives payloads on port **9021**. Keep both services on your local network.
 
-Payload sending uses the console's own syscalls to connect to elfldr at `127.0.0.1:9021`. The website itself is static, so it can be served from GitHub Pages or another static host.
+## Supported PS5 firmware
 
-## Firmware support
+| Series | Versions |
+| --- | --- |
+| 7.xx | 7.00, 7.01, 7.20, 7.40, 7.60, 7.61 |
+| 8.xx | 8.00, 8.20, 8.40, 8.60 |
+| 9.xx | 9.00, 9.20, 9.40, 9.60 |
+| 10.xx | 10.00, 10.01, 10.20, 10.40 |
+| 11.xx | 11.00, 11.20, 11.60 |
+| 12.xx | 12.00, 12.02, 12.20, 12.40, 12.60, 12.70 |
+| 13.xx | 13.00, 13.20, 13.40, 13.42, 13.60 |
 
-The jailbreak includes these firmware versions:
+Each HEN, mod menu, and emulator has its own requirements. Manager hides known incompatible entries by default and shows when compatibility is unknown. Check the entry for firmware, game version, and prerequisites before sending it. [Firmware source](firmware.js)
 
-`7.00` `7.01` `7.20` `7.40` `7.60` `7.61` `8.00` `8.20` `8.40` `8.60` `9.00` `9.20` `9.40` `9.60` `10.00` `10.01` `10.20` `10.40` `11.00` `11.20` `11.60` `12.00` `12.02` `12.20` `12.40` `12.60` `12.70` `13.00` `13.20` `13.40` `13.42` `13.60`
+## What you can do in Manager
 
-Firmware `10.60` and `11.40` are not included because the required firmware modules are unavailable. HEN, mod-menu, and individual payload support can have narrower firmware requirements than the jailbreak itself; check each entry's compatibility information before sending it.
+| Tab | Features |
+| --- | --- |
+| **Payloads** | Upload your own `.elf` or `.bin` files, browse payloads stored on your PS5, send them to elfldr, and run saved groups with a delay between sends. |
+| **Cheats** | Search PS4 and PS5 cheats by game, title ID, version, format, or creator. Install individual files or versions, or use **Download All** for the full catalogue. |
+| **HENs** | Review and send cragson PS5-HEN, etaHEN, and onionHEN. |
+| **Mod Menus** | View game and version requirements for mod menus, including RaringM's GTA V Story Mode menu. |
+| **Emulators** | View prerequisites and send the PS5SX2 installer. |
+| **My Library** | Access favourites and recent actions. |
+| **Saves** | Browse console saves, download encrypted files, take snapshots, back up to USB, and open advanced save tools. |
+| **Community Saves** | Submit an encrypted save to a private library or prepare an approved save for installation. A library operator must configure the backend. |
 
-## PSN-HUB Manager
+Choose the active HEN and confirm the destination before installing cheats. The unified Manager supports `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`, with files grouped by format. It also provides installed-file inventory and cheat backup and restore. Console profiles and display preferences are stored in the browser.
 
-The Manager is a separate PS5 ELF. Its release file is `payloads/PSN-HUB-Manager.elf`; the web dashboard, library catalogue, artwork, and descriptions are in `Manager/`.
+### Saves and USB backups
 
-The dashboard opens on PAYLOADS and includes:
+Close the game before copying or importing saves. The **Saves** tab shows game names and icons when console or catalogue metadata is available, with title IDs as a fallback. Use **View saves / download** for raw encrypted files. Keep each PS4 image with its companion `.bin` file.
 
-- **PAYLOADS** — Upload `.elf` or `.bin` files from a PC or phone, browse the files stored on the PS5, inspect payload details, and send a selected payload to elfldr. The Manager checks file sizes and ELF signatures before transfer and verifies SHA-256 when browser support is available.
-- **Autoload categories** — Create named groups from saved payloads, set a delay between sends, and run a group in sequence. Running a category sends its files to elfldr; it does not guarantee every payload remains active or that all payloads work together.
-- **CHEATS** — Search and filter the bundled cheat catalogue by title, title ID, creator, platform, format, and game version. Install an individual cheat file, a game version, or the entire catalogue. DOWNLOAD ALL applies to the whole catalogue regardless of the current filters. Supported files are installed under `/data/etaHEN/cheats/{json,mc4,shn}`.
-- **HENS** — Browse collapsible HEN entries with creator, description, source, and firmware support information. Entries live under `Manager/Hens/`; each entry can provide its own ELF and metadata.
-- **MOD MENUS** — Browse collapsible mod-menu entries under `Manager/ModMenus/`. Each entry shows its instructions and sends its ELF to elfldr.
-- **EMULATORS** — View emulator information and send the PS5SX2 installer ELF. The installer itself decides what it installs and where.
+Connect a mounted USB drive to export a title or back up all changed saves. Optional automatic USB backups run while Manager is active. See the [console saves and USB guide](native/SAVES.md) for limits and backup locations.
 
-The dashboard also provides console setup guidance, firmware and active-HEN profiles, favourites, recent actions, a version and catalogue check, and TV/controller display mode. Profiles and browser preferences are stored locally in that browser; saving a profile does not connect to another console. Firmware compatibility is kept separate from game-version compatibility. Known-incompatible entries are hidden by default, and their SEND controls remain disabled when shown.
+The built-in Garlic SaveMgr engine handles decryption, encryption, resigning, and staged imports. Select the receiving console user and review the staged import before confirming. Manager requires a backup when an existing save would be replaced. Advanced transforms and imports remain experimental. [Advanced save tools](Manager/SAVE-TOOLS.md)
 
-The Manager includes controls to set the PSN-HUB JAILBREAK home-screen shortcut using the site's mascot artwork and to restore the original Store shortcut. When replacement succeeds, it hides the duplicate Media shortcut.
+### Community Saves
 
-## Local network setup
+The pilot uses a separate private library with member and reviewer codes. Reviewers approve submissions before members can download them. To install an approved save, choose **Install & resign**, select the receiving console user, and review the import. The console checks that the save matches the listed title and assigns ownership during installation. [Library setup and testing](Manager/COMMUNITY-SAVES.md)
 
-1. Start the PS5 jailbreak and ensure elfldr is available for payload transfers.
-2. Keep the computer or phone and PS5 on the same trusted local network.
-3. Open the Manager's displayed local address in the computer or phone browser, normally `http://<PS5-IP>:8085/`.
-4. Upload `.elf` or `.bin` payloads, then use the dashboard to send them to elfldr or store them for later.
+### Home-screen shortcut and artwork
 
-The PS5 Manager's web dashboard uses port `8085`; elfldr receives payloads on port `9021`. The current native API does not support every console-side maintenance operation. For example, console cheat-file hash scanning, changing the cheat root, and creating or restoring console backups remain unavailable; controls requiring those APIs are disabled.
+Manager can set the Store shortcut to **PSN-HUB JAILBREAK**, apply the mascot artwork, and hide the duplicate Media shortcut after a successful replacement. The artwork controls can update the background for an installed PSN-HUB Store shortcut. Backup and restore details are in the [shortcut guide](native/shortcut/README.md) and [background guide](native/shortcut/BACKGROUND.md).
 
 ## Offline use
 
-`cache.appcache` supports offline use in PS5 browsers that still implement Application Cache. Open the site while online first and let its cache installation finish. Offline availability depends on browser support and the cached files. Manager library downloads and online version checks require internet access.
+On PS5 browsers that support Application Cache, open the jailbreak page while online and wait for the cache to finish installing. **Check Site Update** refreshes the site's cache. Manager catalogue downloads, artwork fetched from GitHub, and online update checks still need an internet connection.
 
-The home page's update control refreshes the legacy offline cache. It does not reload an active jailbreak session.
+## Development and hosting
 
-## Hosting on GitHub Pages
+The jailbreak site is static and can be served by GitHub Pages. A fork can publish its root directory from the chosen branch in **Settings → Pages**. The Manager dashboard in this build fetches catalogue and UI files from this repository's `main` branch. If you maintain a separate fork, update the repository URL in [the dashboard template](Manager/dashboard.html) before rebuilding the ELF.
 
-1. Push the project to a GitHub repository.
-2. Open the repository's **Settings → Pages** page.
-3. Choose **GitHub Actions** as the publishing source, or use the included Pages workflow.
-4. Wait for the Pages workflow to finish, then open the URL shown in repository settings.
+Add library files to `Manager/Hens/`, `Manager/ModMenus/`, `Manager/Emulators/`, or `Manager/Cheats/`. Keep cheat files grouped by format and update [descriptions.json](Manager/descriptions.json) for upstream links, authors, and compatibility.
 
-When hosting under a project path such as `/PSN-HUB2/`, keep page and asset references relative so they resolve under that path. The site does not need PHP or a server-side database.
+From the repository root, run:
 
-## Updating the Manager library
-
-Place files in the relevant `Manager/` folders and customize descriptions in `Manager/descriptions.json`. HEN and mod-menu folders can include their own metadata and ELF. Cheat files are organized into `json`, `mc4`, and `shn` formats. Artwork and attribution are recorded in the Manager catalogue files.
-
-From the repository root on Windows, rebuild the embedded dashboard and generated catalogue with:
-
-```powershell
+```sh
 python tools/build-manager.py
 node tools/check-site.cjs
+node tools/test-community-saves.cjs
 ```
 
-The builder discovers the library files, regenerates the Manager catalogue and firmware index, embeds the web dashboard in `payloads/PSN-HUB-Manager.elf`, and updates the offline cache manifest. It preserves the existing ELF native code and offsets; it does not compile the missing native engine source. See [Manager/README.md](Manager/README.md) and [Manager/NATIVE-API.md](Manager/NATIVE-API.md) for the detailed library format, compatibility rules, API requirements, and limitations.
+The builder regenerates the catalogue, build manifest, firmware index, and offline cache. It also updates the embedded dashboard in the existing ELF. For native changes, rebuild the ELF using the [native build workflow](.github/workflows/build-native.yml) and see the [native source guide](native/README.md). Publish the generated files and matching ELF together.
 
-A read-only local preview is available with:
-
-```powershell
-node tools/preview-manager.cjs
-```
-
-Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console payloads. The online Manager library loads content from this project's GitHub `main` branch, so publish the library files together with the updated ELF. Existing consoles may need the site cache refreshed and the Manager restarted to load the new build.
-
-## Repository layout
+Use `node tools/preview-manager.cjs` to preview the dashboard at `http://127.0.0.1:8086`. The preview is read-only. See the [Manager library guide](Manager/README.md) and [native API notes](Manager/NATIVE-API.md) for integration details.
 
 | Path | Purpose |
 | --- | --- |
-| `index.html` | PSN-HUB home page |
-| `relapse.html` | PS5 jailbreak flow and payload menu |
-| `main.js`, `exploit.js`, `kexp.js`, `rop.js`, and related scripts | Website and exploit-chain functionality |
-| `payloads/` | ELF payloads, including `PSN-HUB-Manager.elf` |
-| `Manager/` | Manager dashboard, library catalogue, cheats, HENs, mod menus, emulators, and artwork |
-| `native/` | Native shortcut payload source |
-| `api/`, `offsets/` | Supporting server tools and firmware data |
-| `.github/workflows/` | Pages and release automation | 
-
-## Important notes
-
-- Only use payloads that match your firmware and setup. Payloads can conflict, exit, or have effects described by their authors.
-- The site and Manager are community software. Review payload sources and compatibility notes before use.
-- The Manager is intended for a trusted local network. It has no user accounts or transport encryption; do not expose port `8085` directly to the public internet.
-- Manager library downloads require internet. A cached jailbreak page does not make remote library files available offline.
+| `index.html`, `relapse.html` | Jailbreak home page and Relapse runner |
+| `Manager/` | Dashboard, catalogue, library files, artwork, and guides |
+| `payloads/` | Manager ELF and jailbreak payloads |
+| `native/` | Manager source, bundled save engine, and native tests |
+| `offsets/` | Firmware-specific offsets and generated firmware index |
+| `tools/` | Build, preview, validation, and Community Saves server scripts |
+| `.github/workflows/` | Build, validation, and release automation |
 
 ## Credits
 
@@ -132,17 +105,3 @@ Then open `http://127.0.0.1:8086`. The preview cannot upload or execute console 
 - **Mods and emulators** — RaringM for the [GTA V mod menu](https://github.com/RaringM/ps5-gtav-menu), Swordpdf for [PS5SX2](https://github.com/Swordpdf/PS5SX2), and the [PCSX2 contributors](https://github.com/PCSX2/pcsx2).
 - **Save tools** — earthonion and contributors for [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr), earthonion for the [Garlic Worker](https://github.com/earthonion/garlic-worker) research reference, and Arjun Barrett (101arrowz) for [fflate](https://github.com/101arrowz/fflate).
 - **Cheats and cover art** — the cheat authors credited on individual Manager entries and in the original files. Thanks to TeeKay87 and the [HEN Cheats Collection](https://hencheats.vercel.app/) for catalogue inspiration and cover metadata. Cover images come from the PlayStation CDN and belong to their respective rights holders.
-
-  <img width="1280" height="720" alt="PSNHUB-JB" src="https://github.com/user-attachments/assets/100f14d6-91f1-4e2b-9274-5da3466783dc" />
-
-
-
-## Save Manager (WIP)
-
-The **SAVES** tab lists console saves and provides raw downloads, snapshots, USB export and optional automatic USB backups through the unified Manager on port 8085. Advanced transforms/imports remain WIP. See [native/SAVES.md](native/SAVES.md) for limits and validation status.
-
-Save processing: [Garlic SaveMgr](https://github.com/earthonion/garlic-savemgr) by earthonion, embedded unchanged inside the single Manager ELF and started internally when requested. [Garlic Worker](https://github.com/earthonion/garlic-worker) informed the research; its source, binary and remote service are not included. See [Manager/SAVE-TOOLS.md](Manager/SAVE-TOOLS.md) for engine provenance and usage.
-
-## Jailbreak tile background
-
-Manager’s Payloads tab includes a preview and Apply/Restore controls for the weed-themed background. The Store tile must already point to PSN-HUB. The dedicated updater changes only artwork references, with database backups and a scoped restore record. See [the background guide](native/shortcut/BACKGROUND.md).
