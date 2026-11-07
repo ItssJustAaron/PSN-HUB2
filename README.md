@@ -4,7 +4,7 @@ PSN-HUB is a Relapse jailbreak host for supported PS5 firmware. After jailbreak,
 
 [Open PSN-HUB](https://itssjustaaron.github.io/PSN-HUB2/) · [Download Manager ELF](https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/payloads/PSN-HUB-Manager.elf) · [Report an issue](https://github.com/ItssJustAaron/PSN-HUB2/issues)
 
-<img width="1280" height="720" alt="PSN-HUB jailbreak home page" src="https://github.com/user-attachments/assets/100f14d6-91f1-4e2b-9274-5da3466783dc" />
+<img width="1280" height="800" alt="PSN-HUB jailbreak homepage with the Made By ItssJustAaron badge" src="Manager/assets/readme-homepage.png" />
 
 ## Current release
 
