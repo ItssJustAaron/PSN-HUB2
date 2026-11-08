@@ -300,7 +300,7 @@ index 77d7a9d..2089ab6 100644
                                                  ? "notification disabled"
                                                  : "notification sent");
 diff --git a/src/module/native_bridge.cpp b/src/module/native_bridge.cpp
-index 2098aac..062d843 100644
+index 2098aac..e51cbaf 100644
 --- a/src/module/native_bridge.cpp
 +++ b/src/module/native_bridge.cpp
 @@ -420,14 +420,17 @@ struct MenuTheme {
@@ -316,12 +316,12 @@ index 2098aac..062d843 100644
 -     {255, 238, 150},
 -     GTAV_THEME_VALUE_COLORS},
 +    {"PSN-HUB",
-+     {12, 8, 19, 251},
-+     {57, 255, 20, 255},
-+     {93, 27, 158, 255},
-+     {39, 17, 59, 245},
-+     {57, 255, 20, 245},
-+     {255, 248, 255},
++     {13, 9, 21, 233},
++     {174, 255, 63, 255},
++     {174, 255, 63, 255},
++     {62, 21, 99, 252},
++     {174, 255, 63, 245},
++     {17, 29, 5},
 +     {122, 255, 105},
 +     {255, 155, 167},
 +     {219, 185, 255},
@@ -362,9 +362,9 @@ index 2098aac..062d843 100644
 -#define GTAV_MENU_PANEL_TITLE_Y 0.040f
 -#define GTAV_MENU_PANEL_ROW0_Y 0.085f
 -#define GTAV_MENU_PANEL_ROW_H 0.030f
-+#define GTAV_MENU_PANEL_TITLE_Y 0.057f
-+#define GTAV_MENU_PANEL_ROW0_Y 0.202f
-+#define GTAV_MENU_PANEL_ROW_H 0.037f
++#define GTAV_MENU_PANEL_TITLE_Y 0.102f
++#define GTAV_MENU_PANEL_ROW0_Y 0.259f
++#define GTAV_MENU_PANEL_ROW_H 0.036f
  // Shared panel geometry (single source for draw_menu_background + the text layout so the
  // chrome always frames the labels). Width was widened (0.205 -> 0.225 -> 0.305) so long labels
  // like "Disable All Features" lay out in full instead of ellipsizing; the anchor (REGION_RIGHT_X)
@@ -377,7 +377,7 @@ index 2098aac..062d843 100644
  // Open-fade ramp length in worker ticks (alpha 0->1 + a small slide into place).
  #define GTAV_MENU_PANEL_FADE_IN_TICKS GTAV_MENU_TICKS_60(10u)
  // Selection-glide duration in worker ticks (eased travel of the highlight to the focused row).
-@@ -2945,6 +2951,43 @@ enum { kHintButtonsMax = 5 };
+@@ -2945,6 +2951,55 @@ enum { kHintButtonsMax = 5 };
    return n;
  }
 
@@ -397,21 +397,33 @@ index 2098aac..062d843 100644
 +  };
 +  constexpr unsigned width = sizeof(art[0]) - 1;
 +  constexpr unsigned height = sizeof(art) / sizeof(art[0]);
-+  const float pixel_w = 0.00325f;
-+  const float pixel_h = 0.0060f;
++  const float pixel_w = 0.0035f;
++  const float pixel_h = 0.0062f;
 +  draw_shell_rect(dr, right - width * pixel_w * 0.5f, top + height * pixel_h * 0.5f,
-+                  width * pixel_w + 0.009f, height * pixel_h + 0.008f, 44, 12, 78,
-+                  menu_fade_alpha(210, fade));
++                  width * pixel_w + 0.011f, height * pixel_h + 0.010f, 24, 10, 39,
++                  menu_fade_alpha(245, fade));
 +  for (unsigned y = 0; y < height; ++y) {
 +    for (unsigned x = 0; x < width;) {
 +      const char pixel = art[y][x];
 +      unsigned end = x + 1;
 +      while (end < width && art[y][end] == pixel) ++end;
 +      if (pixel != '.') {
-+        const auto& rgb = palette[pixel - '0'];
-+        draw_shell_rect(dr, right - (width - (x + end) * 0.5f) * pixel_w,
-+                        top + (y + 0.5f) * pixel_h, (end - x) * pixel_w, pixel_h,
-+                        rgb[0], rgb[1], rgb[2], menu_fade_alpha(255, fade));
++        const auto same_run = [&](unsigned row) {
++          if ((x && art[row][x - 1] == pixel) || (end < width && art[row][end] == pixel))
++            return false;
++          for (unsigned i = x; i < end; ++i)
++            if (art[row][i] != pixel) return false;
++          return true;
++        };
++        if (!y || !same_run(y - 1)) {
++          unsigned bottom = y + 1;
++          while (bottom < height && same_run(bottom)) ++bottom;
++          const auto& rgb = palette[pixel - '0'];
++          draw_shell_rect(dr, right - (width - (x + end) * 0.5f) * pixel_w,
++                          top + (y + bottom) * 0.5f * pixel_h, (end - x) * pixel_w,
++                          (bottom - y) * pixel_h, rgb[0], rgb[1], rgb[2],
++                          menu_fade_alpha(255, fade));
++        }
 +      }
 +      x = end;
 +    }
@@ -421,7 +433,7 @@ index 2098aac..062d843 100644
  [[maybe_unused]] static void draw_menu_background(uint64_t worker_tick, uint32_t visible_count,
                                                    uint32_t selected_row) {
    const uint64_t dr = g_table.draw_rect;
-@@ -2961,12 +3004,11 @@ enum { kHintButtonsMax = 5 };
+@@ -2961,12 +3016,11 @@ enum { kHintButtonsMax = 5 };
    const float row0_y = GTAV_MENU_PANEL_ROW0_Y + y_off;
    const float row_h = GTAV_MENU_PANEL_ROW_H;
    const float glyph_mid = GTAV_MENU_PANEL_GLYPH_MID;
@@ -437,36 +449,69 @@ index 2098aac..062d843 100644
    const float footer_cy = footer_top + footer_h * 0.5f;
    // The controller-verb legend used to live on a hint strip below the footer; it now renders as a
    // native-style instructional-button bar along the bottom of the screen (draw_instructional_bar),
-@@ -3003,15 +3045,22 @@ enum { kHintButtonsMax = 5 };
-   // Subtle frame + main panel. A slightly larger dark rect CENTRED behind the panel reads as
-   // a clean border/outline; the previous shadow was offset down-right at the panel's full size
-   // so it looked like a second, misaligned box rather than a shadow.
+@@ -3000,18 +3054,51 @@ enum { kHintButtonsMax = 5 };
+     g_sel_anim_y = g_sel_anim_from + (g_sel_anim_target - g_sel_anim_from) * t;
+   }
+   const float sel_cy = row0_y + row_h * g_sel_anim_y + glyph_mid;
+-  // Subtle frame + main panel. A slightly larger dark rect CENTRED behind the panel reads as
+-  // a clean border/outline; the previous shadow was offset down-right at the panel's full size
+-  // so it looked like a second, misaligned box rather than a shadow.
 -  draw_shell_rect(dr, panel_cx, panel_cy, panel_w + 0.005f, panel_h + 0.006f, 0, 0, 0,
 -                  menu_fade_alpha(150, fade));
-+  draw_shell_rect(dr, panel_cx, panel_cy, panel_w + 0.005f, panel_h + 0.006f, 91, 50, 130,
-+                  menu_fade_alpha(200, fade));
++  // A shadow and purple frame separate the panel from bright gameplay.
++  draw_shell_rect(dr, panel_cx + 0.004f, panel_cy + 0.006f, panel_w + 0.010f,
++                  panel_h + 0.014f, 0, 0, 0, menu_fade_alpha(185, fade));
++  draw_shell_rect(dr, panel_cx, panel_cy, panel_w + 0.005f, panel_h + 0.006f, 144, 50, 216,
++                  menu_fade_alpha(255, fade));
    draw_shell_rect(dr, panel_cx, panel_cy, panel_w, panel_h, th.panel[0], th.panel[1], th.panel[2],
                    menu_fade_alpha(th.panel[3], fade));
 -  // Accent header bar: TOP edge flush with the panel top, tall enough to frame the title.
 -  const float header_bar_h = (row0_y - header_top) - 0.010f;
 -  const float header_bar_cy = header_top + header_bar_h * 0.5f;
 -  draw_shell_rect(dr, panel_cx, header_bar_cy, panel_w, header_bar_h, th.accent[0], th.accent[1],
-+  const float banner_h = 0.124f;
-+  const float band_w = panel_w / 8.0f;
-+  for (unsigned band = 0; band < 8; ++band) {
-+    draw_shell_rect(dr, panel_left + (band + 0.5f) * band_w, header_top + banner_h * 0.5f,
-+                    band_w, banner_h, 58 + 11 * band, 16 + 2 * band, 112 + 10 * band,
+-                  th.accent[2], menu_fade_alpha(th.accent[3], fade));
++  const float banner_h = 0.130f;
++  const float band_h = banner_h / 5.0f;
++  for (unsigned band = 0; band < 5; ++band) {
++    draw_shell_rect(dr, panel_cx, header_top + (band + 0.5f) * band_h, panel_w,
++                    band_h, 135 - 17 * band, 45 - 5 * band, 212 - 22 * band,
 +                    menu_fade_alpha(255, fade));
 +  }
-+  draw_shell_rect(dr, panel_cx, header_top + 0.002f, panel_w, 0.004f, th.accent[0], th.accent[1],
-                   th.accent[2], menu_fade_alpha(th.accent[3], fade));
-+  draw_psnhub_mascot(dr, panel_left + panel_w - 0.012f, header_top + 0.010f, fade);
-+  draw_shell_rect(dr, panel_cx, header_top + banner_h + 0.019f, panel_w, 0.038f,
-+                  84, 26, 147, menu_fade_alpha(255, fade));
++  draw_shell_rect(dr, panel_left + 0.008f, header_top + banner_h * 0.5f, 0.004f,
++                  banner_h - 0.022f, 191, 255, 82, menu_fade_alpha(255, fade));
++  draw_psnhub_mascot(dr, panel_left + panel_w - 0.014f, header_top + 0.009f, fade);
++  const float category_h = row0_y - header_top - banner_h;
++  draw_shell_rect(dr, panel_cx, row0_y - category_h * 0.5f, panel_w, category_h,
++                  174, 255, 63, menu_fade_alpha(255, fade));
++  // A low-contrast leaf silhouette keeps the body themed without competing with the labels.
++  static const uint16_t leaf[] = {
++      0x0100, 0x0380, 0x0380, 0x8398, 0xC3B8, 0xE3F0, 0x73E0, 0x3FC0,
++      0xBFF4, 0x7FF8, 0x1FE0, 0x0FD0, 0x1BD8, 0x2104, 0x0100, 0x0100
++  };
++  const float leaf_px = 0.0060f;
++  const float leaf_py = 0.010f;
++  const float leaf_x = panel_left + panel_w * 0.67f - 8.0f * leaf_px;
++  const float leaf_y = row0_y + ((rows_bottom - row0_y) - 16.0f * leaf_py) * 0.5f;
++  if (g_current_menu == SHELL_MENU_MAIN && visible_count >= 5) {
++    for (unsigned y = 0; y < 16; ++y) {
++      unsigned x = 0;
++      while (x < 16) {
++        if (!(leaf[y] & (1u << x))) {
++          ++x;
++          continue;
++        }
++        const unsigned start = x++;
++        while (x < 16 && (leaf[y] & (1u << x))) ++x;
++        draw_shell_rect(dr, leaf_x + (start + x) * 0.5f * leaf_px,
++                        leaf_y + (y + 0.5f) * leaf_py, (x - start) * leaf_px,
++                        leaf_py, 135, 224, 51, menu_fade_alpha(25, fade));
++      }
++    }
++  }
    // Per-row banding (behind the selection highlight, which is drawn next so it always wins): a very
    // faint zebra wash on alternating rows makes the label->value sweep easier to track across the
    // panel, and a darker wash on genuinely locked (hook-gated) action rows reads them as inactive at
-@@ -3039,24 +3088,26 @@ enum { kHintButtonsMax = 5 };
+@@ -3039,24 +3126,26 @@ enum { kHintButtonsMax = 5 };
      }
    }
    // Selection highlight behind the active (glided) row, centred on the row glyphs.
@@ -484,10 +529,12 @@ index 2098aac..062d843 100644
    // Bright accent edge-bar on the left of the selection: a clear "you are here" marker that
    // reads even when the translucent highlight washes out over a bright scene (mirrors the toast
    // accent bar). Glides with the highlight since it shares sel_cy.
-   const float accent_w = 0.0035f;
+-  const float accent_w = 0.0035f;
 -  draw_shell_rect(dr, panel_left + accent_w * 0.5f, sel_cy, accent_w, row_h, th.accent[0],
-+  draw_shell_rect(dr, panel_left + 0.006f + accent_w * 0.5f, sel_cy, accent_w, row_h - 0.004f, th.accent[0],
-                   th.accent[1], th.accent[2], menu_fade_alpha(255, fade));
+-                  th.accent[1], th.accent[2], menu_fade_alpha(255, fade));
++  const float accent_w = 0.0045f;
++  draw_shell_rect(dr, panel_left + 0.006f + accent_w * 0.5f, sel_cy, accent_w, row_h - 0.004f, 29,
++                  14, 48, menu_fade_alpha(255, fade));
    // Footer accent strip (darker than the header) for the help text + counter.
 -  draw_shell_rect(dr, panel_cx, footer_cy, panel_w, footer_h, th.footer[0], th.footer[1],
 +  draw_shell_rect(dr, panel_cx, footer_cy, panel_w - 0.012f, footer_h, th.footer[0], th.footer[1],
@@ -497,7 +544,7 @@ index 2098aac..062d843 100644
    // Scrollbar: when the list is longer than the window, draw a track down the right edge with
    // a thumb sized + positioned by the visible window over the whole list. Clearer than the old
    // pair of top/bottom chips -- you can see both that there's more AND roughly where you are.
-@@ -3554,8 +3605,8 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3554,8 +3643,8 @@ static void publish_active_instructional_bar(int visible) {
    // Per-entry the "glyph cell" is either the real inline glyph token (Route A) or the ASCII chip
    // text. Measure first so the whole bar can be right-aligned; a cell never goes narrower than tall
    // so a single glyph still reads as a square button (and a future sprite has a square box).
@@ -508,7 +555,7 @@ index 2098aac..062d843 100644
    float total_w = 0.0f;
    for (uint32_t i = 0; i < n; ++i) {
      const HintGlyphInfo* gi = &kHintGlyphInfo[btns[i].glyph];
-@@ -3573,8 +3624,9 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3573,8 +3662,9 @@ static void publish_active_instructional_bar(int visible) {
    const float strip_pad = 0.010f;
    const float strip_w = total_w + strip_pad * 2.0f;
    const float strip_cx = right_edge - total_w * 0.5f;
@@ -520,7 +567,7 @@ index 2098aac..062d843 100644
 
    float x = right_edge - total_w;  // left edge of the first glyph cell
    for (uint32_t i = 0; i < n; ++i) {
-@@ -3675,13 +3727,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3675,13 +3765,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
        snprintf(crumb, sizeof(crumb), "%s > %s", localized(parent->label), localized(menu->label));
      }
    }
@@ -529,25 +576,25 @@ index 2098aac..062d843 100644
 -  // near-white title unreadable on hardware) with the same guard the rows use.
 -  ensure_text_contrast(&title_style.r, &title_style.g, &title_style.b,
 -                       theme_luminance(th.accent[0], th.accent[1], th.accent[2]));
-+  NativeTextStyle title_style = {0, 0.52f, 0.52f, 223, 255, 113,
++  NativeTextStyle title_style = {0, 0.60f, 0.60f, 234, 255, 169,
 +                                 255, 0, 0.0f, 1.0f, 0, 0};
    title_style.a = menu_fade_alpha(title_style.a, fade);
 -  draw_native_text_shadowed(crumb, text_x, GTAV_MENU_PANEL_TITLE_Y + y_off, title_style);
 +  draw_native_text_shadowed("PSN-HUB", text_x, GTAV_MENU_PANEL_TITLE_Y + y_off, title_style);
-+  NativeTextStyle edition_style = {0, 0.27f, 0.27f, 247, 227, 255, title_style.a,
++  NativeTextStyle edition_style = {0, 0.28f, 0.28f, 255, 230, 255, title_style.a,
 +                                   0, 0.0f, 1.0f, 0, 1};
-+  draw_native_text_line("GTA V MOD MENU", text_x, GTAV_MENU_PANEL_TITLE_Y + y_off + 0.048f,
++  draw_native_text_line("GTA V MOD MENU", text_x, GTAV_MENU_PANEL_TITLE_Y + y_off + 0.057f,
 +                        edition_style);
-+  NativeTextStyle category_style = {0, 0.30f, 0.30f, 239, 218, 255, title_style.a,
++  NativeTextStyle category_style = {0, 0.32f, 0.32f, 26, 37, 12, title_style.a,
 +                                    0, 0.0f, 1.0f, 0, 0};
 +  char fitted_crumb[96];
 +  const char* category = menu_fit_text(fitted_crumb, sizeof(fitted_crumb), crumb,
 +                                       category_style.scale_x, value_right - text_x, 0, 0);
-+  draw_native_text_shadowed(category, text_x, GTAV_MENU_PANEL_ROW0_Y + y_off - 0.042f, category_style);
++  draw_native_text_line(category, text_x, GTAV_MENU_PANEL_ROW0_Y + y_off - 0.041f, category_style);
 
    for (uint32_t row = 0; row < visible_count; ++row) {
      const uint32_t index = start + row;
-@@ -3691,26 +3750,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3691,26 +3788,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
      draw_menu_row(item, selected, text_x, y, value_right, fade, th, worker_tick - g_marquee_since);
    }
 
