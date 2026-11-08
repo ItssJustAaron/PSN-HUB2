@@ -1,5 +1,5 @@
 diff --git a/src/module/native_bridge.cpp b/src/module/native_bridge.cpp
-index 2098aac..91fe841 100644
+index 2098aac..c88c439 100644
 --- a/src/module/native_bridge.cpp
 +++ b/src/module/native_bridge.cpp
 @@ -420,14 +420,17 @@ struct MenuTheme {
@@ -37,6 +37,15 @@ index 2098aac..91fe841 100644
  // stock menu; the in-menu Theme Editor (CYCLE_CUSTOM_COLOR rows) edits its accent/selection/panel
  // RGB. Only those three chrome colours are user-editable + persisted; the rest stay at the seed.
  MenuTheme g_custom_theme;
+@@ -2672,7 +2675,7 @@ static void get_game_timer_canary(uint64_t worker_tick) {
+   const NativeTextStyle style = {0, 0.31f, 0.31f, 255, 255, 255, 230, 0, 0.0f, 1.0f, 0, 0};
+   char line[64];
+
+-  snprintf(line, sizeof(line), "GTAV MENU > %s", selected_label());
++  snprintf(line, sizeof(line), "PSN-HUB | GTA V > %s", selected_label());
+   draw_native_text_line(line, 0.18f, 0.18f, style);
+ }
+
 @@ -2691,9 +2694,9 @@ static void get_game_timer_canary(uint64_t worker_tick) {
  #ifndef GTAV_MENU_PANEL_TEXT_X
  #define GTAV_MENU_PANEL_TEXT_X 0.75f
@@ -50,7 +59,28 @@ index 2098aac..91fe841 100644
  // Shared panel geometry (single source for draw_menu_background + the text layout so the
  // chrome always frames the labels). Width was widened (0.205 -> 0.225 -> 0.305) so long labels
  // like "Disable All Features" lay out in full instead of ellipsizing; the anchor (REGION_RIGHT_X)
-@@ -3003,14 +3006,16 @@ enum { kHintButtonsMax = 5 };
+@@ -2704,6 +2707,8 @@ static void get_game_timer_canary(uint64_t worker_tick) {
+ #define GTAV_MENU_PANEL_PAD_L 0.014f
+ #define GTAV_MENU_PANEL_VALUE_PAD 0.012f
+ #define GTAV_MENU_PANEL_GLYPH_MID 0.012f
++#define GTAV_MENU_PANEL_FOOTER_GAP 0.008f
++#define GTAV_MENU_PANEL_FOOTER_H 0.061f
+ // Open-fade ramp length in worker ticks (alpha 0->1 + a small slide into place).
+ #define GTAV_MENU_PANEL_FADE_IN_TICKS GTAV_MENU_TICKS_60(10u)
+ // Selection-glide duration in worker ticks (eased travel of the highlight to the focused row).
+@@ -2964,9 +2969,8 @@ enum { kHintButtonsMax = 5 };
+   const float header_top = title_y - 0.018f;
+   const float rows_bottom = row0_y + row_h * (float)visible_count;
+   // Footer strip below the rows (holds the description + position counter).
+-  const float footer_gap = 0.006f;
+-  const float footer_h = row_h;
+-  const float footer_top = rows_bottom + footer_gap;
++  const float footer_h = GTAV_MENU_PANEL_FOOTER_H;
++  const float footer_top = rows_bottom + GTAV_MENU_PANEL_FOOTER_GAP;
+   const float footer_cy = footer_top + footer_h * 0.5f;
+   // The controller-verb legend used to live on a hint strip below the footer; it now renders as a
+   // native-style instructional-button bar along the bottom of the screen (draw_instructional_bar),
+@@ -3003,15 +3007,19 @@ enum { kHintButtonsMax = 5 };
    // Subtle frame + main panel. A slightly larger dark rect CENTRED behind the panel reads as
    // a clean border/outline; the previous shadow was offset down-right at the panel's full size
    // so it looked like a second, misaligned box rather than a shadow.
@@ -69,9 +99,43 @@ index 2098aac..91fe841 100644
 +                  th.footer[2], menu_fade_alpha(th.footer[3], fade));
 +  draw_shell_rect(dr, panel_cx, header_top + 0.002f, panel_w, 0.004f, th.accent[0], th.accent[1],
                    th.accent[2], menu_fade_alpha(th.accent[3], fade));
++  draw_shell_rect(dr, panel_cx, title_y + 0.041f, panel_w - 0.012f, 0.026f,
++                  th.panel[0], th.panel[1], th.panel[2], menu_fade_alpha(th.panel[3], fade));
    // Per-row banding (behind the selection highlight, which is drawn next so it always wins): a very
    // faint zebra wash on alternating rows makes the label->value sweep easier to track across the
-@@ -3554,8 +3559,8 @@ static void publish_active_instructional_bar(int visible) {
+   // panel, and a darker wash on genuinely locked (hook-gated) action rows reads them as inactive at
+@@ -3039,24 +3047,26 @@ enum { kHintButtonsMax = 5 };
+     }
+   }
+   // Selection highlight behind the active (glided) row, centred on the row glyphs.
+-  draw_shell_rect(dr, panel_cx, sel_cy, panel_w, row_h, th.selection[0], th.selection[1],
++  draw_shell_rect(dr, panel_cx, sel_cy, panel_w - 0.012f, row_h - 0.004f, th.selection[0], th.selection[1],
+                   th.selection[2], menu_fade_alpha(th.selection[3], fade));
+   // Activation flash: a quick white wash over the selected row on Cross, decaying over a few
+   // ticks so a press is visibly acknowledged immediately (ahead of the toast).
+   const float act_flash = flash_decay(worker_tick, g_activate_flash_tick);
+   if (act_flash > 0.0f) {
+-    draw_shell_rect(dr, panel_cx, sel_cy, panel_w, row_h, 255, 255, 255,
++    draw_shell_rect(dr, panel_cx, sel_cy, panel_w - 0.012f, row_h - 0.004f, 255, 255, 255,
+                     menu_fade_alpha((int)(75.0f * act_flash), fade));
+   }
+   // Bright accent edge-bar on the left of the selection: a clear "you are here" marker that
+   // reads even when the translucent highlight washes out over a bright scene (mirrors the toast
+   // accent bar). Glides with the highlight since it shares sel_cy.
+   const float accent_w = 0.0035f;
+-  draw_shell_rect(dr, panel_left + accent_w * 0.5f, sel_cy, accent_w, row_h, th.accent[0],
++  draw_shell_rect(dr, panel_left + 0.006f + accent_w * 0.5f, sel_cy, accent_w, row_h - 0.004f, th.accent[0],
+                   th.accent[1], th.accent[2], menu_fade_alpha(255, fade));
+   // Footer accent strip (darker than the header) for the help text + counter.
+-  draw_shell_rect(dr, panel_cx, footer_cy, panel_w, footer_h, th.footer[0], th.footer[1],
++  draw_shell_rect(dr, panel_cx, footer_cy, panel_w - 0.012f, footer_h, th.footer[0], th.footer[1],
+                   th.footer[2], menu_fade_alpha(th.footer[3], fade));
++  draw_shell_rect(dr, panel_cx, footer_top + 0.001f, panel_w - 0.012f, 0.002f,
++                  th.accent[0], th.accent[1], th.accent[2], menu_fade_alpha(180, fade));
+   // Scrollbar: when the list is longer than the window, draw a track down the right edge with
+   // a thumb sized + positioned by the visible window over the whole list. Clearer than the old
+   // pair of top/bottom chips -- you can see both that there's more AND roughly where you are.
+@@ -3554,8 +3564,8 @@ static void publish_active_instructional_bar(int visible) {
    // Per-entry the "glyph cell" is either the real inline glyph token (Route A) or the ASCII chip
    // text. Measure first so the whole bar can be right-aligned; a cell never goes narrower than tall
    // so a single glyph still reads as a square button (and a future sprite has a square box).
@@ -82,7 +146,7 @@ index 2098aac..91fe841 100644
    float total_w = 0.0f;
    for (uint32_t i = 0; i < n; ++i) {
      const HintGlyphInfo* gi = &kHintGlyphInfo[btns[i].glyph];
-@@ -3573,8 +3578,9 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3573,8 +3583,9 @@ static void publish_active_instructional_bar(int visible) {
    const float strip_pad = 0.010f;
    const float strip_w = total_w + strip_pad * 2.0f;
    const float strip_cx = right_edge - total_w * 0.5f;
@@ -94,7 +158,7 @@ index 2098aac..91fe841 100644
 
    float x = right_edge - total_w;  // left edge of the first glyph cell
    for (uint32_t i = 0; i < n; ++i) {
-@@ -3675,13 +3681,22 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3675,13 +3686,22 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
        snprintf(crumb, sizeof(crumb), "%s > %s", localized(parent->label), localized(menu->label));
      }
    }
@@ -122,12 +186,46 @@ index 2098aac..91fe841 100644
 
    for (uint32_t row = 0; row < visible_count; ++row) {
      const uint32_t index = start + row;
-@@ -3695,7 +3710,7 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
-   // strip, so it needs no shadow -- just fade with the panel.
-   const float footer_y = row0_y + row_h * (float)visible_count + 0.010f;
+@@ -3691,26 +3711,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+     draw_menu_row(item, selected, text_x, y, value_right, fade, th, worker_tick - g_marquee_since);
+   }
+
+-  // Footer: selected item's description (left) + position counter (right). On the dark footer
+-  // strip, so it needs no shadow -- just fade with the panel.
+-  const float footer_y = row0_y + row_h * (float)visible_count + 0.010f;
++  // Separate the focused action and position from its description.
++  const float footer_y = row0_y + row_h * (float)visible_count + GTAV_MENU_PANEL_FOOTER_GAP + 0.006f;
    const ShellItem* sel = (selected_index < total) ? &menu->items[selected_index] : nullptr;
 -  NativeTextStyle desc_style = {0, 0.235f, 0.235f, 185, 205, 235, 225, 0, 0.0f, 1.0f, 0, 1};
 +  NativeTextStyle desc_style = {0, 0.25f, 0.25f, 218, 191, 241, 240, 0, 0.0f, 1.0f, 0, 1};
    desc_style.a = menu_fade_alpha(desc_style.a, fade);
-   // The description gets the width the "n / m" counter leaves; a longer one scrolls (marquee,
-   // anchored to the selection like the row label) instead of running into the counter.
+-  // The description gets the width the "n / m" counter leaves; a longer one scrolls (marquee,
+-  // anchored to the selection like the row label) instead of running into the counter.
+   line[0] = '\0';
+   if (total) {
+     snprintf(line, sizeof(line), "%u / %u", (unsigned)(selected_index + 1u), (unsigned)total);
+   }
++  if (sel) {
++    const float counter_w = line[0] ? menu_text_width(line, desc_style.scale_x) + 0.010f : 0.0f;
++    NativeTextStyle focus_style = desc_style;
++    focus_style.r = 255;
++    focus_style.g = 245;
++    focus_style.b = 255;
++    char focus_buf[96];
++    const char* focus = menu_fit_text(focus_buf, sizeof(focus_buf), localized(sel->label),
++                                     focus_style.scale_x, value_right - counter_w - text_x, 0, 0);
++    draw_native_text_line(focus, text_x, footer_y, focus_style);
++  }
+   const char* desc = localized(item_description(sel));
+   if (desc[0]) {
+-    const float counter_w = line[0] ? menu_text_width(line, desc_style.scale_x) + 0.010f : 0.0f;
+     char desc_buf[160];
+     const char* fitted =
+         menu_fit_text(desc_buf, sizeof(desc_buf), desc, desc_style.scale_x,
+-                      value_right - counter_w - text_x, 1, worker_tick - g_marquee_since);
+-    draw_native_text_line(fitted, text_x, footer_y, desc_style);
++                      value_right - text_x, 1, worker_tick - g_marquee_since);
++    draw_native_text_line(fitted, text_x, footer_y + 0.025f, desc_style);
+   }
+   if (total) {
+     NativeTextStyle counter_style = {0,   0.235f, 0.235f, 185,         205, 235,
