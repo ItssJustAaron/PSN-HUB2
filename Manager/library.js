@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.08.1';
+  const UI_RELEASE = '2026.11.08.2';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -635,7 +635,10 @@
       if(item.requirements){ content.append(element('h3','Requirements'));const requirements=element('ul');item.requirements.forEach(text=>requirements.append(element('li',text)));content.append(requirements); }
       for(const [key,label] of [['installLocation','Installs to'],['bios','BIOS'],['games','Game files'],['controls','Controls'],['uninstall','Uninstall']]) if(item[key])content.append(element('h3',label),element('p',item[key],key==='installLocation'?'path':'hint'));
       content.append(element('h3', 'Instructions'), element('p', item.instructions || 'Start a compatible HEN and elfldr, then send this payload.', 'hint'));
-      const links = element('div', undefined, 'row'); links.append(safeLink('Project & documentation', item.project), safeLink('Releases / changelog', item.changelog)); content.append(links);
+      const links = element('div', undefined, 'row');
+      if (item.project) links.append(safeLink('Project & documentation', item.project));
+      if (item.changelog) links.append(safeLink('Releases / changelog', item.changelog));
+      content.append(links);
       content.append(element('p', item.name, 'path'));
       const actions = element('div', undefined, 'row');
       const send = transferButton('SEND', [item], item.title);
