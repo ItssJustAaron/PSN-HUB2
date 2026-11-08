@@ -82,3 +82,5 @@ html[data-console=ps5] .cover-opener:focus{outline:5px solid var(--yellow);outli
 .save-tools>label{display:grid;gap:6px;margin:14px 0}.save-tools [hidden]{display:none!important}.save-tools input,.save-tools select{min-width:0;max-width:100%}.save-tools button{margin:4px 8px 4px 0}.save-tools p,.save-tools a{overflow-wrap:anywhere}.save-tools-confirm{display:flex;gap:10px;align-items:flex-start;margin:16px 0}.save-tools-confirm input{flex:0 0 auto;order:-1;margin-top:4px}.save-tools a{color:var(--green)}
 
 .console-background-preview{display:block;width:100%;height:auto;border-radius:12px;margin:14px 0}
+.psnhub-gtav-card{border-top:3px solid #39ff14;background:linear-gradient(135deg,#27113b,#130321)}
+.psnhub-gtav-card>summary{color:#39ff14}

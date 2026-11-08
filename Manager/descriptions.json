@@ -64,5 +64,18 @@
     "compatibilityNote": "Targets documented by the project; confirm the bundled build matches your game. Story Mode only.",
     "description": "A GTA V mod-menu daemon. Send the ELF before starting GTA V, then press R1 + D-pad Left to open the menu.",
     "instructions": "The daemon includes its workers; no separate worker upload is needed."
+  },
+  "ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf": {
+    "title": "PSN-HUB | GTA V",
+    "author": "RaringM · PSN-HUB interface by ItssJustAaron",
+    "release": "PSN-HUB Edition 1.0",
+    "expectedSha256": "975c35b0113bedef0a3ee853c294f9288b024f3932cc8507934a027a791aba88",
+    "project": "https://github.com/RaringM/ps5-gtav-menu",
+    "changelog": "https://github.com/ItssJustAaron/PSN-HUB2/tree/main/Manager/ModMenus/PSN-HUB",
+    "gameCompatibility": ["PPSA04264 · 01.005.000 (US; selection untested upstream)", "PPSA04264 · 01.010.002 (US)", "PPSA04263 · 01.010.002 (EU)"],
+    "compatibilityNote": "GTA V Enhanced Story Mode. These are upstream game targets. The PSN-HUB edition has not been tested on a console.",
+    "description": "RaringM’s Story Mode tools in a PSN-HUB interface with neon green accents, purple panels, clearer categories, and on-screen controller hints.",
+    "controls": "R1 + D-pad Left opens or hides the menu. Use the D-pad to browse and adjust, Cross to select, and Circle to go back.",
+    "instructions": "Send the standalone ELF before starting GTA V, then load Story Mode. Run one GTA V menu loader per session."
   }
 }

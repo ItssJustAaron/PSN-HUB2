@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.07.16';
+  const UI_RELEASE = '2026.11.08.1';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -612,7 +612,9 @@
     if (hidden) container.append(element('p', hidden + ' incompatible item(s) hidden for firmware ' + state.firmware + '. Enable “Show incompatible” to inspect them.', 'compatibility-note'));
     if (!visible.length && !hidden) container.append(element('p', container.id==='emulator-catalog'?'No emulator installer files added yet.':'No payloads available yet.', 'hint'));
     visible.forEach(item => {
-      const box = element('details', undefined, 'feature-card hen-card'), summary = element('summary', item.title), content = element('div', undefined, 'hen-card-content');
+      const isPsnHubGta = item.path === 'Manager/ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf';
+      const box = element('details', undefined, isPsnHubGta ? 'feature-card hen-card psnhub-gtav-card' : 'feature-card hen-card');
+      const summary = element('summary', item.title), content = element('div', undefined, 'hen-card-content');
       content.append(element('p', item.description, 'hint'));
       const support = compatibility(item);
       summary.append(element('span', support === 'compatible' ? 'Supported · '+state.firmware : support === 'incompatible' ? 'Unsupported · '+state.firmware : 'Unconfirmed', 'compatibility-label '+support));
