@@ -38,7 +38,8 @@ jobs:
           mkdir "$RUNNER_TEMP/psnhub-menu"
           cp "$elf" "$RUNNER_TEMP/psnhub-menu/PSN-HUB-GTAV-Menu.elf"
           cd "$RUNNER_TEMP/psnhub-menu"
-          grep -aqF 'PSN-HUB | GTA V' PSN-HUB-GTAV-Menu.elf
+          grep -aqF 'GTA V MOD MENU' PSN-HUB-GTAV-Menu.elf
+          grep -aqF 'Press R1 + D-pad Left to Open' PSN-HUB-GTAV-Menu.elf
           sha256sum PSN-HUB-GTAV-Menu.elf > PSN-HUB-GTAV-Menu.elf.sha256
       - uses: actions/upload-artifact@v7.0.2
         with:
