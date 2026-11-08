@@ -43,6 +43,18 @@ index ab1915d..6894344 100644
  GTAV_ACTION_DESC(TOGGLE_XENON, "Fit bright xenon headlights")
 
  /* Los Santos Customs per-slot mod pickers (same enum order as native_bridge.h) */
+diff --git a/include/gtavmenu/features.h b/include/gtavmenu/features.h
+index 2ed86da..2bf2141 100644
+--- a/include/gtavmenu/features.h
++++ b/include/gtavmenu/features.h
+@@ -104,6 +104,7 @@ void gtav_features_preview_phase_published(uint64_t generation, const char* dict
+  * reports every published phase list with whether it contains the card; that drives the resident
+  * keep-alive and the deferred, drain-fenced release. Defined only in CUSTOM_PACKS=1 phase builds;
+  * callers are compiled under the same gate. */
++int gtav_features_brand_mascot_ready(void);
+ int gtav_features_custom_card(const char** dict, const char** texture, uint32_t* width,
+                               uint32_t* height);
+ void gtav_features_custom_card_published(uint64_t generation, int drawn);
 diff --git a/include/gtavmenu/native_bridge.h b/include/gtavmenu/native_bridge.h
 index 346b100..f718674 100644
 --- a/include/gtavmenu/native_bridge.h
@@ -69,7 +81,7 @@ index 7f23853..c46afb2 100644
  		-DGTAV_FRAME_HOOK_PATCH_LEN=14u \
  		-DGTAV_FRAME_HOOK_STOLEN_LEN=16u \
 diff --git a/src/module/features.cpp b/src/module/features.cpp
-index 773c3e4..2e6238f 100644
+index 773c3e4..6ef1b28 100644
 --- a/src/module/features.cpp
 +++ b/src/module/features.cpp
 @@ -299,8 +299,6 @@ struct FeatureNatives {
@@ -97,7 +109,15 @@ index 773c3e4..2e6238f 100644
  // Debug overlay: read-only on-screen diagnostics panel (render-only, worker-safe).
  static int g_debug_overlay_enabled = 0;
 
-@@ -1760,11 +1749,6 @@ static void load_feature_natives() {
+@@ -907,6 +896,7 @@ static uint32_t failed(uint32_t action, const char* message) {
+ #if GTAV_MENU_ENABLE_FRAME_HOOK
+ // Defined in noclip.inc / minigame.inc / autopilot.inc (all included after weapon_fx.inc,
+ // whose game-thread tick calls them).
++static void brand_mascot_game_thread_tick(void);
+ static void noclip_game_thread_tick(void);
+ static void minigame_game_thread_tick(void);
+ static void autopilot_game_thread_tick(void);
+@@ -1760,11 +1750,6 @@ static void load_feature_natives() {
    g_n.load_all_objects_now = GTAV_NATIVE_ADDR_LOAD_ALL_OBJECTS_NOW;
  #endif
  #endif
@@ -109,7 +129,7 @@ index 773c3e4..2e6238f 100644
  #if defined(GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM) && GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM
  #ifdef GTAV_NATIVE_ADDR_REQUEST_SCALEFORM_MOVIE
    g_n.request_scaleform_movie = GTAV_NATIVE_ADDR_REQUEST_SCALEFORM_MOVIE;
-@@ -2091,8 +2075,7 @@ extern "C" uint32_t gtav_features_activate(uint32_t action) {
+@@ -2091,8 +2076,7 @@ extern "C" uint32_t gtav_features_activate(uint32_t action) {
      case GTAV_NATIVE_SHELL_ACTION_FIX_VEHICLE:
      case GTAV_NATIVE_SHELL_ACTION_REPAIR_CLEAN_VEHICLE:
      case GTAV_NATIVE_SHELL_ACTION_PRESET_DRIVER:
@@ -119,7 +139,7 @@ index 773c3e4..2e6238f 100644
      case GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE:
      // Spawn Saved Vehicle creates a vehicle (CREATE_VEHICLE) and re-applies its mods, same
      // allocation-class lane as SPAWN_VEHICLE -> game/script thread.
-@@ -2495,6 +2478,8 @@ extern "C" uint32_t gtav_features_activate_param(uint32_t action, uint32_t param
+@@ -2495,6 +2479,8 @@ extern "C" uint32_t gtav_features_activate_param(uint32_t action, uint32_t param
  // feature adds a case here (plus the action enum + feature_actions.def name + a menu row).
  static uint32_t activate_worker_direct_action(uint32_t action, uint32_t param) {
    switch (action) {
@@ -128,7 +148,7 @@ index 773c3e4..2e6238f 100644
      // Custom Packs page: starts the worker-side load state machine (it enqueues the main-thread
      // pack steps itself), so it runs here rather than on the game thread.
      case GTAV_NATIVE_SHELL_ACTION_PACK_AUTOLOAD:
-@@ -3034,20 +3019,7 @@ extern "C" void gtav_features_worker_tick(int menu_visible) {
+@@ -3034,20 +3020,7 @@ extern "C" void gtav_features_worker_tick(int menu_visible) {
    // Mirror menu visibility for the game-thread noclip driver (it has no parameter and must
    // stand down while the menu is open). Set before any early return so it stays fresh.
    g_menu_open = menu_visible;
@@ -150,6 +170,60 @@ index 773c3e4..2e6238f 100644
    tick_frame_hook_telemetry();
    // Custom Packs page: advance the one-press pack load (worker side; enqueues main-thread steps).
    pack_autoload_tick();
+diff --git a/src/module/features/custom_pack_card.inc b/src/module/features/custom_pack_card.inc
+index 90a7cd9..64aeeb2 100644
+--- a/src/module/features/custom_pack_card.inc
++++ b/src/module/features/custom_pack_card.inc
+@@ -16,6 +16,39 @@
+
+ #define GTAV_PACK_CARD_KEEPALIVE_PUBLISHES 30u
+
++static uint32_t g_brand_mascot_ready;
++
++extern "C" int gtav_features_brand_mascot_ready(void) {
++  return __atomic_load_n(&g_brand_mascot_ready, __ATOMIC_ACQUIRE) != 0;
++}
++
++static void brand_mascot_game_thread_tick() {
++#if GTAV_MENU_CUSTOM_PACK_ENGINE
++  if (__atomic_load_n(&g_pack_al_state, __ATOMIC_ACQUIRE) != PACK_AL_DONE) {
++    __atomic_store_n(&g_brand_mascot_ready, 0u, __ATOMIC_RELEASE);
++    return;
++  }
++  if (!g_menu_open || !g_n.request_streamed_texture_dict ||
++      !g_n.has_streamed_texture_dict_loaded || !g_n.get_texture_resolution) return;
++  static unsigned tick;
++  if ((tick++ % 60u) != 0u) return;
++  constexpr char dict[] = "psnhub_brand";
++  constexpr char texture[] = "psnhub_mascot";
++  for (int i = 0; i < g_pack.card_count; ++i) {
++    const auto& card = g_pack.cards[i];
++    if (strcmp(card.dict, dict) != 0 || strcmp(card.texture, texture) != 0) continue;
++    if (!texture_action_is_stable_main_thread() || !pack_archives_resident()) break;
++    invoke_void_ctx(0, g_n.request_streamed_texture_dict, dict, 0);
++    const bool loaded = invoke_return_ctx<int>(0, g_n.has_streamed_texture_dict_loaded, dict) != 0;
++    const PreviewRes res = loaded ? query_texture_resolution(dict, texture) : PreviewRes{};
++    __atomic_store_n(&g_brand_mascot_ready, res.w == 256.0f && res.h == 256.0f,
++                     __ATOMIC_RELEASE);
++    return;
++  }
++  __atomic_store_n(&g_brand_mascot_ready, 0u, __ATOMIC_RELEASE);
++#endif
++}
++
+ // Written on the game thread, read by the worker.
+ static uint32_t g_card_shown;
+ static uint32_t g_card_res_w;
+@@ -200,6 +233,9 @@ extern "C" void gtav_features_custom_card_published(uint64_t generation, int dra
+
+ #else
+
++static void brand_mascot_game_thread_tick() {}
++extern "C" int gtav_features_brand_mascot_ready(void) { return 0; }
++
+ static uint32_t show_pack_card(uint32_t param) {
+   (void)param;
+   return unavailable(GTAV_NATIVE_SHELL_ACTION_SHOW_PACK_CARD,
 diff --git a/src/module/features/session.inc b/src/module/features/session.inc
 index 1dcadd8..5aad2e9 100644
 --- a/src/module/features/session.inc
@@ -286,6 +360,18 @@ index 1dcadd8..5aad2e9 100644
  #endif
 -  return unavailable(action, "skip prologue not built (needs SCRIPT_GLOBALS + GTAV_PROLOGUE_GLOBAL_INDEX)");
  }
+diff --git a/src/module/features/weapon_fx.inc b/src/module/features/weapon_fx.inc
+index 9c342f8..09d0de4 100644
+--- a/src/module/features/weapon_fx.inc
++++ b/src/module/features/weapon_fx.inc
+@@ -275,6 +275,7 @@ static void suppress_menu_input_controls(void) {
+ static void pack_interior_diag_tick();  // custom_pack_world.inc (a no-op outside the pack lane)
+
+ extern "C" void gtav_features_game_thread_tick(void) {
++  brand_mascot_game_thread_tick();
+   crowd_game_thread_tick();
+   pack_interior_diag_tick();
+   // Record that the frame-hook side fired this frame (updates hookSideTicks and runs the
 diff --git a/src/module/menu.c b/src/module/menu.c
 index 77d7a9d..2089ab6 100644
 --- a/src/module/menu.c
@@ -300,7 +386,7 @@ index 77d7a9d..2089ab6 100644
                                                  ? "notification disabled"
                                                  : "notification sent");
 diff --git a/src/module/native_bridge.cpp b/src/module/native_bridge.cpp
-index 2098aac..e51cbaf 100644
+index 2098aac..cd6711e 100644
 --- a/src/module/native_bridge.cpp
 +++ b/src/module/native_bridge.cpp
 @@ -420,14 +420,17 @@ struct MenuTheme {
@@ -449,7 +535,7 @@ index 2098aac..e51cbaf 100644
    const float footer_cy = footer_top + footer_h * 0.5f;
    // The controller-verb legend used to live on a hint strip below the footer; it now renders as a
    // native-style instructional-button bar along the bottom of the screen (draw_instructional_bar),
-@@ -3000,18 +3054,51 @@ enum { kHintButtonsMax = 5 };
+@@ -3000,18 +3054,64 @@ enum { kHintButtonsMax = 5 };
      g_sel_anim_y = g_sel_anim_from + (g_sel_anim_target - g_sel_anim_from) * t;
    }
    const float sel_cy = row0_y + row_h * g_sel_anim_y + glyph_mid;
@@ -479,7 +565,20 @@ index 2098aac..e51cbaf 100644
 +  }
 +  draw_shell_rect(dr, panel_left + 0.008f, header_top + banner_h * 0.5f, 0.004f,
 +                  banner_h - 0.022f, 191, 255, 82, menu_fade_alpha(255, fade));
-+  draw_psnhub_mascot(dr, panel_left + panel_w - 0.014f, header_top + 0.009f, fade);
++#if GTAV_MENU_ENABLE_CUSTOM_PACKS && GTAV_MENU_ENABLE_NATIVE_FEATURES && GTAV_MENU_PHASE_DRAW_LIST
++  if (g_phase_draw_builder && g_table.draw_sprite && gtav_features_brand_mascot_ready()) {
++    const float x = panel_left + panel_w - 0.049f;
++    const float y = header_top + 0.064f;
++    draw_shell_rect(dr, x, y, 0.073f, 0.116f, 24, 10, 39, menu_fade_alpha(245, fade));
++    if (gtav_menu_draw_list_add_sprite(g_phase_draw_builder, "psnhub_brand", "psnhub_mascot",
++                                       x, y, 0.060f, 0.1067f, 0.0f, 255, 255, 255,
++                                       menu_fade_alpha(255, fade), 0, 0) != 0)
++      g_phase_draw_build_failed = 1;
++  } else
++#endif
++  {
++    draw_psnhub_mascot(dr, panel_left + panel_w - 0.014f, header_top + 0.009f, fade);
++  }
 +  const float category_h = row0_y - header_top - banner_h;
 +  draw_shell_rect(dr, panel_cx, row0_y - category_h * 0.5f, panel_w, category_h,
 +                  174, 255, 63, menu_fade_alpha(255, fade));
@@ -511,7 +610,7 @@ index 2098aac..e51cbaf 100644
    // Per-row banding (behind the selection highlight, which is drawn next so it always wins): a very
    // faint zebra wash on alternating rows makes the label->value sweep easier to track across the
    // panel, and a darker wash on genuinely locked (hook-gated) action rows reads them as inactive at
-@@ -3039,24 +3126,26 @@ enum { kHintButtonsMax = 5 };
+@@ -3039,24 +3139,26 @@ enum { kHintButtonsMax = 5 };
      }
    }
    // Selection highlight behind the active (glided) row, centred on the row glyphs.
@@ -544,7 +643,7 @@ index 2098aac..e51cbaf 100644
    // Scrollbar: when the list is longer than the window, draw a track down the right edge with
    // a thumb sized + positioned by the visible window over the whole list. Clearer than the old
    // pair of top/bottom chips -- you can see both that there's more AND roughly where you are.
-@@ -3554,8 +3643,8 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3554,8 +3656,8 @@ static void publish_active_instructional_bar(int visible) {
    // Per-entry the "glyph cell" is either the real inline glyph token (Route A) or the ASCII chip
    // text. Measure first so the whole bar can be right-aligned; a cell never goes narrower than tall
    // so a single glyph still reads as a square button (and a future sprite has a square box).
@@ -555,7 +654,7 @@ index 2098aac..e51cbaf 100644
    float total_w = 0.0f;
    for (uint32_t i = 0; i < n; ++i) {
      const HintGlyphInfo* gi = &kHintGlyphInfo[btns[i].glyph];
-@@ -3573,8 +3662,9 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3573,8 +3675,9 @@ static void publish_active_instructional_bar(int visible) {
    const float strip_pad = 0.010f;
    const float strip_w = total_w + strip_pad * 2.0f;
    const float strip_cx = right_edge - total_w * 0.5f;
@@ -567,7 +666,7 @@ index 2098aac..e51cbaf 100644
 
    float x = right_edge - total_w;  // left edge of the first glyph cell
    for (uint32_t i = 0; i < n; ++i) {
-@@ -3675,13 +3765,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3675,13 +3778,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
        snprintf(crumb, sizeof(crumb), "%s > %s", localized(parent->label), localized(menu->label));
      }
    }
@@ -594,7 +693,7 @@ index 2098aac..e51cbaf 100644
 
    for (uint32_t row = 0; row < visible_count; ++row) {
      const uint32_t index = start + row;
-@@ -3691,26 +3788,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3691,26 +3801,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
      draw_menu_row(item, selected, text_x, y, value_right, fade, th, worker_tick - g_marquee_since);
    }
 
