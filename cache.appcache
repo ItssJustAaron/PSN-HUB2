@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# PSN-HUB Cache 97fbbf7b378175e7
+# PSN-HUB Cache 262a649c43ea8b92
 
 CACHE:
 cache-status.js
@@ -14,7 +14,7 @@ index.html
 int64.js
 kexp.js
 main.js
-main.js?v=10
+main.js?v=11
 manager-launch.js
 mascot.png
 mascot.png?v=2

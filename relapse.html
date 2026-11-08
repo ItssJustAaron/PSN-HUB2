@@ -45,7 +45,7 @@
 <script src="payloads.js?v=5"></script>
 <script src="firmware.js?v=4"></script>
 <script src="payload-fetch.js"></script>
-<script src="main.js?v=10"></script>
+<script src="main.js?v=11"></script>
 
 <script>
 // main.js appends the offsets script for the detected firmware as its last act.
@@ -427,7 +427,8 @@ function buildPayloadMenu() {
             status.textContent = "Sending " + t.title + " to elfldr on port 9021…";
             print(t.title + ": sending...", "LOG-INFO");
             try {
-                openManager.hidden = true;
+                openManager.href = window.__managerAddress;
+                openManager.hidden = false;
                 const result = await window.startManagerFlow({
                     send: window.__sendPayload, ready: window.__managerReady,
                     address: window.__managerAddress,
@@ -435,7 +436,6 @@ function buildPayloadMenu() {
                     navigate: address => { location.href = address; }
                 });
                 const n = result.bytes;
-                openManager.href = window.__managerAddress; openManager.hidden = false;
                 a.classList.remove("sending", "failed");
                 a.classList.add("sent");
                 status.dataset.state = "success";

@@ -48,7 +48,7 @@ for (const section of ['hens', 'modMenus', 'emulators', 'payloads', 'cheats']) {
 }
 const cached = read('cache.appcache').split('CACHE:\n')[1].split('\nNETWORK:')[0].trim().split('\n');
 for (const entry of cached) assert(fs.statSync(path.join(root, entry.split('?')[0])).isFile(), entry);
-for (const entry of ['core.js?v=132', 'mem.js?v=131', 'main.js?v=10', 'manager-launch.js', 'payload-fetch.js', 'cache-status.js', 'kexp.js', 'int64.js', 'payloads/elfldr-ps5-1360.elf', 'payloads/kexp_2026_05_25.bin']) assert(cached.includes(entry), entry);
+for (const entry of ['core.js?v=132', 'mem.js?v=131', 'main.js?v=11', 'manager-launch.js', 'payload-fetch.js', 'cache-status.js', 'kexp.js', 'int64.js', 'payloads/elfldr-ps5-1360.elf', 'payloads/kexp_2026_05_25.bin']) assert(cached.includes(entry), entry);
 for (const version of JSON.parse(read('offsets/offsets.json')).firmwares) assert(cached.includes('offsets/' + version.script));
 for (const [name, html] of [['index.html', read('index.html')], ['relapse.html', read('relapse.html')], ['dashboard', dashboard]]) {
   for (const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {

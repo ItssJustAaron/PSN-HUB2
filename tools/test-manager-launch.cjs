@@ -15,9 +15,27 @@ function environment(){const window={};vm.runInNewContext(source,{window,setTime
   const main=fs.readFileSync(path.join(root,'main.js'),'utf8').replace(/\r\n/g,'\n'),calls=[],window2={};
   assert.equal(main.split('/* BEGIN EMBEDDED MANAGER LAUNCH */\n')[1].split('/* END EMBEDDED MANAGER LAUNCH */')[0],source.replace(/\r\n/g,'\n'),'The launcher is bundled into main.js and cannot be missing as a separate dependency');
   const segment=main.slice(main.indexOf('  const sendAddr ='),main.indexOf('  async function sendLocalPayload('));
-  let active=0,maximum=0;
-  vm.runInNewContext(segment,{window:window2,ip:{ip:'192.168.1.50'},p:{malloc:()=>({})},chain:{syscall:async(name)=>{calls.push(name);if(name==='socket'){active++;maximum=Math.max(maximum,active);}if(name==='close')active--;return {low:name==='socket'?10:0};}},SYS_SOCKET:'socket',SYS_CONNECT:'connect',SYS_CLOSE:'close',AF_INET:2,SOCK_STREAM:1,htons:n=>n,build_addr:(_p,_addr,_family,port)=>assert.equal(port,8085)});
-  assert.equal(window2.__managerAddress,options.address);await Promise.all([window2.__managerReady(),window2.__managerReady()]);assert.equal(maximum,1);assert.deepEqual(calls,['socket','connect','close','socket','connect','close']);
+  let active=0,maximum=0,reply='';
+  const responses=[['HTTP/1.1 200 OK\r\n\r\n','<title>PSN-HUB Manager</title>'], ['HTTP/1.1 200 OK\r\n\r\n'], ['HTTP/1.1 503 Error\r\n\r\n<title>PSN-HUB Manager</title>']];
+  let parts;
+  vm.runInNewContext(segment,{
+    window:window2,ip:{ip:'192.168.1.50'},
+    p:{malloc:()=>({add32(){return this;}}),stringify:value=>value,write4(){},readstr:()=>reply},
+    chain:{syscall:async(name,...args)=>{
+      calls.push(name);
+      if(name==='socket'){parts=responses.shift();reply='';active++;maximum=Math.max(maximum,active);return {low:10};}
+      if(name==='write'){assert.match(args[1],/^GET \/ HTTP\/1\.1/);return {low:args[2]};}
+      if(name==='read'){const part=parts.shift()||'';reply+=part;return {low:part.length};}
+      if(name==='close')active--;
+      return {low:0};
+    }},
+    SYS_SOCKET:'socket',SYS_CONNECT:'connect',SYS_CLOSE:'close',SYS_SETSOCKOPT:'timeout',SYS_WRITE:'write',SYS_READ:'read',
+    AF_INET:2,SOCK_STREAM:1,htons:n=>n,build_addr:(_p,_addr,_family,port)=>assert.equal(port,8085)
+  });
+  assert.equal(window2.__managerAddress,options.address);
+  assert.deepEqual(await Promise.all([window2.__managerReady(),window2.__managerReady(),window2.__managerReady()]),[true,false,false]);
+  assert.equal(maximum,1);
+  assert.deepEqual(calls.slice(0,7),['socket','timeout','connect','write','read','read','close']);
   const publicList={};vm.runInNewContext(fs.readFileSync(path.join(root,'payloads.js'),'utf8'),{window:publicList});assert.deepEqual(Array.from(publicList.PAYLOAD_TILES,item=>item.name),['PSN-HUB-Manager.elf']);
   assert(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('handlePayloadsNav'));
   const catalog=JSON.parse(fs.readFileSync(path.join(root,'Manager/catalog.json'),'utf8'));assert.deepEqual(catalog.payloads.map(item=>item.name).sort(),JSON.parse(fs.readFileSync(path.join(root,'Manager/payloads.json'),'utf8')).map(item=>item.name).sort());assert(!catalog.payloads.some(item=>item.name==='PSN-HUB-Manager.elf'));

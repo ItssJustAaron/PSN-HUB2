@@ -1023,10 +1023,30 @@ async function main(userlandRW, wkOnly = false) {
   window.__managerAddress = 'http://' + (ip.ip || '127.0.0.1') + ':8085/';
   window.__managerReady = function () {
     const operation = payloadSendTail.then(async function () {
+      const request = 'GET / HTTP/1.1\r\nHost: 127.0.0.1:8085\r\nConnection: close\r\n\r\n';
+      const requestBuffer = p.stringify(request);
+      const replyBuffer = p.malloc(2048, 1);
+      const timeout = p.malloc(16, 1);
+      p.write4(timeout, 1);
       const sock = (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
       if (sock < 0) return false;
       build_addr(p, sendAddr, AF_INET, htons(8085), 0x0100007f);
-      try { return ((await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0) >= 0; }
+      try {
+        // FreeBSD SOL_SOCKET / SO_RCVTIMEO. Bound reads if the listener stalls.
+        if (((await chain.syscall(SYS_SETSOCKOPT, sock, 0xffff, 0x1006, timeout, 16)).low << 0) < 0) return false;
+        if (((await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0) < 0) return false;
+        if (((await chain.syscall(SYS_WRITE, sock, requestBuffer, request.length)).low << 0) !== request.length) return false;
+        let received = 0;
+        const deadline = Date.now() + 1000;
+        while (received < 2048 && Date.now() < deadline) {
+          const size = (await chain.syscall(SYS_READ, sock, replyBuffer.add32(received), 2048 - received)).low << 0;
+          if (size <= 0) return false;
+          received += size;
+          const reply = p.readstr(replyBuffer, received);
+          if (reply.includes('<title>PSN-HUB Manager</title>')) return /^HTTP\/1\.[01] 200\b/.test(reply);
+        }
+        return false;
+      }
       finally { await chain.syscall(SYS_CLOSE, sock); }
     });
     payloadSendTail = operation.catch(() => {});
