@@ -1,0 +1,47 @@
+name: Build PSN-HUB GTA V menu
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Manager/ModMenus/PSN-HUB/psnhub-theme.patch'
+      - '.github/workflows/build-gtav-menu.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Prepare pinned upstream source
+        run: |
+          git clone https://github.com/RaringM/ps5-gtav-menu.git "$RUNNER_TEMP/gtav-menu"
+          git -C "$RUNNER_TEMP/gtav-menu" checkout --detach 7ed032cbe435869c7eb1050cef237bbefe9d5e50
+          git -C "$RUNNER_TEMP/gtav-menu" apply --check "$GITHUB_WORKSPACE/Manager/ModMenus/PSN-HUB/psnhub-theme.patch"
+          git -C "$RUNNER_TEMP/gtav-menu" apply "$GITHUB_WORKSPACE/Manager/ModMenus/PSN-HUB/psnhub-theme.patch"
+      - name: Install pinned toolchain
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y clang-20 lld-20 llvm-20 make unzip
+          curl --fail --location --retry 3 https://github.com/ps5-payload-dev/sdk/releases/download/v0.44/ps5-payload-sdk.zip -o "$RUNNER_TEMP/ps5-sdk.zip"
+          echo "4d06eab777bb135705b5a6816688c9132efb246093fe606ac488ab6cf65ca5b0  $RUNNER_TEMP/ps5-sdk.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/ps5-sdk.zip" -d "$RUNNER_TEMP"
+          echo "PS5_PAYLOAD_SDK=$RUNNER_TEMP/ps5-payload-sdk" >> "$GITHUB_ENV"
+          echo "LLVM_CONFIG=/usr/bin/llvm-config-20" >> "$GITHUB_ENV"
+      - name: Build and verify the standalone package
+        run: |
+          cd "$RUNNER_TEMP/gtav-menu"
+          make package-universal UNIVERSAL_DELIVERIES=standalone
+          elf=$(find build -type f -path '*/universal/production/standalone/gtav-menu-payload-loader.elf' -print)
+          test -f "$elf"
+          mkdir "$RUNNER_TEMP/psnhub-menu"
+          cp "$elf" "$RUNNER_TEMP/psnhub-menu/PSN-HUB-GTAV-Menu.elf"
+          cd "$RUNNER_TEMP/psnhub-menu"
+          grep -aqF 'PSN-HUB | GTA V' PSN-HUB-GTAV-Menu.elf
+          sha256sum PSN-HUB-GTAV-Menu.elf > PSN-HUB-GTAV-Menu.elf.sha256
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: psnhub-gtav-menu
+          path: ${{ runner.temp }}/psnhub-menu/
+          if-no-files-found: error

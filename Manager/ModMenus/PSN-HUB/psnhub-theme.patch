@@ -1,0 +1,133 @@
+diff --git a/src/module/native_bridge.cpp b/src/module/native_bridge.cpp
+index 2098aac..91fe841 100644
+--- a/src/module/native_bridge.cpp
++++ b/src/module/native_bridge.cpp
+@@ -420,14 +420,17 @@ struct MenuTheme {
+ // locked red. Kept in named macros so the four themes stay byte-identical and obviously so.
+ #define GTAV_THEME_VALUE_COLORS {120, 205, 95}, {205, 95, 95}, {120, 210, 240}, {210, 80, 80}
+ const MenuTheme kThemes[] = {
+-    {"Blue",
+-     {12, 14, 20, 220},
+-     {28, 86, 150, 235},
+-     {60, 120, 200, 150},
+-     {20, 40, 66, 225},
+-     {210, 225, 255, 240},
+-     {255, 238, 150},
+-     GTAV_THEME_VALUE_COLORS},
++    {"PSN-HUB",
++     {19, 3, 33, 245},
++     {57, 255, 20, 255},
++     {82, 41, 116, 250},
++     {39, 17, 59, 245},
++     {57, 255, 20, 245},
++     {255, 248, 255},
++     {122, 255, 105},
++     {255, 155, 167},
++     {219, 185, 255},
++     {255, 155, 167}},
+     {"Crimson",
+      {20, 12, 14, 220},
+      {150, 40, 52, 235},
+@@ -508,7 +511,7 @@ uint32_t g_panel_width_index = 2u;  // default Wide (on hardware Normal truncate
+ static uint32_t g_speedometer_layout;
+
+ // Mutable "Custom" theme slot, appended after the const kThemes[] as the synthetic index
+-// kThemeCount. Seeded from the default (Blue) palette on first use so it starts looking like the
++// kThemeCount. Seeded from the default (PSN-HUB) palette on first use so it starts looking like the
+ // stock menu; the in-menu Theme Editor (CYCLE_CUSTOM_COLOR rows) edits its accent/selection/panel
+ // RGB. Only those three chrome colours are user-editable + persisted; the rest stay at the seed.
+ MenuTheme g_custom_theme;
+@@ -2691,9 +2694,9 @@ static void get_game_timer_canary(uint64_t worker_tick) {
+ #ifndef GTAV_MENU_PANEL_TEXT_X
+ #define GTAV_MENU_PANEL_TEXT_X 0.75f
+ #endif
+-#define GTAV_MENU_PANEL_TITLE_Y 0.040f
+-#define GTAV_MENU_PANEL_ROW0_Y 0.085f
+-#define GTAV_MENU_PANEL_ROW_H 0.030f
++#define GTAV_MENU_PANEL_TITLE_Y 0.044f
++#define GTAV_MENU_PANEL_ROW0_Y 0.116f
++#define GTAV_MENU_PANEL_ROW_H 0.033f
+ // Shared panel geometry (single source for draw_menu_background + the text layout so the
+ // chrome always frames the labels). Width was widened (0.205 -> 0.225 -> 0.305) so long labels
+ // like "Disable All Features" lay out in full instead of ellipsizing; the anchor (REGION_RIGHT_X)
+@@ -3003,14 +3006,16 @@ enum { kHintButtonsMax = 5 };
+   // Subtle frame + main panel. A slightly larger dark rect CENTRED behind the panel reads as
+   // a clean border/outline; the previous shadow was offset down-right at the panel's full size
+   // so it looked like a second, misaligned box rather than a shadow.
+-  draw_shell_rect(dr, panel_cx, panel_cy, panel_w + 0.005f, panel_h + 0.006f, 0, 0, 0,
+-                  menu_fade_alpha(150, fade));
++  draw_shell_rect(dr, panel_cx, panel_cy, panel_w + 0.005f, panel_h + 0.006f, 91, 50, 130,
++                  menu_fade_alpha(200, fade));
+   draw_shell_rect(dr, panel_cx, panel_cy, panel_w, panel_h, th.panel[0], th.panel[1], th.panel[2],
+                   menu_fade_alpha(th.panel[3], fade));
+-  // Accent header bar: TOP edge flush with the panel top, tall enough to frame the title.
++  // Two-line header with an accent rule above the title and breadcrumb.
+   const float header_bar_h = (row0_y - header_top) - 0.010f;
+   const float header_bar_cy = header_top + header_bar_h * 0.5f;
+-  draw_shell_rect(dr, panel_cx, header_bar_cy, panel_w, header_bar_h, th.accent[0], th.accent[1],
++  draw_shell_rect(dr, panel_cx, header_bar_cy, panel_w, header_bar_h, th.footer[0], th.footer[1],
++                  th.footer[2], menu_fade_alpha(th.footer[3], fade));
++  draw_shell_rect(dr, panel_cx, header_top + 0.002f, panel_w, 0.004f, th.accent[0], th.accent[1],
+                   th.accent[2], menu_fade_alpha(th.accent[3], fade));
+   // Per-row banding (behind the selection highlight, which is drawn next so it always wins): a very
+   // faint zebra wash on alternating rows makes the label->value sweep easier to track across the
+@@ -3554,8 +3559,8 @@ static void publish_active_instructional_bar(int visible) {
+   // Per-entry the "glyph cell" is either the real inline glyph token (Route A) or the ASCII chip
+   // text. Measure first so the whole bar can be right-aligned; a cell never goes narrower than tall
+   // so a single glyph still reads as a square button (and a future sprite has a square box).
+-  float chip_w[4];
+-  float label_w[4];
++  float chip_w[kHintButtonsMax];
++  float label_w[kHintButtonsMax];
+   float total_w = 0.0f;
+   for (uint32_t i = 0; i < n; ++i) {
+     const HintGlyphInfo* gi = &kHintGlyphInfo[btns[i].glyph];
+@@ -3573,8 +3578,9 @@ static void publish_active_instructional_bar(int visible) {
+   const float strip_pad = 0.010f;
+   const float strip_w = total_w + strip_pad * 2.0f;
+   const float strip_cx = right_edge - total_w * 0.5f;
+-  draw_shell_rect(dr, strip_cx, y_cy, strip_w, chip_h + 0.014f, 0, 0, 0,
+-                  menu_fade_alpha(120, fade));
++  const MenuTheme& th = active_theme();
++  draw_shell_rect(dr, strip_cx, y_cy, strip_w, chip_h + 0.014f, th.footer[0], th.footer[1],
++                  th.footer[2], menu_fade_alpha(220, fade));
+
+   float x = right_edge - total_w;  // left edge of the first glyph cell
+   for (uint32_t i = 0; i < n; ++i) {
+@@ -3675,13 +3681,22 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+       snprintf(crumb, sizeof(crumb), "%s > %s", localized(parent->label), localized(menu->label));
+     }
+   }
+-  NativeTextStyle title_style = {0, 0.32f, 0.32f, 235, 242, 255, 245, 0, 0.0f, 1.0f, 0, 0};
+-  // The title sits on the accent bar: keep it legible on a bright accent (Contrast's amber made the
+-  // near-white title unreadable on hardware) with the same guard the rows use.
++  NativeTextStyle title_style = {0, 0.41f, 0.41f, th.accent[0], th.accent[1], th.accent[2],
++                                 255, 0, 0.0f, 1.0f, 0, 0};
+   ensure_text_contrast(&title_style.r, &title_style.g, &title_style.b,
+-                       theme_luminance(th.accent[0], th.accent[1], th.accent[2]));
++                       theme_luminance(th.footer[0], th.footer[1], th.footer[2]));
+   title_style.a = menu_fade_alpha(title_style.a, fade);
+-  draw_native_text_shadowed(crumb, text_x, GTAV_MENU_PANEL_TITLE_Y + y_off, title_style);
++  draw_native_text_shadowed("PSN-HUB | GTA V", text_x, GTAV_MENU_PANEL_TITLE_Y + y_off, title_style);
++  NativeTextStyle edition_style = {0, 0.24f, 0.24f, 218, 191, 241, title_style.a,
++                                   0, text_x, value_right, 2, 1};
++  draw_native_text_line("STORY MODE", text_x, GTAV_MENU_PANEL_TITLE_Y + y_off + 0.006f,
++                        edition_style);
++  NativeTextStyle category_style = {0, 0.30f, 0.30f, 239, 218, 255, title_style.a,
++                                    0, 0.0f, 1.0f, 0, 0};
++  char fitted_crumb[96];
++  const char* category = menu_fit_text(fitted_crumb, sizeof(fitted_crumb), crumb,
++                                       category_style.scale_x, value_right - text_x, 0, 0);
++  draw_native_text_shadowed(category, text_x, GTAV_MENU_PANEL_TITLE_Y + y_off + 0.030f, category_style);
+
+   for (uint32_t row = 0; row < visible_count; ++row) {
+     const uint32_t index = start + row;
+@@ -3695,7 +3710,7 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+   // strip, so it needs no shadow -- just fade with the panel.
+   const float footer_y = row0_y + row_h * (float)visible_count + 0.010f;
+   const ShellItem* sel = (selected_index < total) ? &menu->items[selected_index] : nullptr;
+-  NativeTextStyle desc_style = {0, 0.235f, 0.235f, 185, 205, 235, 225, 0, 0.0f, 1.0f, 0, 1};
++  NativeTextStyle desc_style = {0, 0.25f, 0.25f, 218, 191, 241, 240, 0, 0.0f, 1.0f, 0, 1};
+   desc_style.a = menu_fade_alpha(desc_style.a, fade);
+   // The description gets the width the "n / m" counter leaves; a longer one scrolls (marquee,
+   // anchored to the selection like the row label) instead of running into the counter.
