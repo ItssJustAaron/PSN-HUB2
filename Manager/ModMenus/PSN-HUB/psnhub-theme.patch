@@ -12,7 +12,7 @@ index 77d7a9d..2089ab6 100644
                                                  ? "notification disabled"
                                                  : "notification sent");
 diff --git a/src/module/native_bridge.cpp b/src/module/native_bridge.cpp
-index 2098aac..fab3203 100644
+index 2098aac..724e61b 100644
 --- a/src/module/native_bridge.cpp
 +++ b/src/module/native_bridge.cpp
 @@ -420,14 +420,17 @@ struct MenuTheme {
@@ -81,34 +81,41 @@ index 2098aac..fab3203 100644
  // Open-fade ramp length in worker ticks (alpha 0->1 + a small slide into place).
  #define GTAV_MENU_PANEL_FADE_IN_TICKS GTAV_MENU_TICKS_60(10u)
  // Selection-glide duration in worker ticks (eased travel of the highlight to the focused row).
-@@ -2945,6 +2950,36 @@ enum { kHintButtonsMax = 5 };
+@@ -2945,6 +2950,43 @@ enum { kHintButtonsMax = 5 };
    return n;
  }
 
-+// Compact pixel portrait of the PSN-HUB leaf mascot. Merge adjacent pixels so
-+// it fits the native rectangle renderer without loading game textures.
++// Six-colour encoding of the PSN-HUB mascot artwork. Merge adjacent pixels so
++// the portrait fits the native rectangle renderer without loading game textures.
 +[[maybe_unused]] static void draw_psnhub_mascot(uint64_t dr, float right, float top, float fade) {
-+  static const char art[][18] = {
-+      "........g........", ".......glg.......", ".......glg.......",
-+      "...g..glllg..g...", "...lg.glllg.gl...", "....lglggglgl....",
-+      ".gg..lwgwl..gg...", "..glglwgwlglg....", "....lglllgl......",
-+      "..gggllkllggg....", "....gglllgg......", "......g.g........",
-+      "......k.k........", ".....rr.rr.......", ".....ww.ww.......",
++  static const char art[][19] = {
++      ".........2........", ".........32.......", "........232.......",
++      ".......2312.......", ".......22121......", "...121.11211.21...",
++      "...1321121212321..", "...144240401343...", "....4414242124....",
++      "...211111111112...", "..12110155101121..", "..11112100111111..",
++      ".....21111111.....", ".....11122111.....", ".....11.....1.....",
++      ".......0..0.......", ".....4455.5544....", ".....4455.5544....",
 +  };
-+  const float pixel_w = 0.0045f;
-+  const float pixel_h = 0.0070f;
-+  for (unsigned y = 0; y < sizeof(art) / sizeof(art[0]); ++y) {
-+    for (unsigned x = 0; x < 17;) {
++  static const uint8_t palette[][3] = {
++      {18, 14, 21}, {77, 124, 3}, {141, 192, 6}, {196, 231, 45}, {243, 237, 222}, {237, 27, 49},
++  };
++  constexpr unsigned width = sizeof(art[0]) - 1;
++  constexpr unsigned height = sizeof(art) / sizeof(art[0]);
++  const float pixel_w = 0.00325f;
++  const float pixel_h = 0.0060f;
++  draw_shell_rect(dr, right - width * pixel_w * 0.5f, top + height * pixel_h * 0.5f,
++                  width * pixel_w + 0.009f, height * pixel_h + 0.008f, 44, 12, 78,
++                  menu_fade_alpha(210, fade));
++  for (unsigned y = 0; y < height; ++y) {
++    for (unsigned x = 0; x < width;) {
 +      const char pixel = art[y][x];
 +      unsigned end = x + 1;
-+      while (end < 17 && art[y][end] == pixel) ++end;
++      while (end < width && art[y][end] == pixel) ++end;
 +      if (pixel != '.') {
-+        const int r = pixel == 'w' ? 255 : pixel == 'r' ? 250 : pixel == 'l' ? 147 : pixel == 'g' ? 50 : 22;
-+        const int g = pixel == 'w' ? 245 : pixel == 'r' ? 43 : pixel == 'l' ? 240 : pixel == 'g' ? 145 : 9;
-+        const int b = pixel == 'w' ? 222 : pixel == 'r' ? 79 : pixel == 'l' ? 40 : pixel == 'g' ? 21 : 31;
-+        draw_shell_rect(dr, right - (17.0f - (x + end) * 0.5f) * pixel_w,
++        const auto& rgb = palette[pixel - '0'];
++        draw_shell_rect(dr, right - (width - (x + end) * 0.5f) * pixel_w,
 +                        top + (y + 0.5f) * pixel_h, (end - x) * pixel_w, pixel_h,
-+                        r, g, b, menu_fade_alpha(255, fade));
++                        rgb[0], rgb[1], rgb[2], menu_fade_alpha(255, fade));
 +      }
 +      x = end;
 +    }
@@ -118,7 +125,7 @@ index 2098aac..fab3203 100644
  [[maybe_unused]] static void draw_menu_background(uint64_t worker_tick, uint32_t visible_count,
                                                    uint32_t selected_row) {
    const uint64_t dr = g_table.draw_rect;
-@@ -2961,12 +2996,11 @@ enum { kHintButtonsMax = 5 };
+@@ -2961,12 +3003,11 @@ enum { kHintButtonsMax = 5 };
    const float row0_y = GTAV_MENU_PANEL_ROW0_Y + y_off;
    const float row_h = GTAV_MENU_PANEL_ROW_H;
    const float glyph_mid = GTAV_MENU_PANEL_GLYPH_MID;
@@ -134,7 +141,7 @@ index 2098aac..fab3203 100644
    const float footer_cy = footer_top + footer_h * 0.5f;
    // The controller-verb legend used to live on a hint strip below the footer; it now renders as a
    // native-style instructional-button bar along the bottom of the screen (draw_instructional_bar),
-@@ -3003,15 +3037,22 @@ enum { kHintButtonsMax = 5 };
+@@ -3003,15 +3044,22 @@ enum { kHintButtonsMax = 5 };
    // Subtle frame + main panel. A slightly larger dark rect CENTRED behind the panel reads as
    // a clean border/outline; the previous shadow was offset down-right at the panel's full size
    // so it looked like a second, misaligned box rather than a shadow.
@@ -163,7 +170,7 @@ index 2098aac..fab3203 100644
    // Per-row banding (behind the selection highlight, which is drawn next so it always wins): a very
    // faint zebra wash on alternating rows makes the label->value sweep easier to track across the
    // panel, and a darker wash on genuinely locked (hook-gated) action rows reads them as inactive at
-@@ -3039,24 +3080,26 @@ enum { kHintButtonsMax = 5 };
+@@ -3039,24 +3087,26 @@ enum { kHintButtonsMax = 5 };
      }
    }
    // Selection highlight behind the active (glided) row, centred on the row glyphs.
@@ -194,7 +201,7 @@ index 2098aac..fab3203 100644
    // Scrollbar: when the list is longer than the window, draw a track down the right edge with
    // a thumb sized + positioned by the visible window over the whole list. Clearer than the old
    // pair of top/bottom chips -- you can see both that there's more AND roughly where you are.
-@@ -3554,8 +3597,8 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3554,8 +3604,8 @@ static void publish_active_instructional_bar(int visible) {
    // Per-entry the "glyph cell" is either the real inline glyph token (Route A) or the ASCII chip
    // text. Measure first so the whole bar can be right-aligned; a cell never goes narrower than tall
    // so a single glyph still reads as a square button (and a future sprite has a square box).
@@ -205,7 +212,7 @@ index 2098aac..fab3203 100644
    float total_w = 0.0f;
    for (uint32_t i = 0; i < n; ++i) {
      const HintGlyphInfo* gi = &kHintGlyphInfo[btns[i].glyph];
-@@ -3573,8 +3616,9 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3573,8 +3623,9 @@ static void publish_active_instructional_bar(int visible) {
    const float strip_pad = 0.010f;
    const float strip_w = total_w + strip_pad * 2.0f;
    const float strip_cx = right_edge - total_w * 0.5f;
@@ -217,7 +224,7 @@ index 2098aac..fab3203 100644
 
    float x = right_edge - total_w;  // left edge of the first glyph cell
    for (uint32_t i = 0; i < n; ++i) {
-@@ -3675,13 +3719,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3675,13 +3726,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
        snprintf(crumb, sizeof(crumb), "%s > %s", localized(parent->label), localized(menu->label));
      }
    }
@@ -244,7 +251,7 @@ index 2098aac..fab3203 100644
 
    for (uint32_t row = 0; row < visible_count; ++row) {
      const uint32_t index = start + row;
-@@ -3691,26 +3742,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3691,26 +3749,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
      draw_menu_row(item, selected, text_x, y, value_right, fade, th, worker_tick - g_marquee_since);
    }
 
