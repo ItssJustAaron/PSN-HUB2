@@ -68,8 +68,8 @@
   "ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf": {
     "title": "PSN-HUB | GTA V",
     "author": "PSN-HUB · ItssJustAaron",
-    "release": "PSN-HUB Edition 1.2",
-    "expectedSha256": "7c49e029a72571b917cfbece5af58b5096ad9a8642c7796374c7b337045288a6",
+    "release": "PSN-HUB Edition 1.3",
+    "expectedSha256": "7328585ac871877d360943ef4fe6b97fbbb66ce660debdea4179316eea140558",
     "project": "https://github.com/ItssJustAaron/PSN-HUB2/tree/main/Manager/ModMenus/PSN-HUB",
     "gameCompatibility": ["PPSA04264 · 01.005.000 (US; selection untested upstream)", "PPSA04264 · 01.010.002 (US)", "PPSA04263 · 01.010.002 (EU)"],
     "compatibilityNote": "GTA V Enhanced Story Mode. These are upstream game targets. The PSN-HUB edition has not been tested on a console.",
