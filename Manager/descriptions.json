@@ -68,12 +68,12 @@
   "ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf": {
     "title": "PSN-HUB | GTA V",
     "author": "PSN-HUB · ItssJustAaron",
-    "release": "PSN-HUB Edition 1.6",
-    "expectedSha256": "361c9b2b57832a66565e7f5bf52b253ad2cbbaa8c5802e91b1d15df7d5a96464",
+    "release": "PSN-HUB Edition 1.7",
+    "expectedSha256": "f8398c13a8d39d5342cf4516641bc68ec067e1d7116f6d8b785879afa2d194eb",
     "project": "https://github.com/ItssJustAaron/PSN-HUB2/tree/main/Manager/ModMenus/PSN-HUB",
     "gameCompatibility": ["PPSA04264 · 01.005.000 (US; selection untested upstream)", "PPSA04264 · 01.010.002 (US)", "PPSA04263 · 01.010.002 (EU)"],
     "compatibilityNote": "GTA V Enhanced Story Mode. Mission skip actions are enabled for the EU disc build PPSA04263 01.010.002.",
-    "description": "GTA V Enhanced Story Mode tools with a purple banner, an in-game pixel portrait of the PSN-HUB leaf mascot, a high-contrast action list, and a Missions section with Story Mode mission names.",
+    "description": "GTA V Enhanced Story Mode tools in a purple PSN-HUB panel with a leaf mascot banner, lime selection and navigation bars, a leaf watermark on the main menu, and a Missions section.",
     "controls": "R1 + D-pad Left opens or hides the menu. Use the D-pad to browse and adjust, Cross to select, and Circle to go back.",
     "instructions": "Fully close GTA V before switching menu builds. Stop any other GTA V menu loader, send this ELF, and launch Story Mode. On the supported EU build, open Missions during a fresh Prologue and select Complete Prologue. Return to the main menu, then choose Continue Story. During gameplay, select Skip Checkpoint or Complete Mission and close the mod menu. The request is armed for two minutes. On an eligible Mission Failed screen with a recorded checkpoint, press Square and confirm in GTA V. Complete Mission requires a checkpoint that supports a whole-mission skip."
   }
