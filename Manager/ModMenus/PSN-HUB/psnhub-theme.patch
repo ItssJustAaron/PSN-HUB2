@@ -30,7 +30,7 @@ index 73334e8..8ebfe76 100644
  /* Fly modes (game-thread velocity drivers; volatile mode state, not saved toggles). */
  GTAV_ACTION_NAME(CYCLE_FLY_MODE, "cycle_fly_mode")
 diff --git a/include/gtavmenu/feature_descriptions.def b/include/gtavmenu/feature_descriptions.def
-index ab1915d..432e8c9 100644
+index ab1915d..6894344 100644
 --- a/include/gtavmenu/feature_descriptions.def
 +++ b/include/gtavmenu/feature_descriptions.def
 @@ -198,7 +198,8 @@ GTAV_ACTION_DESC(LS_INSTALL_COSMETICS, "Install the top visual mods and wheels")
@@ -39,7 +39,7 @@ index ab1915d..432e8c9 100644
  GTAV_ACTION_DESC(FIX_TYRES, "Repair your vehicle's burst tyres")
 -GTAV_ACTION_DESC(SKIP_PROLOGUE, "Experimental: skip the prologue and relaunch single-player")
 +GTAV_ACTION_DESC(SKIP_PROLOGUE, "Mark a fresh Prologue complete. Return to main menu, then Continue Story.")
-+GTAV_ACTION_DESC(ENABLE_STORY_SKIP, "Use on Mission Failed, then close the mod menu and press Square.")
++GTAV_ACTION_DESC(ENABLE_STORY_SKIP, "Arm during gameplay. Press Square on an eligible failure screen within two minutes.")
  GTAV_ACTION_DESC(TOGGLE_XENON, "Fit bright xenon headlights")
 
  /* Los Santos Customs per-slot mod pickers (same enum order as native_bridge.h) */
@@ -69,7 +69,7 @@ index 7f23853..c46afb2 100644
  		-DGTAV_FRAME_HOOK_PATCH_LEN=14u \
  		-DGTAV_FRAME_HOOK_STOLEN_LEN=16u \
 diff --git a/src/module/features.cpp b/src/module/features.cpp
-index 773c3e4..2e42437 100644
+index 773c3e4..2e6238f 100644
 --- a/src/module/features.cpp
 +++ b/src/module/features.cpp
 @@ -299,8 +299,6 @@ struct FeatureNatives {
@@ -109,7 +109,7 @@ index 773c3e4..2e42437 100644
  #if defined(GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM) && GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM
  #ifdef GTAV_NATIVE_ADDR_REQUEST_SCALEFORM_MOVIE
    g_n.request_scaleform_movie = GTAV_NATIVE_ADDR_REQUEST_SCALEFORM_MOVIE;
-@@ -2091,9 +2075,9 @@ extern "C" uint32_t gtav_features_activate(uint32_t action) {
+@@ -2091,8 +2075,7 @@ extern "C" uint32_t gtav_features_activate(uint32_t action) {
      case GTAV_NATIVE_SHELL_ACTION_FIX_VEHICLE:
      case GTAV_NATIVE_SHELL_ACTION_REPAIR_CLEAN_VEHICLE:
      case GTAV_NATIVE_SHELL_ACTION_PRESET_DRIVER:
@@ -117,20 +117,18 @@ index 773c3e4..2e42437 100644
 -    // which rebuilds the script context -- never safe off the game/script thread.
 +    // Check live story state and mark the Prologue from the game thread.
      case GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE:
-+    case GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP:
      // Spawn Saved Vehicle creates a vehicle (CREATE_VEHICLE) and re-applies its mods, same
      // allocation-class lane as SPAWN_VEHICLE -> game/script thread.
-     case GTAV_NATIVE_SHELL_ACTION_SPAWN_SAVED_VEHICLE:
-@@ -2365,6 +2349,8 @@ extern "C" int gtav_features_save_slot_occupied(uint32_t action) {
-       return dismiss_bodyguards();
-     case GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE:
-       return skip_prologue();
+@@ -2495,6 +2478,8 @@ extern "C" uint32_t gtav_features_activate_param(uint32_t action, uint32_t param
+ // feature adds a case here (plus the action enum + feature_actions.def name + a menu row).
+ static uint32_t activate_worker_direct_action(uint32_t action, uint32_t param) {
+   switch (action) {
 +    case GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP:
-+      return enable_story_skip(param != 0);
-     // Vehicle Fix / Repair+Clean and the Driver preset run SET_VEHICLE_FIXED, which deadlocks
-     // off the worker thread -- drained here so the rebuild runs in valid script context.
-     case GTAV_NATIVE_SHELL_ACTION_FIX_VEHICLE:
-@@ -3034,20 +3020,6 @@ extern "C" void gtav_features_worker_tick(int menu_visible) {
++      return arm_story_skip(param != 0);
+     // Custom Packs page: starts the worker-side load state machine (it enqueues the main-thread
+     // pack steps itself), so it runs here rather than on the game thread.
+     case GTAV_NATIVE_SHELL_ACTION_PACK_AUTOLOAD:
+@@ -3034,20 +3019,7 @@ extern "C" void gtav_features_worker_tick(int menu_visible) {
    // Mirror menu visibility for the game-thread noclip driver (it has no parameter and must
    // stand down while the menu is open). Set before any early return so it stays fresh.
    g_menu_open = menu_visible;
@@ -148,14 +146,15 @@ index 773c3e4..2e42437 100644
 -    }
 -  }
 -#endif
++  story_skip_worker_tick();
    tick_frame_hook_telemetry();
    // Custom Packs page: advance the one-press pack load (worker side; enqueues main-thread steps).
    pack_autoload_tick();
 diff --git a/src/module/features/session.inc b/src/module/features/session.inc
-index 1dcadd8..c539627 100644
+index 1dcadd8..5aad2e9 100644
 --- a/src/module/features/session.inc
 +++ b/src/module/features/session.inc
-@@ -1,52 +1,61 @@
+@@ -1,52 +1,85 @@
 -// session.inc -- session / story-flow one-shots.
 -//
 -// "Skip Prologue" (GTAV_MENU_ENABLE_PROLOGUE_SKIP, default off). GTA V's story
@@ -191,35 +190,59 @@ index 1dcadd8..c539627 100644
 -// ADDR anchor (same as the despawn fix); a wrong index is a benign no-op (gtav_global_ptr
 -// null-guards). Winning the load race may take a reload or two; if it never wins even with the
 -// right index, the durable fallback is a post-prologue savegame.
-+// Story-flow actions run on the game thread.
-+static uint32_t enable_story_skip(bool whole_mission) {
++// Story skip is armed and consumed by the menu worker. The worker stays
++// available during the failure screen even when the in-game menu is hidden.
++#if GTAV_MENU_ENABLE_PROLOGUE_SKIP && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
++static time_t g_story_skip_expires;
++static bool g_story_skip_whole_mission;
++#endif
++
++static uint32_t arm_story_skip(bool whole_mission) {
 +  const uint32_t action = GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP;
 +#if GTAV_MENU_ENABLE_PROLOGUE_SKIP && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
-+  const uintptr_t globals = (uintptr_t)GTAV_GLOBALS_BASE_ADDR;
-+  const int32_t* replay = gtav_global_ptr(globals, 102454u);
-+  const int32_t* skip = gtav_global_ptr(globals, 96604u);
-+  // Eight-byte slots. Replay modes 1 and 2 are the failure prompts.
-+  // Replay field 11 identifies normal Story Mode mission failure (type 1).
-+  if (!replay || !skip || (replay[0] != 1 && replay[0] != 2) ||
-+      replay[2] < 0 || replay[4] <= 0 || replay[6] == 0 || replay[22] != 1 ||
-+      skip[0] <= 0 || skip[4] != 0 || (skip[6] != 0 && skip[6] != 1)) {
-+    return unavailable(action, "Use on a Story Mode failure screen with a recorded checkpoint.");
-+  }
-+  if (whole_mission != (skip[6] == 1)) {
-+    return unavailable(action, whole_mission ? "GTA V only offers a section skip here."
-+                                             : "GTA V offers a mission skip here. Use Complete Mission.");
-+  }
-+  if (gtav_script_ensure_bool_global(globals, 96605u, 1, nullptr, nullptr, nullptr) !=
-+      GTAV_SCRIPT_GLOBAL_ENSURE_OK) {
-+    return failed(action, "Could not enable the checkpoint skip.");
-+  }
-+  return ok(action, "Close the mod menu and press Square, then confirm the skip.");
++  const time_t now = time(nullptr);
++  if (now == (time_t)-1) return unavailable(action, "Could not arm story skip.");
++  g_story_skip_whole_mission = whole_mission;
++  g_story_skip_expires = now + 120;
++  return ok(action, "Armed for 2 minutes. On Mission Failed, press Square to check.");
 +#else
 +  (void)whole_mission;
 +  return unavailable(action, "Checkpoint skip is unavailable on this game build.");
 +#endif
 +}
++
++static void story_skip_worker_tick() {
++#if GTAV_MENU_ENABLE_PROLOGUE_SKIP && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
++  if (!g_story_skip_expires) return;
++  const time_t now = time(nullptr);
++  if (now == (time_t)-1 || now >= g_story_skip_expires) {
++    g_story_skip_expires = 0;
++    return;
++  }
++  const uintptr_t globals = (uintptr_t)GTAV_GLOBALS_BASE_ADDR;
++  const volatile int32_t* replay = gtav_global_ptr(globals, 102454u);
++  const volatile int32_t* skip = gtav_global_ptr(globals, 96604u);
++  // Eight-byte slots. Modes 1 and 2 are replay failure prompts.
++  if (!replay || !skip) return;
++  const int32_t mode = replay[0];
++  if ((mode != 1 && mode != 2) || replay[2] < 0 || replay[4] <= 0 ||
++      replay[6] == 0 || replay[22] != 1 || skip[0] <= 0 || skip[4] != 0 ||
++      skip[6] != (g_story_skip_whole_mission ? 1 : 0) || replay[0] != mode) {
++    return;
++  }
++  // Consume the request once and let GTA V handle Square and confirmation.
++  g_story_skip_expires = 0;
++  const uint32_t action = GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP;
++  if (gtav_script_ensure_bool_global(globals, 96605u, 1, nullptr, nullptr, nullptr) !=
++      GTAV_SCRIPT_GLOBAL_ENSURE_OK) {
++    failed(action, "Could not enable the story skip.");
++    return;
++  }
++  ok(action, "Story skip ready. Press Square and confirm in GTA V.");
++#endif
++}
 
++// Prologue completion runs on the game thread.
  static uint32_t skip_prologue() {
    const uint32_t action = GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE;
 -  // ARM the continuous write. We can't skip the prologue mid-mission (terminating it trips
@@ -568,7 +591,7 @@ index 2098aac..062d843 100644
    if (total) {
      NativeTextStyle counter_style = {0,   0.235f, 0.235f, 185,         205, 235,
 diff --git a/src/module/shell_menu_defs.hpp b/src/module/shell_menu_defs.hpp
-index ec187ce..8b73f98 100644
+index ec187ce..775076b 100644
 --- a/src/module/shell_menu_defs.hpp
 +++ b/src/module/shell_menu_defs.hpp
 @@ -142,7 +142,8 @@ enum ShellMenuId {
@@ -598,9 +621,9 @@ index ec187ce..8b73f98 100644
 +    PSNHUB_MISSION("Current mission: detection unavailable"),
 +#if GTAV_MENU_ENABLE_PROLOGUE_SKIP && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
 +    {"Skip Checkpoint", SHELL_ROW_ACTION, SHELL_MENU_NONE,
-+     GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP, "Enable Square on Mission Failed", 0},
++     GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP, "Arm during gameplay, then press Square on Mission Failed", 0},
 +    {"Complete Mission", SHELL_ROW_ACTION, SHELL_MENU_NONE,
-+     GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP, "Requires GTA V to offer a whole-mission skip", 1},
++     GTAV_NATIVE_SHELL_ACTION_ENABLE_STORY_SKIP, "Arm during gameplay for an eligible whole-mission skip", 1},
 +    {"Complete Prologue", SHELL_ROW_ACTION, SHELL_MENU_NONE,
 +     GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE, "Return to main menu, then Continue Story", 0},
 +#else
