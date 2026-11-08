@@ -68,13 +68,13 @@
   "ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf": {
     "title": "PSN-HUB | GTA V",
     "author": "PSN-HUB · ItssJustAaron",
-    "release": "PSN-HUB Edition 1.4",
-    "expectedSha256": "e1536268fb118a172deb473bdf4e120de08bfc2dc9f264ee4ae8e71d7379a812",
+    "release": "PSN-HUB Edition 1.5",
+    "expectedSha256": "56a68c7034ac920dbedbd258a364464fb52b467970ac643eadcf31acb121ada2",
     "project": "https://github.com/ItssJustAaron/PSN-HUB2/tree/main/Manager/ModMenus/PSN-HUB",
     "gameCompatibility": ["PPSA04264 · 01.005.000 (US; selection untested upstream)", "PPSA04264 · 01.010.002 (US)", "PPSA04263 · 01.010.002 (EU)"],
-    "compatibilityNote": "GTA V Enhanced Story Mode. Complete Prologue is enabled for the EU disc build PPSA04263 01.010.002.",
+    "compatibilityNote": "GTA V Enhanced Story Mode. Mission skip actions are enabled for the EU disc build PPSA04263 01.010.002.",
     "description": "GTA V Enhanced Story Mode tools with a purple banner, an in-game pixel portrait of the PSN-HUB leaf mascot, a high-contrast action list, and a Missions section with Story Mode mission names.",
     "controls": "R1 + D-pad Left opens or hides the menu. Use the D-pad to browse and adjust, Cross to select, and Circle to go back.",
-    "instructions": "Fully close GTA V before switching menu builds. Stop any other GTA V menu loader, send this ELF, and launch Story Mode. On the supported EU build, open Missions during a fresh Prologue and select Complete Prologue. Return to the main menu, then choose Continue Story."
+    "instructions": "Fully close GTA V before switching menu builds. Stop any other GTA V menu loader, send this ELF, and launch Story Mode. On the supported EU build, open Missions during a fresh Prologue and select Complete Prologue. Return to the main menu, then choose Continue Story. On a Story Mode Mission Failed screen with a recorded checkpoint, select Skip Checkpoint or Complete Mission. Complete Mission requires the game to offer a whole-mission skip. Close the mod menu, press Square, and confirm in GTA V."
   }
 }

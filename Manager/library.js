@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.08.5';
+  const UI_RELEASE = '2026.11.08.6';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -448,7 +448,7 @@
     const notes=element('details',undefined,'release-notes');notes.id='release-notes';notes.open=storeRead('release-seen','')!==UI_RELEASE;
     notes.append(element('summary','What’s new · '+UI_RELEASE));
     const list=element('ul');
-    for(const text of ['The GTA V mod menu lists Story Mode missions and can complete a fresh Prologue on the supported EU disc build.','One PSN-HUB-Manager.elf now includes saves, USB backups, artwork controls and the pinned save engine.','Current console saves and raw downloads are available directly in the Saves tab.','User-uploaded payloads appear in two columns.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
+    for(const text of ['The GTA V Missions menu now supports checkpoint and whole-mission skip prompts when available on the EU disc build.','One PSN-HUB-Manager.elf now includes saves, USB backups, artwork controls and the pinned save engine.','Current console saves and raw downloads are available directly in the Saves tab.','User-uploaded payloads appear in two columns.','Clearer update status and firmware compatibility labels.','Review games, versions, file count and destination before installing.','Cheat search filters and page are remembered in this browser.','Simpler console setup on mobile; advanced settings remain collapsed.','Faster indexed searches and a lighter floating leaf background.'])list.append(element('li',text));
     notes.append(list,element('p','The main Manager now provides these features directly. Advanced save transforms/imports remain WIP.','hint'),action('Mark as read',()=>{storeWrite('release-seen',UI_RELEASE);notes.open=false;},'secondary'));panel.append(notes);
     $('connection-help').after(panel);
   }
