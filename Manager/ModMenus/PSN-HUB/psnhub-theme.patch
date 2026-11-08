@@ -1,3 +1,186 @@
+diff --git a/include/gtavmenu/feature_descriptions.def b/include/gtavmenu/feature_descriptions.def
+index ab1915d..0550234 100644
+--- a/include/gtavmenu/feature_descriptions.def
++++ b/include/gtavmenu/feature_descriptions.def
+@@ -198,7 +198,7 @@ GTAV_ACTION_DESC(LS_INSTALL_COSMETICS, "Install the top visual mods and wheels")
+ GTAV_ACTION_DESC(LS_BULLETPROOF_TYRES, "Make your tyres bulletproof")
+ GTAV_ACTION_DESC(BURST_TYRES, "Pop all of your vehicle's tyres")
+ GTAV_ACTION_DESC(FIX_TYRES, "Repair your vehicle's burst tyres")
+-GTAV_ACTION_DESC(SKIP_PROLOGUE, "Experimental: skip the prologue and relaunch single-player")
++GTAV_ACTION_DESC(SKIP_PROLOGUE, "Mark a fresh Prologue complete. Return to main menu, then Continue Story.")
+ GTAV_ACTION_DESC(TOGGLE_XENON, "Fit bright xenon headlights")
+
+ /* Los Santos Customs per-slot mod pickers (same enum order as native_bridge.h) */
+diff --git a/make/targets.mk b/make/targets.mk
+index 7f23853..87003b6 100644
+--- a/make/targets.mk
++++ b/make/targets.mk
+@@ -501,7 +501,7 @@ $(FEATURE_MENU_FRAME_HOOK_PLAYERPED_ELF): $(MODULE_SRCS) $(MODULE_DEPS) $(BUILD_
+ 		-DGTAV_FRAME_HOOK_REQUIRE_CONTEXT_FOR_JOBS=$(FRAME_HOOK_REQUIRE_CONTEXT) \
+ 		-DGTAV_FRAME_HOOK_SELF_START_WORKER=$(FRAME_HOOK_SELF_START_WORKER) \
+ 		-DGTAV_MENU_ENABLE_SCRIPT_GLOBALS=$(SCRIPT_GLOBALS) \
+-		-DGTAV_MENU_ENABLE_PROLOGUE_SKIP=0 \
++		-DGTAV_MENU_ENABLE_PROLOGUE_SKIP=$(if $(filter ppsa04263-01.010.002,$(GTAV_TARGET_ID)),1,0) \
+ 		-DGTAV_MENU_WORKER_REQUIRE_CONTEXT=$(WORKER_REQUIRE_CONTEXT) \
+ 		-DGTAV_FRAME_HOOK_PATCH_LEN=14u \
+ 		-DGTAV_FRAME_HOOK_STOLEN_LEN=16u \
+diff --git a/src/module/features.cpp b/src/module/features.cpp
+index 773c3e4..28cc72b 100644
+--- a/src/module/features.cpp
++++ b/src/module/features.cpp
+@@ -299,8 +299,6 @@ struct FeatureNatives {
+   // LOAD_ALL_OBJECTS_NOW: synchronous flush of already-requested streaming objects, bound only
+   // under GTAV_MENU_ENABLE_STREAM_FORCE_LOAD.
+   uint64_t load_all_objects_now;
+-  // skip-prologue: TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, bound only under ENABLE_PROLOGUE_SKIP.
+-  uint64_t terminate_all_scripts_with_this_name;
+   // Native instructional-button bar (the "instructional_buttons" Scaleform), bound only under
+   // GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM. The whole bar lives + draws on the game thread, so
+   // these all sit in the feature table (never the worker render lane). See
+@@ -562,15 +560,6 @@ static volatile int g_object_move_consume_entry = 0;
+ // (select/duplicate/delete) so Circle can never delete an unrelated or pre-existing prop.
+ static volatile int g_object_move_cancel_deletes = 0;
+ static float g_object_move_aim_dist = 3.0f;
+-// Skip-Prologue: once armed (by the Skip Prologue action), the WORKER tick continuously
+-// stamps the prologue1 mission-complete script global. The worker runs during a story load
+-// (the game-thread hook does not), so re-stamping every tick wins the flow-controller's
+-// prologue-launch read after the corrupt save re-zeros the global. Plain global store, no
+-// native, no cloud sync -- cannot trigger the profile-setting crash. Idempotent (value=1).
+-// Only meaningful when the script-globals write path is compiled in.
+-#if defined(GTAV_MENU_ENABLE_SCRIPT_GLOBALS) && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
+-static volatile int g_prologue_skip_armed = 0;
+-#endif
+ // Debug overlay: read-only on-screen diagnostics panel (render-only, worker-safe).
+ static int g_debug_overlay_enabled = 0;
+
+@@ -1760,11 +1749,6 @@ static void load_feature_natives() {
+   g_n.load_all_objects_now = GTAV_NATIVE_ADDR_LOAD_ALL_OBJECTS_NOW;
+ #endif
+ #endif
+-#if GTAV_MENU_ENABLE_PROLOGUE_SKIP
+-#ifdef GTAV_NATIVE_ADDR_TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME
+-  g_n.terminate_all_scripts_with_this_name = GTAV_NATIVE_ADDR_TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME;
+-#endif
+-#endif
+ #if defined(GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM) && GTAV_MENU_ENABLE_INSTRUCTIONAL_SCALEFORM
+ #ifdef GTAV_NATIVE_ADDR_REQUEST_SCALEFORM_MOVIE
+   g_n.request_scaleform_movie = GTAV_NATIVE_ADDR_REQUEST_SCALEFORM_MOVIE;
+@@ -2091,8 +2075,7 @@ extern "C" uint32_t gtav_features_activate(uint32_t action) {
+     case GTAV_NATIVE_SHELL_ACTION_FIX_VEHICLE:
+     case GTAV_NATIVE_SHELL_ACTION_REPAIR_CLEAN_VEHICLE:
+     case GTAV_NATIVE_SHELL_ACTION_PRESET_DRIVER:
+-    // Skip-prologue relaunches the SP session (SHUTDOWN_AND_LAUNCH_SINGLE_PLAYER_GAME),
+-    // which rebuilds the script context -- never safe off the game/script thread.
++    // Check live story state and mark the Prologue from the game thread.
+     case GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE:
+     // Spawn Saved Vehicle creates a vehicle (CREATE_VEHICLE) and re-applies its mods, same
+     // allocation-class lane as SPAWN_VEHICLE -> game/script thread.
+@@ -3034,20 +3017,6 @@ extern "C" void gtav_features_worker_tick(int menu_visible) {
+   // Mirror menu visibility for the game-thread noclip driver (it has no parameter and must
+   // stand down while the menu is open). Set before any early return so it stays fresh.
+   g_menu_open = menu_visible;
+-#if defined(GTAV_MENU_ENABLE_SCRIPT_GLOBALS) && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
+-  // Skip-Prologue: while armed, stamp the prologue's flow-completion flags every worker
+-  // tick (BEFORE the native-readiness gate, so it runs during a story load). The gate
+-  // f_330[53] is one of a diff-derived candidate set; stamping all of them replicates the
+-  // post-prologue flag state and re-stamping wins the flow-controller's launch read on a
+-  // reload. Null-guarded plain stores; no native, safe off the game thread.
+-  if (g_prologue_skip_armed && (uintptr_t)GTAV_GLOBALS_BASE_ADDR != 0) {
+-    static const uint32_t kPrologueCandidates[] = GTAV_PROLOGUE_GLOBAL_CANDIDATES;
+-    for (unsigned i = 0; i < sizeof(kPrologueCandidates) / sizeof(kPrologueCandidates[0]); ++i) {
+-      if (kPrologueCandidates[i] != 0u)
+-        gtav_script_write_global((uintptr_t)GTAV_GLOBALS_BASE_ADDR, kPrologueCandidates[i], 1);
+-    }
+-  }
+-#endif
+   tick_frame_hook_telemetry();
+   // Custom Packs page: advance the one-press pack load (worker side; enqueues main-thread steps).
+   pack_autoload_tick();
+diff --git a/src/module/features/session.inc b/src/module/features/session.inc
+index 1dcadd8..d4ae23f 100644
+--- a/src/module/features/session.inc
++++ b/src/module/features/session.inc
+@@ -1,52 +1,33 @@
+-// session.inc -- session / story-flow one-shots.
+-//
+-// "Skip Prologue" (GTAV_MENU_ENABLE_PROLOGUE_SKIP, default off). GTA V's story
+-// flow-controller decides whether to launch the North Yankton prologue by reading a
+-// SAVED SCRIPT GLOBAL -- the per-mission completion array Global.f_9092.f_330[53]
+-// (flow mission 53 = "prologue1"): `if (f_330[53]) { node done; return; } else
+-// START_NEW_SCRIPT("prologue1")`. So setting f_330[53]=1 makes the flow skip it.
+-// (Verified against the decompiled GTA V flow scripts.)
+-//
+-// We do this with a plain in-process script-global write (the despawn-global path),
+-// which touches NO profile setting -> no failing cloud sync -> cannot trigger the
+-// 0xa0024301 suspend-timeout crash that the old SET_PROFILE_SETTING_PROLOGUE_COMPLETE
+-// (profile 903) path caused. Profile 903 was a one-way downstream mirror the game never
+-// reads to gate, which is why it was both ineffective and crash-prone; that path is gone.
+-//
+-// The menu injects at stable player control (= INSIDE the running prologue1), and the
+-// flow's launch decision happens earlier during the load, so a one-shot write is too late
+-// and in-session termination/warp both trip the mission's "Mission Failed" + restart
+-// (hardware-confirmed). Instead, skip_prologue() ARMS a flag that the WORKER tick re-stamps
+-// every tick (gtav_features_worker_tick; the worker runs during a load, the game-thread hook
+-// does not). On a story reload the save re-zeros the globals, so re-stamping races -- and
+-// should win -- the flow-controller's prologue-launch read, so prologue1 is never launched (a
+-// clean, no-fail skip). Flow: press Skip Prologue -> exit to main menu -> reload Story.
+-//
+-// The exact gate f_330[53] is one of a DIFF-DERIVED candidate set (GTAV_PROLOGUE_GLOBAL_-
+-// CANDIDATES: the 5 flow-completion flags the prologue flips 0->1 on completion, pinned by a
+-// live before/after global dump; see anchors.json). The armed worker stamps ALL of them,
+-// replicating the post-prologue flag state -- so we don't need to know which single index is
+-// THE gate, and writing the full set is the semantically-correct "prologue done".
+-//
+-// CAVEATS: the ported PC index 122655 was DISPROVEN live (written, prologue still launched) --
+-// hence the diff-derived set. Needs GTAV_MENU_ENABLE_SCRIPT_GLOBALS + the GTAV_GLOBALS_BASE_-
+-// ADDR anchor (same as the despawn fix); a wrong index is a benign no-op (gtav_global_ptr
+-// null-guards). Winning the load race may take a reload or two; if it never wins even with the
+-// right index, the durable fallback is a post-prologue savegame.
+-
++// Story-flow actions run on the game thread.
+ static uint32_t skip_prologue() {
+   const uint32_t action = GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE;
+-  // ARM the continuous write. We can't skip the prologue mid-mission (terminating it trips
+-  // the mission's "Mission Failed" + restart), and a one-shot flag write loses to the
+-  // corrupt save re-zeroing it on load. So instead: arm a flag the WORKER tick re-stamps
+-  // every tick (it runs during a story load, where the game-thread hook does not). The user
+-  // then exits to the main menu and reloads Story; the re-stamp wins the flow-controller's
+-  // prologue-launch read, so prologue1 is never launched -- a clean, no-fail skip.
+-#if defined(GTAV_MENU_ENABLE_SCRIPT_GLOBALS) && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
+-  if ((uint32_t)GTAV_PROLOGUE_GLOBAL_INDEX != 0u && (uintptr_t)GTAV_GLOBALS_BASE_ADDR != 0) {
+-    g_prologue_skip_armed = 1;
+-    return ok(action, "prologue skip ARMED -- now exit to main menu and reload Story to apply");
++#if GTAV_MENU_ENABLE_PROLOGUE_SKIP && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
++  const uintptr_t globals = (uintptr_t)GTAV_GLOBALS_BASE_ADDR;
++  const int ped = native_player_ped_id();
++  if (!ped || !g_n.get_entity_coords) {
++    return unavailable(action, "Player unavailable. Load a fresh Prologue first.");
++  }
++  const Vec3 pos = invoke_vector(g_n.get_entity_coords, ped, 1);
++  if (!(pos.x > 5100.0f && pos.x < 5600.0f && pos.y > -5500.0f && pos.y < -4900.0f)) {
++    return unavailable(action, "Load a fresh Prologue in North Yankton first.");
++  }
++
++  // PPSA04263 01.010.002. All five flags were zero before the verified test.
++  // Only 124241 was changed. The game advanced after returning to Story.
++  constexpr uint32_t completion_flag = 124241u;
++  constexpr uint32_t fresh_flags[] = {completion_flag, 124247u, 124297u, 124305u, 124306u};
++  for (const uint32_t flag : fresh_flags) {
++    int32_t value = 0;
++    if (gtav_script_read_global(globals, flag, &value) != 0 || value != 0) {
++      return unavailable(action, "Fresh Prologue state unavailable.");
++    }
++  }
++  if (gtav_script_ensure_bool_global(globals, completion_flag, 1, nullptr, nullptr, nullptr) !=
++      GTAV_SCRIPT_GLOBAL_ENSURE_OK) {
++    return failed(action, "Could not verify the Prologue completion flag.");
+   }
++  return ok(action, "Prologue marked. Return to main menu, then Continue Story.");
++#else
++  return unavailable(action, "Complete Prologue is unavailable on this game build.");
+ #endif
+-  return unavailable(action, "skip prologue not built (needs SCRIPT_GLOBALS + GTAV_PROLOGUE_GLOBAL_INDEX)");
+ }
 diff --git a/src/module/menu.c b/src/module/menu.c
 index 77d7a9d..2089ab6 100644
 --- a/src/module/menu.c
@@ -12,7 +195,7 @@ index 77d7a9d..2089ab6 100644
                                                  ? "notification disabled"
                                                  : "notification sent");
 diff --git a/src/module/native_bridge.cpp b/src/module/native_bridge.cpp
-index 2098aac..724e61b 100644
+index 2098aac..062d843 100644
 --- a/src/module/native_bridge.cpp
 +++ b/src/module/native_bridge.cpp
 @@ -420,14 +420,17 @@ struct MenuTheme {
@@ -50,7 +233,15 @@ index 2098aac..724e61b 100644
  // stock menu; the in-menu Theme Editor (CYCLE_CUSTOM_COLOR rows) edits its accent/selection/panel
  // RGB. Only those three chrome colours are user-editable + persisted; the rest stay at the seed.
  MenuTheme g_custom_theme;
-@@ -2672,7 +2675,7 @@ static void get_game_timer_canary(uint64_t worker_tick) {
+@@ -1933,6 +1936,7 @@ static void build_menus() {
+ #define MENU_DEF(id, title, items) \
+   g_menus[id] = {title, items, (uint32_t)(sizeof(items) / sizeof((items)[0]))}
+   MENU_DEF(SHELL_MENU_MAIN, "Main", kMainItems);
++  MENU_DEF(SHELL_MENU_MISSIONS, "Missions", kMissionItems);
+   MENU_DEF(SHELL_MENU_SETTINGS, "Settings", kSettingsItems);
+   MENU_DEF(SHELL_MENU_SPAWN, "Spawn", kSpawnItems);
+   MENU_DEF(SHELL_MENU_WORLD_POPULATION, "Population", kWorldPopulationItems);
+@@ -2672,7 +2676,7 @@ static void get_game_timer_canary(uint64_t worker_tick) {
    const NativeTextStyle style = {0, 0.31f, 0.31f, 255, 255, 255, 230, 0, 0.0f, 1.0f, 0, 0};
    char line[64];
 
@@ -59,7 +250,7 @@ index 2098aac..724e61b 100644
    draw_native_text_line(line, 0.18f, 0.18f, style);
  }
 
-@@ -2691,9 +2694,9 @@ static void get_game_timer_canary(uint64_t worker_tick) {
+@@ -2691,9 +2695,9 @@ static void get_game_timer_canary(uint64_t worker_tick) {
  #ifndef GTAV_MENU_PANEL_TEXT_X
  #define GTAV_MENU_PANEL_TEXT_X 0.75f
  #endif
@@ -72,7 +263,7 @@ index 2098aac..724e61b 100644
  // Shared panel geometry (single source for draw_menu_background + the text layout so the
  // chrome always frames the labels). Width was widened (0.205 -> 0.225 -> 0.305) so long labels
  // like "Disable All Features" lay out in full instead of ellipsizing; the anchor (REGION_RIGHT_X)
-@@ -2704,6 +2707,8 @@ static void get_game_timer_canary(uint64_t worker_tick) {
+@@ -2704,6 +2708,8 @@ static void get_game_timer_canary(uint64_t worker_tick) {
  #define GTAV_MENU_PANEL_PAD_L 0.014f
  #define GTAV_MENU_PANEL_VALUE_PAD 0.012f
  #define GTAV_MENU_PANEL_GLYPH_MID 0.012f
@@ -81,7 +272,7 @@ index 2098aac..724e61b 100644
  // Open-fade ramp length in worker ticks (alpha 0->1 + a small slide into place).
  #define GTAV_MENU_PANEL_FADE_IN_TICKS GTAV_MENU_TICKS_60(10u)
  // Selection-glide duration in worker ticks (eased travel of the highlight to the focused row).
-@@ -2945,6 +2950,43 @@ enum { kHintButtonsMax = 5 };
+@@ -2945,6 +2951,43 @@ enum { kHintButtonsMax = 5 };
    return n;
  }
 
@@ -125,7 +316,7 @@ index 2098aac..724e61b 100644
  [[maybe_unused]] static void draw_menu_background(uint64_t worker_tick, uint32_t visible_count,
                                                    uint32_t selected_row) {
    const uint64_t dr = g_table.draw_rect;
-@@ -2961,12 +3003,11 @@ enum { kHintButtonsMax = 5 };
+@@ -2961,12 +3004,11 @@ enum { kHintButtonsMax = 5 };
    const float row0_y = GTAV_MENU_PANEL_ROW0_Y + y_off;
    const float row_h = GTAV_MENU_PANEL_ROW_H;
    const float glyph_mid = GTAV_MENU_PANEL_GLYPH_MID;
@@ -141,7 +332,7 @@ index 2098aac..724e61b 100644
    const float footer_cy = footer_top + footer_h * 0.5f;
    // The controller-verb legend used to live on a hint strip below the footer; it now renders as a
    // native-style instructional-button bar along the bottom of the screen (draw_instructional_bar),
-@@ -3003,15 +3044,22 @@ enum { kHintButtonsMax = 5 };
+@@ -3003,15 +3045,22 @@ enum { kHintButtonsMax = 5 };
    // Subtle frame + main panel. A slightly larger dark rect CENTRED behind the panel reads as
    // a clean border/outline; the previous shadow was offset down-right at the panel's full size
    // so it looked like a second, misaligned box rather than a shadow.
@@ -170,7 +361,7 @@ index 2098aac..724e61b 100644
    // Per-row banding (behind the selection highlight, which is drawn next so it always wins): a very
    // faint zebra wash on alternating rows makes the label->value sweep easier to track across the
    // panel, and a darker wash on genuinely locked (hook-gated) action rows reads them as inactive at
-@@ -3039,24 +3087,26 @@ enum { kHintButtonsMax = 5 };
+@@ -3039,24 +3088,26 @@ enum { kHintButtonsMax = 5 };
      }
    }
    // Selection highlight behind the active (glided) row, centred on the row glyphs.
@@ -201,7 +392,7 @@ index 2098aac..724e61b 100644
    // Scrollbar: when the list is longer than the window, draw a track down the right edge with
    // a thumb sized + positioned by the visible window over the whole list. Clearer than the old
    // pair of top/bottom chips -- you can see both that there's more AND roughly where you are.
-@@ -3554,8 +3604,8 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3554,8 +3605,8 @@ static void publish_active_instructional_bar(int visible) {
    // Per-entry the "glyph cell" is either the real inline glyph token (Route A) or the ASCII chip
    // text. Measure first so the whole bar can be right-aligned; a cell never goes narrower than tall
    // so a single glyph still reads as a square button (and a future sprite has a square box).
@@ -212,7 +403,7 @@ index 2098aac..724e61b 100644
    float total_w = 0.0f;
    for (uint32_t i = 0; i < n; ++i) {
      const HintGlyphInfo* gi = &kHintGlyphInfo[btns[i].glyph];
-@@ -3573,8 +3623,9 @@ static void publish_active_instructional_bar(int visible) {
+@@ -3573,8 +3624,9 @@ static void publish_active_instructional_bar(int visible) {
    const float strip_pad = 0.010f;
    const float strip_w = total_w + strip_pad * 2.0f;
    const float strip_cx = right_edge - total_w * 0.5f;
@@ -224,7 +415,7 @@ index 2098aac..724e61b 100644
 
    float x = right_edge - total_w;  // left edge of the first glyph cell
    for (uint32_t i = 0; i < n; ++i) {
-@@ -3675,13 +3726,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3675,13 +3727,20 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
        snprintf(crumb, sizeof(crumb), "%s > %s", localized(parent->label), localized(menu->label));
      }
    }
@@ -251,7 +442,7 @@ index 2098aac..724e61b 100644
 
    for (uint32_t row = 0; row < visible_count; ++row) {
      const uint32_t index = start + row;
-@@ -3691,26 +3749,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
+@@ -3691,26 +3750,33 @@ static void draw_worker_text_menu_list(uint64_t worker_tick) {
      draw_menu_row(item, selected, text_x, y, value_right, fade, th, worker_tick - g_marquee_since);
    }
 
@@ -294,6 +485,141 @@ index 2098aac..724e61b 100644
    }
    if (total) {
      NativeTextStyle counter_style = {0,   0.235f, 0.235f, 185,         205, 235,
+diff --git a/src/module/shell_menu_defs.hpp b/src/module/shell_menu_defs.hpp
+index ec187ce..85203be 100644
+--- a/src/module/shell_menu_defs.hpp
++++ b/src/module/shell_menu_defs.hpp
+@@ -142,7 +142,8 @@ enum ShellMenuId {
+   // Weapons > Attachments > Quick Slots (retail): per-slot Off/On staging rows + Apply/Remove for
+   // a retail weapon of the kWAttach table (weapon_attachments.inc).
+   SHELL_MENU_WEAPON_ATTACH_SLOTS = 68,
+-  SHELL_MENU_COUNT = 69,
++  SHELL_MENU_MISSIONS = 69,
++  SHELL_MENU_COUNT = 70,
+   SHELL_MENU_NONE = 0xffffffffu,
+ };
+
+@@ -170,12 +171,105 @@ static const ShellItem kMainItems[] = {
+     {"Vehicles", SHELL_ROW_SUBMENU, SHELL_MENU_VEHICLES, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0},
+     {"Weapons", SHELL_ROW_SUBMENU, SHELL_MENU_WEAPONS, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0},
+     {"World", SHELL_ROW_SUBMENU, SHELL_MENU_WORLD, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0},
++    {"Missions", SHELL_ROW_SUBMENU, SHELL_MENU_MISSIONS, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0},
+     {"Spawn", SHELL_ROW_SUBMENU, SHELL_MENU_SPAWN, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0},
+     {"Settings", SHELL_ROW_SUBMENU, SHELL_MENU_SETTINGS, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0},
+     {"Custom Packs", SHELL_ROW_SUBMENU, SHELL_MENU_CUSTOM_PACKS, GTAV_NATIVE_SHELL_ACTION_NONE,
+      nullptr, 0},
+ };
+
++// Story Mode reference list. The selection cursor is independent of live mission state.
++#define PSNHUB_MISSION(title) {title, SHELL_ROW_DISABLED, SHELL_MENU_NONE, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr, 0}
++static const ShellItem kMissionItems[] = {
++    PSNHUB_MISSION("Current mission: detection unavailable"),
++#if GTAV_MENU_ENABLE_PROLOGUE_SKIP && GTAV_MENU_ENABLE_SCRIPT_GLOBALS
++    {"Complete Prologue", SHELL_ROW_ACTION, SHELL_MENU_NONE,
++     GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE, "Return to main menu, then Continue Story", 0},
++#else
++    PSNHUB_MISSION("Completion unavailable on this build"),
++#endif
++    PSNHUB_MISSION("Prologue"),
++    PSNHUB_MISSION("Franklin and Lamar"),
++    PSNHUB_MISSION("Repossession"),
++    PSNHUB_MISSION("Complications"),
++    PSNHUB_MISSION("Father/Son"),
++    PSNHUB_MISSION("Chop"),
++    PSNHUB_MISSION("Marriage Counseling"),
++    PSNHUB_MISSION("Daddy's Little Girl"),
++    PSNHUB_MISSION("Friend Request"),
++    PSNHUB_MISSION("The Long Stretch"),
++    PSNHUB_MISSION("Casing the Jewel Store"),
++    PSNHUB_MISSION("Carbine Rifles"),
++    PSNHUB_MISSION("Bugstars Equipment"),
++    PSNHUB_MISSION("BZ Gas Grenades"),
++    PSNHUB_MISSION("The Jewel Store Job"),
++    PSNHUB_MISSION("Mr. Philips"),
++    PSNHUB_MISSION("Trevor Philips Industries"),
++    PSNHUB_MISSION("Nervous Ron"),
++    PSNHUB_MISSION("Crystal Maze"),
++    PSNHUB_MISSION("Friends Reunited"),
++    PSNHUB_MISSION("Fame or Shame"),
++    PSNHUB_MISSION("Dead Man Walking"),
++    PSNHUB_MISSION("Three's Company"),
++    PSNHUB_MISSION("By the Book"),
++    PSNHUB_MISSION("Hood Safari"),
++    PSNHUB_MISSION("Did Somebody Say Yoga?"),
++    PSNHUB_MISSION("The Hotel Assassination"),
++    PSNHUB_MISSION("The Multi Target Assassination"),
++    PSNHUB_MISSION("The Vice Assassination"),
++    PSNHUB_MISSION("The Bus Assassination"),
++    PSNHUB_MISSION("The Construction Assassination"),
++    PSNHUB_MISSION("Scouting the Port"),
++    PSNHUB_MISSION("Minisub"),
++    PSNHUB_MISSION("Cargobob"),
++    PSNHUB_MISSION("The Merryweather Heist"),
++    PSNHUB_MISSION("Boiler Suits"),
++    PSNHUB_MISSION("Masks"),
++    PSNHUB_MISSION("Trash Truck"),
++    PSNHUB_MISSION("Tow Truck"),
++    PSNHUB_MISSION("Blitz Play"),
++    PSNHUB_MISSION("I Fought the Law..."),
++    PSNHUB_MISSION("Eye in the Sky"),
++    PSNHUB_MISSION("Mr. Richards"),
++    PSNHUB_MISSION("Caida Libre"),
++    PSNHUB_MISSION("Deep Inside"),
++    PSNHUB_MISSION("Minor Turbulence"),
++    PSNHUB_MISSION("Paleto Score Setup"),
++    PSNHUB_MISSION("Military Hardware"),
++    PSNHUB_MISSION("Predator"),
++    PSNHUB_MISSION("The Paleto Score"),
++    PSNHUB_MISSION("Derailed"),
++    PSNHUB_MISSION("Monkey Business"),
++    PSNHUB_MISSION("Hang Ten"),
++    PSNHUB_MISSION("Surveying the Score"),
++    PSNHUB_MISSION("Bury the Hatchet"),
++    PSNHUB_MISSION("Pack Man"),
++    PSNHUB_MISSION("Fresh Meat"),
++    PSNHUB_MISSION("Cleaning Out the Bureau"),
++    PSNHUB_MISSION("Reuniting the Family"),
++    PSNHUB_MISSION("Architect's Plans"),
++    PSNHUB_MISSION("Fire Truck"),
++    PSNHUB_MISSION("The Bureau Raid"),
++    PSNHUB_MISSION("The Wrap Up"),
++    PSNHUB_MISSION("Lamar Down"),
++    PSNHUB_MISSION("Legal Trouble"),
++    PSNHUB_MISSION("Meltdown"),
++    PSNHUB_MISSION("Planning the Big Score"),
++    PSNHUB_MISSION("Stingers"),
++    PSNHUB_MISSION("Gauntlet"),
++    PSNHUB_MISSION("Driller"),
++    PSNHUB_MISSION("Sidetracked"),
++    PSNHUB_MISSION("The Big Score"),
++    PSNHUB_MISSION("Something Sensible"),
++    PSNHUB_MISSION("The Time's Come"),
++    PSNHUB_MISSION("The Third Way"),
++    PSNHUB_MISSION("Getaway Vehicle"),
++    PSNHUB_MISSION("The Good Husband"),
++    PSNHUB_MISSION("Doting Dad"),
++    PSNHUB_MISSION("Parenting 101"),
++};
++#undef PSNHUB_MISSION
++
+ // Custom Packs folders, below the root's load row. Manage Packs (the installed list, its toggles
+ // and the uninstall row) is always listed; a content folder only while the loaded packs have rows
+ // of its kind (build_custom_pack_items copies these rows; Effects holds timecycle and particle
+@@ -793,14 +887,6 @@ static const ShellItem kWorldItems[] = {
+      nullptr, 0},
+     {"Minigames", SHELL_ROW_SUBMENU, SHELL_MENU_MINIGAMES, GTAV_NATIVE_SHELL_ACTION_NONE, nullptr,
+      0},
+-#if GTAV_MENU_ENABLE_PROLOGUE_SKIP
+-    // Experimental: write the prologue1 mission-complete script global, terminate the running
+-    // prologue1, and warp to Los Santos. Game-thread gated, so the row stays locked ("needs
+-    // main-thread hook") until the frame hook is live. Only compiled in the
+-    // GTAV_MENU_ENABLE_PROLOGUE_SKIP build; the prologue global index is candidate-only.
+-    {"Skip Prologue (Experimental)", SHELL_ROW_ACTION, SHELL_MENU_NONE,
+-     GTAV_NATIVE_SHELL_ACTION_SKIP_PROLOGUE, "needs main-thread hook", 0},
+-#endif
+ };
+
+ // World > Population: the density picker and the ambient crowd rows.
 diff --git a/src/payload_loader/main.c b/src/payload_loader/main.c
 index 770865b..a8980c6 100644
 --- a/src/payload_loader/main.c
