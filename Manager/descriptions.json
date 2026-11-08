@@ -68,13 +68,13 @@
   "ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf": {
     "title": "PSN-HUB | GTA V",
     "author": "PSN-HUB · ItssJustAaron",
-    "release": "PSN-HUB Edition 1.1",
-    "expectedSha256": "9d9956443284fad49f08f4df3945782d7a64cb087c899dfee8d69bd1f83665e0",
+    "release": "PSN-HUB Edition 1.2",
+    "expectedSha256": "7c49e029a72571b917cfbece5af58b5096ad9a8642c7796374c7b337045288a6",
     "project": "https://github.com/ItssJustAaron/PSN-HUB2/tree/main/Manager/ModMenus/PSN-HUB",
     "gameCompatibility": ["PPSA04264 · 01.005.000 (US; selection untested upstream)", "PPSA04264 · 01.010.002 (US)", "PPSA04263 · 01.010.002 (EU)"],
     "compatibilityNote": "GTA V Enhanced Story Mode. These are upstream game targets. The PSN-HUB edition has not been tested on a console.",
-    "description": "GTA V Enhanced Story Mode tools with neon green focus, dark purple panels, a category path, and a dedicated help panel for the selected action.",
+    "description": "GTA V Enhanced Story Mode tools with a purple banner, an in-game pixel portrait of the PSN-HUB leaf mascot, and a high-contrast action list.",
     "controls": "R1 + D-pad Left opens or hides the menu. Use the D-pad to browse and adjust, Cross to select, and Circle to go back.",
-    "instructions": "Send the standalone ELF before starting GTA V, then load Story Mode. Run one GTA V menu loader per session."
+    "instructions": "Fully close GTA V before switching menu builds. Stop any other GTA V menu loader, send this ELF, and launch Story Mode."
   }
 }

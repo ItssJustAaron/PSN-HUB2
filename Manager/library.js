@@ -1,7 +1,7 @@
 /* Manager library UI. File transfers use the native PS5 Manager API. */
 (function () {
   'use strict';
-  const UI_RELEASE = '2026.11.08.2';
+  const UI_RELEASE = '2026.11.08.3';
   const $ = id => document.getElementById(id);
   const state = {catalog: null, page: 0, pageSize: 24, groups: [], transfer: null, manager: false, preview: false, firmware: '', firmwareSource: '', showIncompatible: false, backend: {}, destination: 'etahen', connectionError: '', publishedBuild: null, inventory: null};
   function element(tag, text, className) {
@@ -615,6 +615,13 @@
       const isPsnHubGta = item.path === 'Manager/ModMenus/PSN-HUB/PSN-HUB-GTAV-Menu.elf';
       const box = element('details', undefined, isPsnHubGta ? 'feature-card hen-card psnhub-gtav-card' : 'feature-card hen-card');
       const summary = element('summary', item.title), content = element('div', undefined, 'hen-card-content');
+      if (isPsnHubGta) {
+        const mascot = element('img', undefined, 'psnhub-gtav-mascot');
+        mascot.src = repositoryBase + 'Manager/assets/mascot-hd.png';
+        mascot.alt = 'PSN-HUB leaf mascot';
+        mascot.loading = 'lazy';
+        content.append(mascot);
+      }
       content.append(element('p', item.description, 'hint'));
       const support = compatibility(item);
       summary.append(element('span', support === 'compatible' ? 'Supported · '+state.firmware : support === 'incompatible' ? 'Unsupported · '+state.firmware : 'Unconfirmed', 'compatibility-label '+support));

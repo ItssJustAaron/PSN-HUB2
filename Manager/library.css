@@ -85,3 +85,4 @@ html[data-console=ps5] .cover-opener:focus{outline:5px solid var(--yellow);outli
 .psnhub-gtav-card{border-top:3px solid #39ff14;background:linear-gradient(135deg,#27113b,#130321)}
 .psnhub-gtav-card>summary{color:#39ff14;letter-spacing:.035em}
 .psnhub-gtav-card .hen-card-content>h3{color:#efdaff;border-bottom:1px solid #59347c;padding-bottom:.35rem}
+.psnhub-gtav-mascot{float:right;width:clamp(4rem,18%,7rem);height:auto;margin:0 0 .5rem .75rem}
