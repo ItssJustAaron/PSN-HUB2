@@ -38,9 +38,6 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,s
 .filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin:20px 0}.filters label{display:grid;gap:6px;font-size:.85rem;color:#ddd}input[type=search]{width:100%;min-width:0;padding:11px;border:1px solid var(--line);border-radius:8px;background:#130321;color:white}
 .badge{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:.8rem;background:#130321;color:var(--yellow);margin:3px 4px 3px 0}.badge.good{color:var(--green)}.badge.bad{color:#ff8db5}.connection{margin:12px 0}.connection button{padding:6px 10px;font-size:.8rem}.game-card{padding:0;overflow:hidden}.game-card summary{padding:15px;cursor:pointer;font-weight:bold}.game-body{padding:0 14px 16px}.file-entry{padding:14px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}.file-entry h4{margin:5px 0}.file-entry .row{margin-top:10px}.file-entry p{margin:8px 0}.pager{justify-content:center;margin-top:18px}progress{display:block;width:100%;height:20px;accent-color:var(--green);margin:10px 0}#transfer-panel{position:relative}#transfer-report{max-height:240px;overflow:auto;font-size:.85rem}summary{min-height:44px}h2{margin-top:8px}.muted{color:#bbb}.favourite{background:#130321;color:var(--yellow);border:1px solid var(--line);box-shadow:none}.favourite[aria-pressed=true]{background:var(--yellow);color:#111}a{color:#b5a3ff}.actions{flex-wrap:wrap}
 @media(max-width:680px){.filters{grid-template-columns:1fr 1fr}.filters label:first-child{grid-column:1/-1}.row button{min-height:44px}.badge{overflow-wrap:anywhere}h1{font-size:2rem}.tab{padding:10px}.file-entry .row{gap:8px}}
-
-#cheatrunner-frame{display:block;width:100%;height:min(78vh,900px);min-height:560px;border:1px solid var(--line);border-radius:12px;background:#fff}
-@media(max-width:680px){#cheatrunner-frame{height:72vh;min-height:460px}}
 </style>
 </head>
 <body><main>
@@ -102,15 +99,6 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,s
     <div class="row pager"><button id="cheat-prev" class="secondary" disabled>Previous</button><span id="cheat-page"></span><button id="cheat-next" class="secondary" disabled>Next</button></div>
     <p class="hint">Collection files retain their original creators’ credits. Inspired by <a href="https://hencheats.vercel.app" target="_blank" rel="noopener">HEN Cheats Collection</a>.</p>
   </section>
-<section class="card" id="cheatrunner-launch">
-  <h2>Activate cheats with CheatRunner</h2>
-  <p class="hint">Start the included CheatRunner payload, then use its game trainer here to turn compatible cheats on or off. It can read the cheat files PSN-HUB installs under <code>/data/etaHEN/cheats</code>.</p>
-  <div class="row"><button id="start-cheatrunner" type="button">START TRAINER</button><a id="cheatrunner-open" href="#" target="_blank" rel="noopener" hidden>Open trainer in a new tab</a></div>
-  <p id="cheatrunner-status" class="hint" role="status" aria-live="polite">CheatRunner is not started.</p>
-  <div id="cheatrunner-frame-wrap" hidden><iframe id="cheatrunner-frame" title="CheatRunner game trainer" loading="lazy" referrerpolicy="no-referrer"></iframe></div>
-  <p class="hint">CheatRunner v0.17.1 by <a href="https://github.com/notmaj0r/CheatRunner" target="_blank" rel="noopener">notmaj0r</a> (GPL-3.0). The trainer runs as a separate payload and its original interface is shown above.</p>
-</section>
-
 </div>
 <div class="tab-panel" id="panel-hens" role="tabpanel" aria-labelledby="tab-hens" hidden>
   <section class="card">
@@ -171,94 +159,4 @@ document.getElementById('save-category').addEventListener('click',saveCategory);
 
 
 document.getElementById('retry-library').addEventListener('click',loadLibraryUI);loadLibraryUI();
-</script>
-<script>
-(() => {
-  const start = document.getElementById('start-cheatrunner');
-  const status = document.getElementById('cheatrunner-status');
-  const frame = document.getElementById('cheatrunner-frame');
-  const frameWrap = document.getElementById('cheatrunner-frame-wrap');
-  const openLink = document.getElementById('cheatrunner-open');
-  if (!start || !status || !frame || !frameWrap || !openLink) return;
-
-  const trainerUrl = new URL(window.location.href);
-  trainerUrl.protocol = 'http:';
-  trainerUrl.port = '9999';
-  trainerUrl.pathname = '/';
-  trainerUrl.search = '';
-  trainerUrl.hash = '';
-  openLink.href = trainerUrl.href;
-
-  async function runnerIsOnline() {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 1200);
-    try {
-      await fetch(trainerUrl.href, { mode: 'no-cors', cache: 'no-store', signal: controller.signal });
-      return true;
-    } catch (_) {
-      return false;
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  function openTrainer(message) {
-    frameWrap.hidden = false;
-    openLink.hidden = false;
-    if (frame.src !== trainerUrl.href) frame.src = trainerUrl.href;
-    status.textContent = message;
-  }
-
-  start.addEventListener('click', async () => {
-    start.disabled = true;
-    try {
-      if (await runnerIsOnline()) {
-        openTrainer('CheatRunner is already running on this PS5. Use the trainer below.');
-        return;
-      }
-
-      status.textContent = 'Downloading the included CheatRunner v0.17.1 ELF…';
-      const source = 'https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/releases/legacy-payloads/CheatRunner_v0.17.1.elf';
-      const download = await fetch(source, { cache: 'no-store' });
-      if (!download.ok) throw new Error('ELF download failed (HTTP ' + download.status + ').');
-      const file = await download.blob();
-      const magic = new Uint8Array(await file.slice(0, 4).arrayBuffer());
-      if (file.size < 1024 * 1024 || magic.length !== 4 || magic[0] !== 0x7f || magic[1] !== 0x45 || magic[2] !== 0x4c || magic[3] !== 0x46) {
-        throw new Error('The downloaded CheatRunner file did not pass the ELF check.');
-      }
-
-      status.textContent = 'Saving CheatRunner to PS5 storage…';
-      const upload = await fetch('/api/upload?name=CheatRunner.elf', {
-        method: 'PUT', headers: requestHeaders(), body: file
-      });
-      if (!upload.ok) throw new Error('PS5 upload failed: ' + await upload.text());
-
-      status.textContent = 'Starting CheatRunner through elfldr…';
-      const send = await fetch('/api/send?name=CheatRunner.elf', {
-        method: 'POST', headers: requestHeaders()
-      });
-      if (!send.ok) throw new Error('Payload send failed: ' + await send.text());
-
-      status.textContent = 'Waiting for CheatRunner to start…';
-      const deadline = Date.now() + 25000;
-      let online = false;
-      while (Date.now() < deadline) {
-        if (await runnerIsOnline()) { online = true; break; }
-        await new Promise(resolve => setTimeout(resolve, 900));
-      }
-      openTrainer(online
-        ? 'CheatRunner is running. Choose your game, then enable the cheats you want.'
-        : 'CheatRunner was sent. The trainer has not answered yet; wait a moment or use Open trainer in a new tab.');
-    } catch (error) {
-      status.textContent = 'Could not start CheatRunner: ' + error.message;
-    } finally {
-      start.disabled = false;
-    }
-  });
-
-  frame.addEventListener('load', () => {
-    if (!frameWrap.hidden) status.textContent = 'Trainer page opened. Choose your game and turn compatible cheats on or off.';
-  });
-})();
-</script>
-</body></html>
+</script></body></html>

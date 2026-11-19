@@ -1153,3 +1153,141 @@
   }
   if (typeof refresh === 'function') refresh();
 })();
+
+
+/* PSN-HUB integration: launch the unmodified CheatRunner ELF and show its own
+ * trainer UI inside CHEATS. CheatRunner remains a separate process on port 9999. */
+(() => {
+  const panel = document.getElementById('panel-cheats');
+  if (!panel || document.getElementById('cheatrunner-launch')) return;
+
+  const style = document.createElement('style');
+  style.textContent = '#cheatrunner-frame{display:block;width:100%;height:min(78vh,900px);min-height:560px;border:1px solid var(--line);border-radius:12px;background:#fff}@media(max-width:680px){#cheatrunner-frame{height:72vh;min-height:460px}}';
+  document.head.append(style);
+
+  const card = document.createElement('section');
+  card.className = 'card';
+  card.id = 'cheatrunner-launch';
+  const title = document.createElement('h2');
+  title.textContent = 'Activate cheats with CheatRunner';
+  const intro = document.createElement('p');
+  intro.className = 'hint';
+  intro.textContent = 'Start the included CheatRunner payload, then use its game trainer here to turn compatible cheats on or off. It can read the cheat files PSN-HUB installs under /data/etaHEN/cheats.';
+  const row = document.createElement('div');
+  row.className = 'row';
+  const start = document.createElement('button');
+  start.type = 'button';
+  start.textContent = 'START TRAINER';
+  const openLink = document.createElement('a');
+  openLink.href = '#';
+  openLink.target = '_blank';
+  openLink.rel = 'noopener';
+  openLink.className = 'badge good';
+  openLink.textContent = 'Open trainer in a new tab';
+  openLink.hidden = true;
+  const hide = document.createElement('button');
+  hide.type = 'button';
+  hide.className = 'secondary';
+  hide.textContent = 'Hide trainer';
+  hide.hidden = true;
+  const status = document.createElement('p');
+  status.className = 'hint';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  status.textContent = 'CheatRunner is not started.';
+  const frameWrap = document.createElement('div');
+  frameWrap.hidden = true;
+  frameWrap.style.marginTop = '14px';
+  const frame = document.createElement('iframe');
+  frame.id = 'cheatrunner-frame';
+  frame.title = 'CheatRunner game trainer';
+  frame.loading = 'lazy';
+  frame.referrerPolicy = 'no-referrer';
+  frameWrap.append(frame);
+  const credit = document.createElement('p');
+  credit.className = 'hint';
+  credit.append(document.createTextNode('CheatRunner v0.17.1 by notmaj0r (GPL-3.0). The trainer runs as a separate payload; this panel displays its original interface. '));
+  const creditLink = document.createElement('a');
+  creditLink.href = 'https://github.com/notmaj0r/CheatRunner';
+  creditLink.target = '_blank';
+  creditLink.rel = 'noopener';
+  creditLink.textContent = 'Project and source';
+  credit.append(creditLink);
+  row.append(start, openLink, hide);
+  card.append(title, intro, row, status, frameWrap, credit);
+  panel.append(card);
+
+  const trainerUrl = new URL(window.location.href);
+  trainerUrl.protocol = 'http:';
+  trainerUrl.port = '9999';
+  trainerUrl.pathname = '/';
+  trainerUrl.search = '';
+  trainerUrl.hash = '';
+  openLink.href = trainerUrl.href;
+
+  async function runnerIsOnline() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1200);
+    try {
+      await fetch(trainerUrl.href, { mode: 'no-cors', cache: 'no-store', signal: controller.signal });
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  function showTrainer(message) {
+    frameWrap.hidden = false;
+    openLink.hidden = false;
+    hide.hidden = false;
+    if (frame.src !== trainerUrl.href) frame.src = trainerUrl.href;
+    status.textContent = message;
+  }
+  frame.addEventListener('load', () => {
+    if (!frameWrap.hidden) status.textContent = 'Trainer page opened. Choose a game, then turn compatible cheats on or off.';
+  });
+  hide.addEventListener('click', () => { frameWrap.hidden = true; });
+  start.addEventListener('click', async () => {
+    start.disabled = true;
+    try {
+      if (await runnerIsOnline()) {
+        showTrainer('CheatRunner is already running on this PS5. Use the trainer below.');
+        return;
+      }
+      status.textContent = 'Downloading the included CheatRunner v0.17.1 ELF…';
+      const source = 'https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/releases/legacy-payloads/CheatRunner_v0.17.1.elf';
+      const download = await fetch(source, { cache: 'no-store' });
+      if (!download.ok) throw new Error('ELF download failed (HTTP ' + download.status + ').');
+      const file = await download.blob();
+      const magic = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+      if (file.size < 1024 * 1024 || magic.length !== 4 || magic[0] !== 0x7f || magic[1] !== 0x45 || magic[2] !== 0x4c || magic[3] !== 0x46) {
+        throw new Error('The downloaded CheatRunner file did not pass the ELF check.');
+      }
+      status.textContent = 'Saving CheatRunner to PS5 storage…';
+      const upload = await fetch('/api/upload?name=CheatRunner.elf', {
+        method: 'PUT', headers: { 'X-PSNHUB-Request': '1' }, body: file
+      });
+      if (!upload.ok) throw new Error('PS5 upload failed: ' + await upload.text());
+      status.textContent = 'Starting CheatRunner through elfldr…';
+      const send = await fetch('/api/send?name=CheatRunner.elf', {
+        method: 'POST', headers: { 'X-PSNHUB-Request': '1' }
+      });
+      if (!send.ok) throw new Error('Payload send failed: ' + await send.text());
+      status.textContent = 'Waiting for CheatRunner to start…';
+      const deadline = Date.now() + 25000;
+      let online = false;
+      while (Date.now() < deadline) {
+        if (await runnerIsOnline()) { online = true; break; }
+        await new Promise(resolve => setTimeout(resolve, 900));
+      }
+      showTrainer(online
+        ? 'CheatRunner is running. Choose your game, then enable the cheats you want.'
+        : 'CheatRunner was sent. The trainer has not answered yet; wait a moment or use Open trainer in a new tab.');
+    } catch (error) {
+      status.textContent = 'Could not start CheatRunner: ' + error.message;
+    } finally {
+      start.disabled = false;
+    }
+  });
+})();
