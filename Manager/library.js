@@ -1155,139 +1155,254 @@
 })();
 
 
-/* PSN-HUB integration: launch the unmodified CheatRunner ELF and show its own
- * trainer UI inside CHEATS. CheatRunner remains a separate process on port 9999. */
+/* PSNHUB-Cheats: PSN-HUB-branded controls for the CheatRunner engine.
+ * CheatRunner stays an unmodified, credited payload on its own HTTP API. */
 (() => {
   const panel = document.getElementById('panel-cheats');
-  if (!panel || document.getElementById('cheatrunner-launch')) return;
+  if (!panel || document.getElementById('psnhub-cheats')) return;
 
   const style = document.createElement('style');
-  style.textContent = '#cheatrunner-frame{display:block;width:100%;height:min(78vh,900px);min-height:560px;border:1px solid var(--line);border-radius:12px;background:#fff}@media(max-width:680px){#cheatrunner-frame{height:72vh;min-height:460px}}';
+  style.textContent = [
+    '#psnhub-cheats .cheat-item{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px;margin:10px 0;border:1px solid var(--line);border-radius:10px;background:rgba(8,0,18,.48)}',
+    '#psnhub-cheats .cheat-copy{min-width:0;flex:1}',
+    '#psnhub-cheats .cheat-copy strong{display:block;margin-bottom:4px}',
+    '#psnhub-cheats .cheat-copy p{margin:4px 0}',
+    '#psnhub-cheats .cheat-meta{color:var(--yellow);font-size:.9rem}',
+    '#psnhub-cheats .cheat-toggle{min-width:112px}',
+    '#psnhub-cheats .cheat-warning{color:var(--yellow)}',
+    '@media(max-width:620px){#psnhub-cheats .cheat-item{flex-direction:column}#psnhub-cheats .cheat-toggle{width:100%}}'
+  ].join('');
   document.head.append(style);
 
   const card = document.createElement('section');
   card.className = 'card';
-  card.id = 'cheatrunner-launch';
+  card.id = 'psnhub-cheats';
   const title = document.createElement('h2');
-  title.textContent = 'Activate cheats with CheatRunner';
+  title.textContent = 'PSNHUB-Cheats';
   const intro = document.createElement('p');
   intro.className = 'hint';
-  intro.textContent = 'Start the included CheatRunner payload, then use its game trainer here to turn compatible cheats on or off. It can read the cheat files PSN-HUB installs under /data/etaHEN/cheats.';
+  intro.textContent = 'Activate compatible cheats for the game currently running on your PS5.';
   const row = document.createElement('div');
   row.className = 'row';
   const start = document.createElement('button');
   start.type = 'button';
-  start.textContent = 'START TRAINER';
-  const openLink = document.createElement('a');
-  openLink.href = '#';
-  openLink.target = '_blank';
-  openLink.rel = 'noopener';
-  openLink.className = 'badge good';
-  openLink.textContent = 'Open trainer in a new tab';
-  openLink.hidden = true;
-  const hide = document.createElement('button');
-  hide.type = 'button';
-  hide.className = 'secondary';
-  hide.textContent = 'Hide trainer';
-  hide.hidden = true;
+  start.textContent = 'START PSNHUB-CHEATS';
+  const refreshButton = document.createElement('button');
+  refreshButton.type = 'button';
+  refreshButton.className = 'secondary';
+  refreshButton.textContent = 'REFRESH GAME';
+  refreshButton.disabled = true;
+  const disableAll = document.createElement('button');
+  disableAll.type = 'button';
+  disableAll.className = 'secondary';
+  disableAll.textContent = 'DISABLE ALL';
+  disableAll.hidden = true;
   const status = document.createElement('p');
   status.className = 'hint';
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
-  status.textContent = 'CheatRunner is not started.';
-  const frameWrap = document.createElement('div');
-  frameWrap.hidden = true;
-  frameWrap.style.marginTop = '14px';
-  const frame = document.createElement('iframe');
-  frame.id = 'cheatrunner-frame';
-  frame.title = 'CheatRunner game trainer';
-  frame.loading = 'lazy';
-  frame.referrerPolicy = 'no-referrer';
-  frameWrap.append(frame);
+  status.textContent = 'PSNHUB-Cheats is stopped. Start it, then launch a supported game.';
+  const gameHeading = document.createElement('h3');
+  gameHeading.hidden = true;
+  const warning = document.createElement('p');
+  warning.className = 'hint cheat-warning';
+  warning.hidden = true;
+  const list = document.createElement('div');
+  list.className = 'list';
   const credit = document.createElement('p');
   credit.className = 'hint';
-  credit.append(document.createTextNode('CheatRunner v0.17.1 by notmaj0r (GPL-3.0). The trainer runs as a separate payload; this panel displays its original interface. '));
+  credit.append(document.createTextNode('Cheat engine: CheatRunner v0.17.1 by notmaj0r (GPL-3.0). PSNHUB-Cheats provides the PSN-HUB interface; the engine payload is unmodified. '));
   const creditLink = document.createElement('a');
   creditLink.href = 'https://github.com/notmaj0r/CheatRunner';
   creditLink.target = '_blank';
   creditLink.rel = 'noopener';
-  creditLink.textContent = 'Project and source';
+  creditLink.textContent = 'Source and credits';
   credit.append(creditLink);
-  row.append(start, openLink, hide);
-  card.append(title, intro, row, status, frameWrap, credit);
+  row.append(start, refreshButton, disableAll);
+  card.append(title, intro, row, status, gameHeading, warning, list, credit);
   panel.append(card);
 
-  const trainerUrl = new URL(window.location.href);
-  trainerUrl.protocol = 'http:';
-  trainerUrl.port = '9999';
-  trainerUrl.pathname = '/';
-  trainerUrl.search = '';
-  trainerUrl.hash = '';
-  openLink.href = trainerUrl.href;
+  const runnerUrl = new URL(window.location.href);
+  runnerUrl.protocol = 'http:';
+  runnerUrl.port = '9999';
+  runnerUrl.pathname = '/';
+  runnerUrl.search = '';
+  runnerUrl.hash = '';
+  const apiUrl = path => new URL(path, runnerUrl).href;
+  let busy = false;
+  let currentTitleId = '';
 
-  async function runnerIsOnline() {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 1200);
-    try {
-      await fetch(trainerUrl.href, { mode: 'no-cors', cache: 'no-store', signal: controller.signal });
-      return true;
-    } catch (_) {
-      return false;
-    } finally {
-      clearTimeout(timer);
+  function setStatus(message) { status.textContent = message; }
+  async function api(path, options) {
+    const response = await fetch(apiUrl(path), Object.assign({cache:'no-store', mode:'cors'}, options || {}));
+    let data = {};
+    try { data = await response.json(); } catch (_) {}
+    if (!response.ok || data.ok === false) {
+      throw new Error(data.message || data.error || ('Cheat engine returned HTTP ' + response.status));
     }
+    return data;
   }
-  function showTrainer(message) {
-    frameWrap.hidden = false;
-    openLink.hidden = false;
-    hide.hidden = false;
-    if (frame.src !== trainerUrl.href) frame.src = trainerUrl.href;
-    status.textContent = message;
-  }
-  frame.addEventListener('load', () => {
-    if (!frameWrap.hidden) status.textContent = 'Trainer page opened. Choose a game, then turn compatible cheats on or off.';
-  });
-  hide.addEventListener('click', () => { frameWrap.hidden = true; });
-  start.addEventListener('click', async () => {
-    start.disabled = true;
+  async function runnerIsOnline() {
     try {
-      if (await runnerIsOnline()) {
-        showTrainer('CheatRunner is already running on this PS5. Use the trainer below.');
+      const health = await api('/api/health');
+      return health.ok !== false;
+    } catch (_) { return false; }
+  }
+  function addWarning(message) {
+    warning.textContent = message || '';
+    warning.hidden = !message;
+  }
+  function renderMods(cheatData, stateData, running) {
+    list.replaceChildren();
+    const mods = Array.isArray(cheatData.mods) ? cheatData.mods : [];
+    const states = Array.isArray(stateData.mods) ? stateData.mods : [];
+    if (!mods.length) {
+      setStatus('No compatible cheat entries were found for this game.');
+      return;
+    }
+    setStatus(mods.length + ' cheat option(s) found. Select an option to activate it.');
+    disableAll.hidden = false;
+    mods.forEach((mod, index) => {
+      const stateMod = states.find(item => Number(item.index) === index) || states[index] || {};
+      const item = document.createElement('article');
+      item.className = 'cheat-item';
+      const copy = document.createElement('div');
+      copy.className = 'cheat-copy';
+      const name = document.createElement('strong');
+      name.textContent = mod.name || ('Cheat ' + (index + 1));
+      copy.append(name);
+      const descriptionText = mod.description || mod.hint || mod.comment || '';
+      if (descriptionText) {
+        const description = document.createElement('p');
+        description.className = 'hint';
+        description.textContent = descriptionText;
+        copy.append(description);
+      }
+      const stateText = document.createElement('p');
+      stateText.className = 'cheat-meta';
+      stateText.textContent = stateMod.label || stateMod.visualState || stateMod.state || 'State unavailable';
+      if (stateMod.reason || stateMod.blockReason) {
+        stateText.textContent += ' · ' + (stateMod.reason || stateMod.blockReason);
+      }
+      copy.append(stateText);
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      const isOn = stateMod.visualState === 'on' || stateMod.state === 'on' || stateMod.label === 'ON';
+      toggle.textContent = isOn ? 'TURN OFF' : 'TURN ON';
+      toggle.className = isOn ? 'secondary cheat-toggle' : 'cheat-toggle';
+      toggle.disabled = busy || !running || stateMod.canToggle === false || (!stateMod.canToggle && stateMod.canEnable !== true && stateMod.canDisable !== true);
+      toggle.title = toggle.disabled && (stateMod.reason || stateMod.blockReason) ? (stateMod.reason || stateMod.blockReason) : '';
+      toggle.addEventListener('click', async () => {
+        if (!currentTitleId || busy) return;
+        busy = true;
+        toggle.disabled = true;
+        setStatus((isOn ? 'Turning off ' : 'Turning on ') + (mod.name || 'cheat') + '…');
+        let changed = false;
+        try {
+          await api('/api/cheats/toggle?titleId=' + encodeURIComponent(currentTitleId) + '&index=' + index + '&on=' + (isOn ? '0' : '1'), {method:'POST'});
+          changed = true;
+        } catch (error) {
+          setStatus('Could not change cheat: ' + error.message);
+        } finally { busy = false; }
+        if (changed) await refreshGame();
+      });
+      item.append(copy, toggle);
+      list.append(item);
+    });
+  }
+  async function refreshGame() {
+    if (busy) return;
+    refreshButton.disabled = true;
+    try {
+      if (!await runnerIsOnline()) {
+        currentTitleId = '';
+        refreshButton.disabled = true;
+        disableAll.hidden = true;
+        gameHeading.hidden = true;
+        list.replaceChildren();
+        setStatus('PSNHUB-Cheats is not responding yet. Start the payload and try again.');
         return;
       }
-      status.textContent = 'Downloading the included CheatRunner v0.17.1 ELF…';
-      const source = 'https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/releases/legacy-payloads/CheatRunner_v0.17.1.elf';
-      const download = await fetch(source, { cache: 'no-store' });
-      if (!download.ok) throw new Error('ELF download failed (HTTP ' + download.status + ').');
-      const file = await download.blob();
-      const magic = new Uint8Array(await file.slice(0, 4).arrayBuffer());
-      if (file.size < 1024 * 1024 || magic.length !== 4 || magic[0] !== 0x7f || magic[1] !== 0x45 || magic[2] !== 0x4c || magic[3] !== 0x46) {
-        throw new Error('The downloaded CheatRunner file did not pass the ELF check.');
+      refreshButton.disabled = false;
+      const running = await api('/api/running');
+      if (!running.running || !running.titleId) {
+        currentTitleId = '';
+        disableAll.hidden = true;
+        gameHeading.hidden = true;
+        list.replaceChildren();
+        setStatus('No game is running. Launch a supported game, then choose REFRESH GAME.');
+        return;
       }
-      status.textContent = 'Saving CheatRunner to PS5 storage…';
-      const upload = await fetch('/api/upload?name=CheatRunner.elf', {
-        method: 'PUT', headers: { 'X-PSNHUB-Request': '1' }, body: file
-      });
-      if (!upload.ok) throw new Error('PS5 upload failed: ' + await upload.text());
-      status.textContent = 'Starting CheatRunner through elfldr…';
-      const send = await fetch('/api/send?name=CheatRunner.elf', {
-        method: 'POST', headers: { 'X-PSNHUB-Request': '1' }
-      });
-      if (!send.ok) throw new Error('Payload send failed: ' + await send.text());
-      status.textContent = 'Waiting for CheatRunner to start…';
-      const deadline = Date.now() + 25000;
-      let online = false;
-      while (Date.now() < deadline) {
-        if (await runnerIsOnline()) { online = true; break; }
-        await new Promise(resolve => setTimeout(resolve, 900));
-      }
-      showTrainer(online
-        ? 'CheatRunner is running. Choose your game, then enable the cheats you want.'
-        : 'CheatRunner was sent. The trainer has not answered yet; wait a moment or use Open trainer in a new tab.');
+      currentTitleId = running.titleId;
+      gameHeading.hidden = false;
+      gameHeading.textContent = (running.titleName || 'Running game') + ' · ' + running.titleId;
+      const query = '?titleId=' + encodeURIComponent(currentTitleId);
+      const [cheatData, stateData] = await Promise.all([
+        api('/api/cheats' + query),
+        api('/api/cheats/state' + query)
+      ]);
+      const versionMatches = stateData.versionMatch;
+      addWarning(versionMatches === false
+        ? 'Version mismatch: the selected cheat file is for ' + (stateData.selectedCheatVersion || 'another version') + ', while the game reports ' + (stateData.detectedVersion || running.contentVersion || 'an unknown version') + '. Activation is blocked when the engine detects an unsafe mismatch.'
+        : stateData.hasLegacyUnverified
+          ? 'Some entries use legacy cheat data without verified original bytes. Only enable cheats you understand; use at your own risk.'
+          : '');
+      renderMods(cheatData, stateData, true);
     } catch (error) {
-      status.textContent = 'Could not start CheatRunner: ' + error.message;
-    } finally {
-      start.disabled = false;
-    }
+      list.replaceChildren();
+      disableAll.hidden = true;
+      setStatus('Could not load this game’s cheats: ' + error.message);
+    } finally { refreshButton.disabled = !(await runnerIsOnline()); }
+  }
+  refreshButton.addEventListener('click', refreshGame);
+  disableAll.addEventListener('click', async () => {
+    if (!currentTitleId || busy) return;
+    busy = true;
+    disableAll.disabled = true;
+    setStatus('Disabling active cheats…');
+    let changed = false;
+    try {
+      await api('/api/cheats/disable-all?titleId=' + encodeURIComponent(currentTitleId));
+      changed = true;
+    } catch (error) {
+      setStatus('Could not disable cheats: ' + error.message);
+    } finally { busy = false; disableAll.disabled = false; }
+    if (changed) await refreshGame();
   });
+  start.addEventListener('click', async () => {
+    start.disabled = true;
+    setStatus('Checking PSNHUB-Cheats…');
+    try {
+      if (!await runnerIsOnline()) {
+        setStatus('Downloading PSNHUB-Cheats engine…');
+        const source = 'https://raw.githubusercontent.com/ItssJustAaron/PSN-HUB2/main/releases/legacy-payloads/CheatRunner_v0.17.1.elf';
+        const download = await fetch(source, {cache:'no-store'});
+        if (!download.ok) throw new Error('Engine download failed (HTTP ' + download.status + ').');
+        const file = await download.blob();
+        const magic = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+        if (file.size < 1024 * 1024 || magic.length !== 4 || magic[0] !== 0x7f || magic[1] !== 0x45 || magic[2] !== 0x4c || magic[3] !== 0x46) {
+          throw new Error('The downloaded engine file did not pass the ELF check.');
+        }
+        setStatus('Saving PSNHUB-Cheats engine to PS5 storage…');
+        const upload = await fetch('/api/upload?name=PSNHUB-Cheats.elf', {
+          method:'PUT', headers:{'X-PSNHUB-Request':'1'}, body:file
+        });
+        if (!upload.ok) throw new Error('PS5 upload failed: ' + await upload.text());
+        setStatus('Starting PSNHUB-Cheats through elfldr…');
+        const send = await fetch('/api/send?name=PSNHUB-Cheats.elf', {
+          method:'POST', headers:{'X-PSNHUB-Request':'1'}
+        });
+        if (!send.ok) throw new Error('Payload send failed: ' + await send.text());
+        setStatus('Waiting for PSNHUB-Cheats to start…');
+        const deadline = Date.now() + 25000;
+        while (Date.now() < deadline && !await runnerIsOnline()) {
+          await new Promise(resolve => setTimeout(resolve, 900));
+        }
+      }
+      await refreshGame();
+    } catch (error) {
+      setStatus('Could not start PSNHUB-Cheats: ' + error.message);
+    } finally { start.disabled = false; }
+  });
+  if (runnerIsOnline()) refreshButton.disabled = false;
 })();

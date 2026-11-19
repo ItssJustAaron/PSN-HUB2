@@ -48,7 +48,7 @@ Each HEN, mod menu, and emulator has its own requirements. Manager hides known i
 
 Choose the active HEN and confirm the destination before installing cheats. The unified Manager supports `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`, with files grouped by format. It also provides installed-file inventory and cheat backup and restore. Console profiles and display preferences are stored in the browser.
 
-To activate cheats, open **CHEATS → START TRAINER**. PSN-HUB sends the bundled CheatRunner v0.17.1 payload to elfldr and embeds its trainer interface from the PS5 on port `9999`. CheatRunner can read the files installed to `/data/etaHEN/cheats`; select the correct game and version, then enable or disable supported cheats in its trainer. Installing files by itself does not activate them. CheatRunner is an unmodified third-party payload by notmaj0r under GPL-3.0; see the [source and license notice](docs/third-party-licenses/CheatRunner-v0.17.1-NOTICE.md).
+To activate cheats, open **CHEATS → START PSNHUB-CHEATS**. PSN-HUB sends the bundled CheatRunner v0.17.1 engine payload to elfldr, then presents PSNHUB-Cheats controls in the Manager. The controls detect the running game, show its supported cheat options and status, and let you turn options on or off through CheatRunner's local API on port `9999`. Install compatible cheat files under `/data/etaHEN/cheats` first. Use files matching the running title and game version; cheat activation can affect game stability and save data. CheatRunner's engine is unmodified third-party software by notmaj0r under GPL-3.0; see the [source and license notice](docs/third-party-licenses/CheatRunner-v0.17.1-NOTICE.md).
 
 ### Saves and USB backups
 

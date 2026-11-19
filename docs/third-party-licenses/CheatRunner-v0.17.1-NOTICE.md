@@ -1,7 +1,7 @@
 CheatRunner v0.17.1 third-party notice
 =======================================
 
-The unmodified CheatRunner ELF used by the PSN-HUB CHEATS tab is
+The unmodified CheatRunner ELF used as the engine for PSNHUB-Cheats is
 `releases/legacy-payloads/CheatRunner_v0.17.1.elf`.
 
 Copyright and original work: notmaj0r.
@@ -10,6 +10,7 @@ Upstream project and corresponding source: https://github.com/notmaj0r/CheatRunn
 Upstream release: https://github.com/notmaj0r/CheatRunner/releases/tag/v0.17.1
 License text is included in this folder as `CheatRunner-GPL-3.0.txt`.
 
-PSN-HUB does not include or modify CheatRunner's trainer source. The CHEATS tab
-downloads the existing ELF and sends it to elfldr, then displays CheatRunner's
-own HTTP trainer interface from the PS5. The PSN-HUB integration code is separate.
+PSNHUB-Cheats is the PSN-HUB interface in `Manager/library.js). It calls
+CheatRunner's local HTTP API exposed by the ELF on port 9999. The CheatRunner
+ELF and its trainer source are unmodified; PSN-HUB does not redistribute a
+modified CheatRunner build. All original engine credit and GPL-3.0 terms apply.
