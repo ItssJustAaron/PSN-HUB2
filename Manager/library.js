@@ -1287,7 +1287,7 @@
       copy.append(stateText);
       const toggle = document.createElement('button');
       toggle.type = 'button';
-      const isOn = stateMod.visualState === 'on' || stateMod.state === 'on' || stateMod.label === 'ON';
+      const isOn = stateMod.visualState === 'on' || stateMod.visualState === 'mixed' || stateMod.state === 'on' || stateMod.label === 'ON';
       toggle.textContent = isOn ? 'TURN OFF' : 'TURN ON';
       toggle.className = isOn ? 'secondary cheat-toggle' : 'cheat-toggle';
       toggle.disabled = busy || !running || stateMod.canToggle === false || (!stateMod.canToggle && stateMod.canEnable !== true && stateMod.canDisable !== true);
@@ -1404,5 +1404,5 @@
       setStatus('Could not start PSNHUB-Cheats: ' + error.message);
     } finally { start.disabled = false; }
   });
-  if (runnerIsOnline()) refreshButton.disabled = false;
+  refreshButton.disabled = false;
 })();
