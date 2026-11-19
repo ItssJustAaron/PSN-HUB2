@@ -1,14 +1,14 @@
 {
-  "buildId": "044de7c929f7",
+  "buildId": "84d585c0750f",
   "uiRelease": "2026.11.08.9",
-  "uiSha256": "c72a595673333eccb48b18089b22c23c50189c481d876b4b71e5fd256c3fe3d0",
+  "uiSha256": "e97d0a96156ebca34d257a5a018b92a5b1211893043609f06fa886a2cfd65b7e",
   "cssSha256": "a20ccbe6cc228330788e8cf110e497140748144b5f2d04ca148c453c3205af32",
   "saveToolsSha256": "a3bdd4a03bc7e7f0fa20b992baf7459423a24b9a9d0c33dbf6c12b8d62190e39",
   "zipLibrarySha256": "c3b34f2e9f5e74d4d7d64e01cac7a0c01954c6c406414d42185c7b53d6875ddf",
   "catalogueVersion": "7ec73d6af710",
   "catalogueUpdatedAt": "2026-11-13T22:24:37+00:00",
   "communitySavesSha256": "c3e4762cac53f276a5ebccb1dc272b5ea7fb28a739ad8b047774134bea1695c9",
-  "elfSha256": "761849879827ce9bc191b2d91cedacdde4f15d8e10fd5c356b2c41513e513025",
+  "elfSha256": "70f48ee26a28bddd4ab06eaa05a6db26f0f69b8670a662891c8ccea9d4eb7f1c",
   "elfBytes": 6323768,
   "nativeVersion": "0.4.1",
   "engine": "unified"
