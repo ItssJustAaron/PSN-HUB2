@@ -38,7 +38,7 @@ Each HEN, mod menu, and emulator has its own requirements. Manager hides known i
 | Tab | Features |
 | --- | --- |
 | **Payloads** | Upload your own `.elf` or `.bin` files, browse payloads stored on your PS5, send them to elfldr, and run saved groups with a delay between sends. |
-| **Cheats** | Search PS4 and PS5 cheats by game, title ID, version, format, or creator. Install individual files or versions, or use **Download All** for the full catalogue. |
+| **Cheats** | Search PS4 and PS5 cheats by game, title ID, version, format, or creator. Install individual files or versions, use **Download All**, and start CheatRunner to toggle supported cheats. |
 | **HENs** | Review and send cragson PS5-HEN, etaHEN, and onionHEN. |
 | **Mod Menus** | View game and version requirements for mod menus, including RaringM's GTA V Story Mode menu. |
 | **Emulators** | View prerequisites and send the PS5SX2 installer. |
@@ -47,6 +47,8 @@ Each HEN, mod menu, and emulator has its own requirements. Manager hides known i
 | **Community Saves** | Submit an encrypted save with a required description or prepare an approved save for installation. A library operator must configure the backend. |
 
 Choose the active HEN and confirm the destination before installing cheats. The unified Manager supports `/data/etaHEN/cheats` and `/data/OnionHEN/cheats`, with files grouped by format. It also provides installed-file inventory and cheat backup and restore. Console profiles and display preferences are stored in the browser.
+
+To activate cheats, open **CHEATS → START TRAINER**. PSN-HUB sends the bundled CheatRunner v0.17.1 payload to elfldr and embeds its trainer interface from the PS5 on port `9999`. CheatRunner can read the files installed to `/data/etaHEN/cheats`; select the correct game and version, then enable or disable supported cheats in its trainer. Installing files by itself does not activate them. CheatRunner is an unmodified third-party payload by notmaj0r under GPL-3.0; see the [source and license notice](docs/third-party-licenses/CheatRunner-v0.17.1-NOTICE.md).
 
 ### Saves and USB backups
 
